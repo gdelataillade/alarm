@@ -8,8 +8,10 @@ environment:
   flutter: ">=2.5.0"
 
 dependencies:
+  android_alarm_manager_plus: ^2.1.0
   flutter:
     sdk: flutter
+  just_audio: ^0.9.30
   plugin_platform_interface: ^2.0.2
 
 dev_dependencies:

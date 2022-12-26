@@ -45,8 +45,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         } else {
         result(Bool(false))
       }
-      } else if call.method == "getPlatformVersion" {
-        result("iOS " + UIDevice.current.systemVersion)
       } else {
         DispatchQueue.main.sync {
           result(FlutterMethodNotImplemented)
