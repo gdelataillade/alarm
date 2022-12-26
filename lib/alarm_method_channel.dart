@@ -12,6 +12,8 @@ class MethodChannelAlarm extends AlarmPlatform {
   @override
   Future<bool> setAlarm(DateTime alarmDateTime, String assetAudio) async {
     final delay = alarmDateTime.difference(DateTime.now());
+    print("[Alarm] alarm will ring in ${delay.inMinutes} minutes");
+
     final res = await methodChannel.invokeMethod<bool>(
           'setAlarm',
           {

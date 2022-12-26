@@ -30,20 +30,20 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         do {
           self.audioPlayer = try AVAudioPlayer(contentsOf: url)
         } catch {
-          result(String("couldn't load audio file"))
+          result(Bool(false))
         }
 
         let currentTime = self.audioPlayer!.deviceCurrentTime
         let time = currentTime + delayInSeconds
         let res = self.audioPlayer!.play(atTime: time)
 
-        result(String("end"))
+        result(Bool(true))
       } else if call.method == "stopAlarm" {
         if self.audioPlayer != nil {
           self.audioPlayer!.stop()
           result(Bool(true))
         } else {
-        result(String(false))
+        result(Bool(false))
       }
       } else if call.method == "getPlatformVersion" {
         result("iOS " + UIDevice.current.systemVersion)
