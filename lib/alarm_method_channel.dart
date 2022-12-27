@@ -15,11 +15,20 @@ class MethodChannelAlarm extends AlarmPlatform {
   @override
   Future<bool> setAlarm(
     DateTime dateTime,
+    void Function()? onRing,
     String assetAudio,
     String? notifTitle,
     String? notifBody,
   ) async {
     final delay = dateTime.difference(DateTime.now());
+
+    if (notifTitle != null && notifBody != null) {
+      Notification.instance.scheduleIOSAlarmNotif(
+        dateTime: dateTime,
+        title: notifTitle,
+        body: notifBody,
+      );
+    }
 
     final res = await methodChannel.invokeMethod<bool?>(
           'setAlarm',
@@ -30,15 +39,9 @@ class MethodChannelAlarm extends AlarmPlatform {
         ) ??
         false;
 
-    if (res && notifTitle != null && notifBody != null) {
-      Notification.instance.scheduleIOSAlarmNotif(
-        dateTime: dateTime,
-        title: notifTitle,
-        body: notifBody,
-      );
-    }
+    onRing?.call();
+    print("[Alarm] ring");
 
-    print("[Alarm] setAlarm returned: $res");
     return res;
   }
 

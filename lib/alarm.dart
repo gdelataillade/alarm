@@ -30,6 +30,7 @@ class Alarm {
     if (iOS) {
       return platform.setAlarm(
         alarmDateTime,
+        onRing,
         assetAudio ?? defaultAlarmAudio,
         notifTitle,
         notifBody,

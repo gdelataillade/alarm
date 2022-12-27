@@ -9,7 +9,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     registrar.addMethodCallDelegate(instance, channel: channel)
   }
 
-  public var audioPlayer: AVAudioPlayer?
+  public var audioPlayer: AVAudioPlayer!
 
   private func setUpAudio() {
     try! AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
@@ -37,20 +37,22 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         do {
           self.audioPlayer = try AVAudioPlayer(contentsOf: url)
         } catch {
-          result(Bool(false))
+          result(false)
         }
 
-        let currentTime = self.audioPlayer!.deviceCurrentTime
-        let time = currentTime + delayInSeconds
-        let res = self.audioPlayer!.play(atTime: time)
+        self.audioPlayer.prepareToPlay()
 
-        result(Bool(true))
+        // Schedule the audio to play after the specified delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + delayInSeconds) {
+          self.audioPlayer.play()
+          result(true)
+        }
       } else if call.method == "stopAlarm" {
         if self.audioPlayer != nil {
-          self.audioPlayer!.stop()
-          result(Bool(true))
+          self.audioPlayer.stop()
+          result(true)
         } else {
-          result(Bool(false))
+          result(false)
         }
       } else {
         DispatchQueue.main.sync {

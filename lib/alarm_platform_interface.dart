@@ -25,6 +25,7 @@ abstract class AlarmPlatform extends PlatformInterface {
 
   Future<bool> setAlarm(
     DateTime dateTime,
+    void Function()? onRing,
     String assetAudio,
     String? notifTitle,
     String? notifBody,
