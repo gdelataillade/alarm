@@ -11,8 +11,10 @@ dependencies:
   android_alarm_manager_plus: ^2.1.0
   flutter:
     sdk: flutter
+  flutter_local_notifications: ^13.0.0
   just_audio: ^0.9.30
   plugin_platform_interface: ^2.0.2
+  timezone: ^0.9.0
 
 dev_dependencies:
   flutter_test:

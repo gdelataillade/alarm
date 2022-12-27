@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:alarm/alarm_platform_interface.dart';
 import 'package:alarm/android_alarm.dart';
+import 'package:alarm/notification.dart';
 
 class Alarm {
   static AlarmPlatform get platform => AlarmPlatform.instance;
@@ -10,16 +11,20 @@ class Alarm {
   static bool get iOS => Platform.isIOS;
 
   /// Initialize Alarm service
-  ///
-  /// Not necessary if app is iOS only
   static Future<void> init() async {
     if (!iOS) await AndroidAlarm.init();
+    await Notification.instance.init();
   }
 
   /// Schedule alarm for [alarmDateTime]
+  ///
+  /// If you want to show a notification when alarm is triggered,
+  /// [notifTitle] and [notifBody] must be defined
   static Future<bool> set({
     required DateTime alarmDateTime,
     String? assetAudio,
+    String? notifTitle,
+    String? notifBody,
   }) async {
     if (iOS) {
       return platform.setAlarm(alarmDateTime, assetAudio ?? defaultAlarmAudio);
@@ -28,6 +33,8 @@ class Alarm {
     return await AndroidAlarm.set(
       alarmDateTime,
       assetAudio ?? defaultAlarmAudio,
+      notifTitle,
+      notifBody,
     );
   }
 

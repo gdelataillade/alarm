@@ -3,6 +3,7 @@
 import 'dart:isolate';
 import 'dart:ui';
 
+import 'package:alarm/notification.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:just_audio/just_audio.dart';
 
@@ -13,7 +14,12 @@ class AndroidAlarm {
 
   static Future<void> init() => AndroidAlarmManager.initialize();
 
-  static Future<bool> set(DateTime alarmDateTime, String assetAudioPath) async {
+  static Future<bool> set(
+    DateTime alarmDateTime,
+    String assetAudioPath,
+    String? notifTitle,
+    String? notifBody,
+  ) async {
     try {
       final ReceivePort port = ReceivePort();
       final success =
@@ -42,31 +48,11 @@ class AndroidAlarm {
       rescheduleOnReboot: true,
       params: {
         "assetAudioPath": assetAudioPath,
+        "notifTitle": notifTitle,
+        "notifBody": notifBody,
       },
     );
-
     return res;
-  }
-
-  static Future<bool> stop() async {
-    try {
-      final SendPort send = IsolateNameServer.lookupPortByName(stopPort)!;
-      print("[AndroidAlarm] (main) send stop to isolate");
-      send.send('stop');
-    } catch (e) {
-      print("[AndroidAlarm] (main) SendPort error: $e");
-    }
-
-    final res = await AndroidAlarmManager.cancel(alarmId);
-    // Storage.setAppLocalData("androidAlarm", false);
-
-    return res;
-  }
-
-  static Future<bool> snooze() async => false;
-
-  static Future<void> ring() async {
-    print("[Alarm] ring callback");
   }
 
   @pragma('vm:entry-point')
@@ -88,7 +74,12 @@ class AndroidAlarm {
       send.send('[Alarm] AudioPlayer error: $e');
     }
 
-    // await notifLct.androidAlarmNotif(alarmId);
+    final notifTitle = data["notifTitle"];
+    final notifBody = data["notifBody"];
+    if (notifTitle != null && notifBody != null) {
+      await Notification.instance
+          .androidAlarmNotif(title: "title", body: "body");
+    }
 
     try {
       final ReceivePort port = ReceivePort();
@@ -113,5 +104,26 @@ class AndroidAlarm {
     } catch (e) {
       send.send("[AndroidAlarm] (isolate) ReceivePort error: $e");
     }
+  }
+
+  static Future<bool> stop() async {
+    try {
+      final SendPort send = IsolateNameServer.lookupPortByName(stopPort)!;
+      print("[AndroidAlarm] (main) send stop to isolate");
+      send.send('stop');
+    } catch (e) {
+      print("[AndroidAlarm] (main) SendPort error: $e");
+    }
+
+    final res = await AndroidAlarmManager.cancel(alarmId);
+    // Storage.setAppLocalData("androidAlarm", false);
+
+    return res;
+  }
+
+  static Future<bool> snooze() async => false;
+
+  static Future<void> ring() async {
+    print("[Alarm] ring callback");
   }
 }
