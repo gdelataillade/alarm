@@ -24,6 +24,7 @@ class _MyAppState extends State<MyApp> {
         minute: TimeOfDay.now().minute + 1,
       ),
       context: context,
+      confirmText: 'SET ALARM',
     );
 
     if (res == null) return;
@@ -55,12 +56,12 @@ class _MyAppState extends State<MyApp> {
     return 'tomorrow';
   }
 
-  Future<void> setAlarm(DateTime dateTime) async {
+  Future<void> setAlarm(DateTime dateTime, [bool enableNotif = true]) async {
     await Alarm.set(
       alarmDateTime: dateTime,
       onRing: () => setState(() => ring = true),
-      notifTitle: showNotif ? 'This is the title' : null,
-      notifBody: showNotif ? 'This is the body' : null,
+      notifTitle: showNotif && enableNotif ? 'This is the title' : null,
+      notifBody: showNotif && enableNotif ? 'This is the body' : null,
     );
   }
 
@@ -99,9 +100,17 @@ class _MyAppState extends State<MyApp> {
               ),
             const SizedBox(height: 50),
             RawMaterialButton(
-              onPressed: () => setAlarm(DateTime.now()),
+              onPressed: () => setAlarm(DateTime.now(), false),
               fillColor: Colors.lightBlueAccent,
               child: const Text('Ring alarm now'),
+            ),
+            RawMaterialButton(
+              onPressed: () => setAlarm(
+                DateTime.now().add(const Duration(seconds: 3)),
+                false,
+              ),
+              fillColor: Colors.lightBlueAccent,
+              child: const Text('Ring alarm in 3 seconds (no notif)'),
             ),
             RawMaterialButton(
               onPressed: () {

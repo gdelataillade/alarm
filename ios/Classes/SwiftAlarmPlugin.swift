@@ -27,10 +27,10 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
         let bundle = Bundle.main
         guard let path = bundle.path(
-            forResource: assetAudio,
-            ofType: nil
+          forResource: assetAudio,
+          ofType: nil
         ) else {
-            fatalError()
+          fatalError()
         }
 
         let url = URL(fileURLWithPath: path)

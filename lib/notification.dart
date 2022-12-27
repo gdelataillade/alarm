@@ -84,8 +84,6 @@ class Notification {
       return;
     }
 
-    print("[Alarm] notif schedule for ${zdt.toString()}");
-
     try {
       await localNotif.zonedSchedule(
         alarmId,
@@ -97,7 +95,7 @@ class Notification {
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
       );
-      print("[Alarm] Notif scheduled successfuly");
+      print("[Alarm] Notif scheduled successfuly at ${zdt.toString()}");
     } catch (e) {
       print("[Alarm] show notif error: $e");
     }
