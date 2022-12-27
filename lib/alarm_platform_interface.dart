@@ -23,7 +23,12 @@ abstract class AlarmPlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<bool> setAlarm(DateTime alarmDateTime, String assetAudio) async {
+  Future<bool> setAlarm(
+    DateTime dateTime,
+    String assetAudio,
+    String? notifTitle,
+    String? notifBody,
+  ) async {
     throw UnimplementedError('setAlarm() has not been implemented.');
   }
 

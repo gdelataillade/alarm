@@ -16,6 +16,7 @@ class AndroidAlarm {
 
   static Future<bool> set(
     DateTime alarmDateTime,
+    void Function()? onRing,
     String assetAudioPath,
     String? notifTitle,
     String? notifBody,
@@ -31,7 +32,7 @@ class AndroidAlarm {
       }
       port.listen((message) {
         print("[Alarm] (main) received: $message");
-        if (message == 'ring') ring();
+        if (message == 'ring') onRing?.call();
       });
     } catch (e) {
       print("[Alarm] (main) ReceivePort error: $e");
@@ -120,8 +121,6 @@ class AndroidAlarm {
 
     return res;
   }
-
-  static Future<bool> snooze() async => false;
 
   static Future<void> ring() async {
     print("[Alarm] ring callback");

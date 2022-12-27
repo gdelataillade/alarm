@@ -14,6 +14,8 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   TimeOfDay? selectedTime;
+  bool showNotif = true;
+  bool ring = false;
 
   Future<void> pickTime() async {
     final res = await showTimePicker(
@@ -38,7 +40,7 @@ class _MyAppState extends State<MyApp> {
 
     if (ringDay() == 'tomorrow') dt = dt.add(const Duration(days: 1));
 
-    Alarm.set(alarmDateTime: dt);
+    setAlarm(dt);
   }
 
   String ringDay() {
@@ -51,6 +53,15 @@ class _MyAppState extends State<MyApp> {
     if (selectedTime!.minute < now.minute) return 'tomorrow';
 
     return 'tomorrow';
+  }
+
+  Future<void> setAlarm(DateTime dateTime) async {
+    await Alarm.set(
+      alarmDateTime: dateTime,
+      onRing: () => setState(() => ring = true),
+      notifTitle: showNotif ? 'This is the title' : null,
+      notifBody: showNotif ? 'This is the body' : null,
+    );
   }
 
   @override
@@ -67,6 +78,16 @@ class _MyAppState extends State<MyApp> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text("Show notification if background"),
+                Switch(
+                  value: showNotif,
+                  onChanged: (value) => setState(() => showNotif = value),
+                ),
+              ],
+            ),
             RawMaterialButton(
               onPressed: pickTime,
               fillColor: Colors.red,
@@ -78,20 +99,35 @@ class _MyAppState extends State<MyApp> {
               ),
             const SizedBox(height: 50),
             RawMaterialButton(
-              onPressed: () => Alarm.set(alarmDateTime: DateTime.now()),
+              onPressed: () => setAlarm(DateTime.now()),
               fillColor: Colors.lightBlueAccent,
               child: const Text('Ring alarm now'),
             ),
             RawMaterialButton(
-              onPressed: () => Alarm.set(
-                alarmDateTime: DateTime.now().add(const Duration(seconds: 3)),
-              ),
+              onPressed: () {
+                DateTime now = DateTime.now();
+                setAlarm(
+                  DateTime(
+                    now.year,
+                    now.month,
+                    now.day,
+                    now.hour,
+                    now.minute,
+                    0,
+                  ).add(const Duration(minutes: 1)),
+                );
+              },
               fillColor: Colors.lightBlueAccent,
-              child: const Text('Ring alarm in 3 seconds'),
+              child: const Text('Ring alarm on next minute'),
             ),
             const SizedBox(height: 50),
+            if (ring) const Text("Ringing..."),
+            const SizedBox(height: 50),
             RawMaterialButton(
-              onPressed: () => Alarm.stop(),
+              onPressed: () async {
+                final stop = await Alarm.stop();
+                if (stop && ring) setState(() => ring = false);
+              },
               fillColor: Colors.red,
               child: const Text('Stop'),
             ),

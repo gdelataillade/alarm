@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -32,7 +34,11 @@ class Notification {
     final result = await localNotif
         .resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin>()
-        ?.requestPermissions();
+        ?.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
 
     return result ?? false;
   }
@@ -61,20 +67,24 @@ class Notification {
     required String title,
     required String body,
   }) async {
-    const iOSPlatformChannelSpecifics = DarwinNotificationDetails();
+    const iOSPlatformChannelSpecifics = DarwinNotificationDetails(
+      presentSound: false,
+      presentAlert: false,
+      presentBadge: false,
+    );
     const platformChannelSpecifics = NotificationDetails(
       iOS: iOSPlatformChannelSpecifics,
     );
 
     final zdt = nextInstanceOfTime(Time(dateTime.hour, dateTime.minute));
 
-    print("[IOSALARM] notif schedule for ${zdt.toString()}");
-
     final hasPermission = await requestPermission();
     if (!hasPermission) {
       print("[Alarm] Notif permission denied");
       return;
     }
+
+    print("[Alarm] notif schedule for ${zdt.toString()}");
 
     try {
       await localNotif.zonedSchedule(
@@ -118,4 +128,6 @@ class Notification {
       platformChannelSpecifics,
     );
   }
+
+  Future<void> cancel() => localNotif.cancel(alarmId);
 }

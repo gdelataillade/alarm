@@ -11,9 +11,16 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
   public var audioPlayer: AVAudioPlayer?
 
+  private func setUpAudio() {
+    try! AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
+    try! AVAudioSession.sharedInstance().setActive(true)
+  }
+
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     DispatchQueue.global(qos: .default).async {
       if call.method == "setAlarm" {
+        self.setUpAudio()
+
         let args = call.arguments as! NSDictionary
         let assetAudio = args["assetAudio"] as! String
         let delayInSeconds = args["delayInSeconds"] as! Double
@@ -43,8 +50,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
           self.audioPlayer!.stop()
           result(Bool(true))
         } else {
-        result(Bool(false))
-      }
+          result(Bool(false))
+        }
       } else {
         DispatchQueue.main.sync {
           result(FlutterMethodNotImplemented)

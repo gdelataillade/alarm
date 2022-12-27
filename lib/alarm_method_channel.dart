@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print
 
+import 'package:alarm/notification.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -12,19 +13,33 @@ class MethodChannelAlarm extends AlarmPlatform {
   final methodChannel = const MethodChannel('com.gdelataillade/alarm');
 
   @override
-  Future<bool> setAlarm(DateTime alarmDateTime, String assetAudio) async {
-    final delay = alarmDateTime.difference(DateTime.now());
+  Future<bool> setAlarm(
+    DateTime dateTime,
+    String assetAudio,
+    String? notifTitle,
+    String? notifBody,
+  ) async {
+    final delay = dateTime.difference(DateTime.now());
 
-    final res = await methodChannel.invokeMethod<bool>(
-      'setAlarm',
-      {
-        "assetAudio": assetAudio,
-        "delayInSeconds": delay.inSeconds.abs().toDouble(),
-      },
-    );
+    final res = await methodChannel.invokeMethod<bool?>(
+          'setAlarm',
+          {
+            "assetAudio": assetAudio,
+            "delayInSeconds": delay.inSeconds.abs().toDouble(),
+          },
+        ) ??
+        false;
+
+    if (res && notifTitle != null && notifBody != null) {
+      Notification.instance.scheduleIOSAlarmNotif(
+        dateTime: dateTime,
+        title: notifTitle,
+        body: notifBody,
+      );
+    }
 
     print("[Alarm] setAlarm returned: $res");
-    return res ?? false;
+    return res;
   }
 
   @override

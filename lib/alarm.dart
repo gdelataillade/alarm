@@ -19,19 +19,26 @@ class Alarm {
   /// Schedule alarm for [alarmDateTime]
   ///
   /// If you want to show a notification when alarm is triggered,
-  /// [notifTitle] and [notifBody] must be defined
+  /// [notifTitle] and [notifBody] must not be null
   static Future<bool> set({
     required DateTime alarmDateTime,
+    void Function()? onRing,
     String? assetAudio,
     String? notifTitle,
     String? notifBody,
   }) async {
     if (iOS) {
-      return platform.setAlarm(alarmDateTime, assetAudio ?? defaultAlarmAudio);
+      return platform.setAlarm(
+        alarmDateTime,
+        assetAudio ?? defaultAlarmAudio,
+        notifTitle,
+        notifBody,
+      );
     }
 
     return await AndroidAlarm.set(
       alarmDateTime,
+      onRing,
       assetAudio ?? defaultAlarmAudio,
       notifTitle,
       notifBody,
@@ -41,19 +48,9 @@ class Alarm {
   /// Stop alarm
   static Future<bool> stop() async {
     if (iOS) {
+      Notification.instance.cancel();
       return await platform.stopAlarm();
     }
     return await AndroidAlarm.stop();
-  }
-
-  /// Snooze alarm
-  static Future<bool> snooze(DateTime alarmDateTime, String? assetAudio) async {
-    if (iOS) {
-      return await platform.setAlarm(
-        alarmDateTime,
-        assetAudio ?? defaultAlarmAudio,
-      );
-    }
-    return await AndroidAlarm.snooze();
   }
 }
