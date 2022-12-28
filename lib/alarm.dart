@@ -6,7 +6,6 @@ import 'package:alarm/notification.dart';
 
 class Alarm {
   static AlarmPlatform get platform => AlarmPlatform.instance;
-  static const String defaultAlarmAudio = 'sample.mp3';
 
   static bool get iOS => Platform.isIOS;
   static bool get android => Platform.isAndroid;
@@ -34,18 +33,18 @@ class Alarm {
   static Future<bool> set({
     required DateTime alarmDateTime,
     void Function()? onRing,
-    String? assetAudio,
-    bool? loopAudio,
+    String assetAudio = 'package:alarm/assets/sample.mp3',
+    bool loopAudio = false,
     String? notifTitle,
     String? notifBody,
   }) async {
     if (iOS) {
-      if (assetAudio != null) assetAudio = assetAudio.split('/').last;
+      assetAudio = assetAudio.split('/').last;
       return platform.setAlarm(
         alarmDateTime,
         onRing,
-        assetAudio ?? defaultAlarmAudio,
-        loopAudio ?? false,
+        assetAudio,
+        loopAudio,
         notifTitle,
         notifBody,
       );
@@ -54,8 +53,8 @@ class Alarm {
     return await AndroidAlarm.set(
       alarmDateTime,
       onRing,
-      assetAudio ?? defaultAlarmAudio,
-      loopAudio ?? false,
+      assetAudio,
+      loopAudio,
       notifTitle,
       notifBody,
     );
