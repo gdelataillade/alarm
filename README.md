@@ -52,9 +52,10 @@ Property |   Type     | Description
 -------- |------------| ---------------
 alarmDateTime |   `DateTime`     | The date and time you want your alarm to ring
 assetAudio |   `String`     | The path to you audio asset you want to use as ringtone.
-onRing | `void Function()` | A callback that will be called at the moment the alarm starts ringing
-notifTitle |   `String`     | (optional) The title of the notification triggered when alarm rings if app is on background
-notifBody | `String` | (optional) The body of the notification
+loopMode |   `bool`     | If set to true, audio will repeat indefinitely until it is stopped.
+onRing | `void Function()` | A callback that will be called at the moment the alarm starts ringing.
+notifTitle |   `String`     | (optional) The title of the notification triggered when alarm rings if app is on background.
+notifBody | `String` | (optional) The body of the notification.
 
 The parameters `notifTitle` and `notifBody` are optional, but if you want a notification to be triggered, you will have to provide **both of them**.
 
@@ -83,6 +84,6 @@ These are some features that I have in mind that could be useful:
 - Optional vibrations when alarm rings
 - [Notification actions](https://pub.dev/packages/flutter_local_notifications#notification-actions): stop and snooze
 - Progressive alarm volume option
-- Loop the alarm sound
+- Callback when alarm stops ringing
 
 Thank you for considering contributing to this package. Your help is greatly appreciated!
