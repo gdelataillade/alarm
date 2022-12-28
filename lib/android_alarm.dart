@@ -68,11 +68,11 @@ class AndroidAlarm {
     try {
       await audioPlayer.setAudioSource(
         AudioSource.uri(
-          Uri.parse("asset:///assets/${data["assetAudio"]}"),
+          Uri.parse("asset:///assets/${data["assetAudioPath"]}"),
         ),
       );
 
-      final loopAudio = data["notifBody"] ?? false;
+      final loopAudio = data["loopAudio"] ?? false;
       if (loopAudio) audioPlayer.setLoopMode(LoopMode.all);
 
       audioPlayer.play();
