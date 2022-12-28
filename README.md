@@ -31,11 +31,15 @@ In order to use custom alarm audios, you will need to drag and drop your asset(s
 
 ### Android installation steps
 
-In your `android/app/build.gradle`, make sure to update your `compileSdkVersion`:
+In your `android/app/build.gradle`, make sure you have the following config:
 ```Gradle
 android {
   compileSdkVersion 33
   [...]
+  defaultConfig {
+    [...]
+    multiDexEnabled true
+  }
 }
 ```
 
@@ -43,11 +47,11 @@ android {
 
 Add to your pubspec.yaml:
 ```
-flutter pub add flutter_fgbg
+flutter pub add alarm
 ```
 
 
-After that, you can start using the package initializing the Alarm service:
+First, you have to initialize the Alarm service:
 ```Dart
 Alarm.initialize();
 ```
