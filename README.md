@@ -21,7 +21,7 @@ Therefore, we decided to write our own package to wrap everything and make it ea
 ### iOS
 `invokeMethod` that plays the alarm audio using `AVAudioPlayer`.
 
-The issue is that asynchronous native code is suspended when app goes on background for a while. The workaround found is to listen to the app state (when app goes background/foreground), and every time app goes foreground, we check natively if the player is playing. If yes, it means alarm is ringing so it's time to trigger the `onRing` callback.
+The issue is that asynchronous native code is suspended when app goes on background for a while. The workaround found is to listen to the app state (when app goes background/foreground), and every time app goes foreground, we check natively if the player is playing. If so, it means alarm is ringing so it's time to trigger the `onRing` callback.
 
 ## Getting Started
 
@@ -64,7 +64,10 @@ This is how to stop/cancel your alarm:
 Alarm.stop()
 ```
 
-**Don't hesitate to check out the example.**
+**Don't hesitate to check out the example's code, here's a screenshot:**
+
+![example_app_screensot](https://user-images.githubusercontent.com/32983806/209820781-bb8d15fa-efc1-4f48-a1d3-bcfcaf9efccf.jpeg)
+
 
 ## Feature request
 
@@ -85,5 +88,8 @@ These are some features that I have in mind that could be useful:
 - [Notification actions](https://pub.dev/packages/flutter_local_notifications#notification-actions): stop and snooze
 - Progressive alarm volume option
 - Callback when alarm stops ringing
+- Add macOS, Windows, Linux and web support
 
 Thank you for considering contributing to this package. Your help is greatly appreciated!
+
+❤️ Let me know if you like the package by liking it on pub.dev and starring the repo on Github 🙂
