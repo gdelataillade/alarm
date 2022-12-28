@@ -1,7 +1,7 @@
 name: alarm
 description: An alarm manager for iOS and Android
 version: 0.0.1
-homepage:
+homepage: https://github.com/gdelataillade/alarm
 
 environment:
   sdk: '>=2.18.5 <3.0.0'
