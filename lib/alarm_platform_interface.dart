@@ -27,6 +27,7 @@ abstract class AlarmPlatform extends PlatformInterface {
     DateTime dateTime,
     void Function()? onRing,
     String assetAudio,
+    bool loopAudio,
     String? notifTitle,
     String? notifBody,
   ) async {
@@ -35,5 +36,9 @@ abstract class AlarmPlatform extends PlatformInterface {
 
   Future<bool> stopAlarm() async {
     throw UnimplementedError('stopAlarm() has not been implemented.');
+  }
+
+  Future<bool> checkIfRinging() async {
+    throw UnimplementedError('checkIfRinging() has not been implemented.');
   }
 }

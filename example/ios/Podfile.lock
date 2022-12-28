@@ -4,6 +4,8 @@ PODS:
   - audio_session (0.0.1):
     - Flutter
   - Flutter (1.0.0)
+  - flutter_fgbg (0.0.1):
+    - Flutter
   - flutter_local_notifications (0.0.1):
     - Flutter
   - just_audio (0.0.1):
@@ -15,6 +17,7 @@ DEPENDENCIES:
   - alarm (from `.symlinks/plugins/alarm/ios`)
   - audio_session (from `.symlinks/plugins/audio_session/ios`)
   - Flutter (from `Flutter`)
+  - flutter_fgbg (from `.symlinks/plugins/flutter_fgbg/ios`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
   - just_audio (from `.symlinks/plugins/just_audio/ios`)
   - path_provider_ios (from `.symlinks/plugins/path_provider_ios/ios`)
@@ -26,6 +29,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/audio_session/ios"
   Flutter:
     :path: Flutter
+  flutter_fgbg:
+    :path: ".symlinks/plugins/flutter_fgbg/ios"
   flutter_local_notifications:
     :path: ".symlinks/plugins/flutter_local_notifications/ios"
   just_audio:
@@ -37,6 +42,7 @@ SPEC CHECKSUMS:
   alarm: 6c1f6a9688f94cd6bf8f104c67cc26e78c9d8d13
   audio_session: 4f3e461722055d21515cf3261b64c973c062f345
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
+  flutter_fgbg: 31c0d1140a131daea2d342121808f6aa0dcd879d
   flutter_local_notifications: 0c0b1ae97e741e1521e4c1629a459d04b9aec743
   just_audio: baa7252489dbcf47a4c7cc9ca663e9661c99aafa
   path_provider_ios: 14f3d2fd28c4fdb42f44e0f751d12861c43cee02

@@ -15,7 +15,8 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   TimeOfDay? selectedTime;
   bool showNotif = true;
-  bool ring = false;
+  bool isRinging = false;
+  bool loopAudio = false;
 
   Future<void> pickTime() async {
     final res = await showTimePicker(
@@ -59,7 +60,13 @@ class _MyAppState extends State<MyApp> {
   Future<void> setAlarm(DateTime dateTime, [bool enableNotif = true]) async {
     await Alarm.set(
       alarmDateTime: dateTime,
-      onRing: () => setState(() => ring = true),
+      loopAudio: loopAudio,
+      onRing: () {
+        setState(() {
+          isRinging = true;
+          selectedTime = null;
+        });
+      },
       notifTitle: showNotif && enableNotif ? 'This is the title' : null,
       notifBody: showNotif && enableNotif ? 'This is the body' : null,
     );
@@ -82,10 +89,20 @@ class _MyAppState extends State<MyApp> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text("Show notification if background"),
+                const Text("Display notification (if backgrounded)"),
                 Switch(
                   value: showNotif,
                   onChanged: (value) => setState(() => showNotif = value),
+                ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text("Loop alarm audio"),
+                Switch(
+                  value: loopAudio,
+                  onChanged: (value) => setState(() => loopAudio = value),
                 ),
               ],
             ),
@@ -130,12 +147,12 @@ class _MyAppState extends State<MyApp> {
               child: const Text('Ring alarm on next minute'),
             ),
             const SizedBox(height: 50),
-            if (ring) const Text("Ringing..."),
+            if (isRinging) const Text("Ringing..."),
             const SizedBox(height: 50),
             RawMaterialButton(
               onPressed: () async {
                 final stop = await Alarm.stop();
-                if (stop && ring) setState(() => ring = false);
+                if (stop && isRinging) setState(() => isRinging = false);
               },
               fillColor: Colors.red,
               child: const Text('Stop'),

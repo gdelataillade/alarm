@@ -18,6 +18,7 @@ class AndroidAlarm {
     DateTime alarmDateTime,
     void Function()? onRing,
     String assetAudioPath,
+    bool loopAudio,
     String? notifTitle,
     String? notifBody,
   ) async {
@@ -49,6 +50,7 @@ class AndroidAlarm {
       rescheduleOnReboot: true,
       params: {
         "assetAudioPath": assetAudioPath,
+        "loopAudio": loopAudio,
         "notifTitle": notifTitle,
         "notifBody": notifBody,
       },
@@ -58,18 +60,22 @@ class AndroidAlarm {
 
   @pragma('vm:entry-point')
   static Future<void> playAlarm(int id, Map<String, dynamic> data) async {
-    final isoAlarm = AudioPlayer();
+    final audioPlayer = AudioPlayer();
     SendPort send = IsolateNameServer.lookupPortByName(ringPort)!;
 
     send.send('ring');
 
     try {
-      await isoAlarm.setAudioSource(
+      await audioPlayer.setAudioSource(
         AudioSource.uri(
           Uri.parse("asset:///assets/${data["assetAudio"]}"),
         ),
       );
-      isoAlarm.play();
+
+      final loopAudio = data["notifBody"] ?? false;
+      if (loopAudio) audioPlayer.setLoopMode(LoopMode.all);
+
+      audioPlayer.play();
       send.send('[Alarm] Alarm playing...');
     } catch (e) {
       send.send('[Alarm] AudioPlayer error: $e');
@@ -96,8 +102,8 @@ class AndroidAlarm {
         (message) async {
           send.send("[AndroidAlarm] (isolate) received: $message");
           if (message == 'stop') {
-            await isoAlarm.stop();
-            await isoAlarm.dispose();
+            await audioPlayer.stop();
+            await audioPlayer.dispose();
             port.close();
           }
         },

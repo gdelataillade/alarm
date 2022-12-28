@@ -24,6 +24,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         let args = call.arguments as! NSDictionary
         let assetAudio = args["assetAudio"] as! String
         let delayInSeconds = args["delayInSeconds"] as! Double
+        let loopAudio = args["loopAudio"] as! Bool
 
         let bundle = Bundle.main
         guard let path = bundle.path(
@@ -40,20 +41,22 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
           result(false)
         }
 
-        self.audioPlayer.prepareToPlay()
+        let currentTime = self.audioPlayer.deviceCurrentTime
+        let time = currentTime + delayInSeconds
 
-        // Schedule the audio to play after the specified delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + delayInSeconds) {
-          self.audioPlayer.play()
-          result(true)
+        if loopAudio {
+          self.audioPlayer.numberOfLoops = -1
         }
+
+        self.audioPlayer.prepareToPlay()
+        self.audioPlayer.play(atTime: time)
+
+        result(true)
       } else if call.method == "stopAlarm" {
-        if self.audioPlayer != nil {
-          self.audioPlayer.stop()
-          result(true)
-        } else {
-          result(false)
-        }
+        self.audioPlayer.stop()
+        result(true)
+      } else if call.method == "audioCurrentTime" {
+        result(Double(self.audioPlayer.currentTime))
       } else {
         DispatchQueue.main.sync {
           result(FlutterMethodNotImplemented)

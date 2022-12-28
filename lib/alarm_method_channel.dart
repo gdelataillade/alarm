@@ -1,8 +1,11 @@
 // ignore_for_file: avoid_print
 
+import 'dart:async';
+
 import 'package:alarm/notification.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_fgbg/flutter_fgbg.dart';
 
 import 'alarm_platform_interface.dart';
 
@@ -12,11 +15,14 @@ class MethodChannelAlarm extends AlarmPlatform {
   @visibleForTesting
   final methodChannel = const MethodChannel('com.gdelataillade/alarm');
 
+  Timer? timer;
+
   @override
   Future<bool> setAlarm(
     DateTime dateTime,
     void Function()? onRing,
     String assetAudio,
+    bool loopAudio,
     String? notifTitle,
     String? notifBody,
   ) async {
@@ -31,24 +37,72 @@ class MethodChannelAlarm extends AlarmPlatform {
     }
 
     final res = await methodChannel.invokeMethod<bool?>(
-          'setAlarm',
-          {
-            "assetAudio": assetAudio,
-            "delayInSeconds": delay.inSeconds.abs().toDouble(),
-          },
-        ) ??
-        false;
+      'setAlarm',
+      {
+        "assetAudio": assetAudio,
+        "delayInSeconds": delay.inSeconds.abs().toDouble(),
+        "loopAudio": loopAudio,
+      },
+    );
 
-    onRing?.call();
-    print("[Alarm] ring");
+    print("[Alarm] setAlarm returned: $res");
 
-    return res;
+    periodicTimer(onRing, dateTime);
+
+    listenAppStateChange(
+      onForeground: () async {
+        final isRinging = await checkIfRinging();
+        if (isRinging) {
+          onRing?.call();
+        } else {
+          periodicTimer(onRing, dateTime);
+        }
+      },
+    );
+
+    return res ?? false;
   }
 
   @override
   Future<bool> stopAlarm() async {
-    final res = await methodChannel.invokeMethod<bool>('stopAlarm');
+    final res = await methodChannel.invokeMethod<bool?>('stopAlarm');
     print("[Alarm] stopAlarm returned: $res");
     return res ?? false;
+  }
+
+  @override
+  Future<bool> checkIfRinging() async {
+    final pos1 =
+        await methodChannel.invokeMethod<double?>('audioCurrentTime') ?? 0.0;
+    await Future.delayed(const Duration(milliseconds: 100));
+    final pos2 =
+        await methodChannel.invokeMethod<double?>('audioCurrentTime') ?? 0.0;
+    print("[Alarm] player audioCurrentTime $pos1 and $pos2");
+    return pos2 > pos1;
+  }
+
+  static void listenAppStateChange(
+      {required void Function() onForeground}) async {
+    FGBGEvents.stream.listen((event) {
+      print("[Alarm] onAppStateChange $event");
+      if (event == FGBGType.foreground) onForeground();
+    });
+  }
+
+  void periodicTimer(void Function()? onRing, DateTime dt) async {
+    timer?.cancel();
+
+    if (DateTime.now().isAfter(dt)) {
+      onRing?.call();
+      return;
+    }
+
+    timer = Timer.periodic(const Duration(milliseconds: 500), (_) {
+      if (DateTime.now().isAfter(dt)) {
+        debugPrint("[Alarm] timer periodic over");
+        onRing?.call();
+        timer?.cancel();
+      }
+    });
   }
 }
