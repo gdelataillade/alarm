@@ -27,7 +27,7 @@ The issue is that asynchronous native code is suspended when app goes on backgro
 
 ### iOS installation steps
 
-In order to use custom alarm audios, you will need to drag and drop your asset(s) to your `Runner` folder in Xcode, like [explained here](https://stackoverflow.com/a/49377095/10160176).
+To import your alarm audio(s), you will need to drag and drop your asset(s) to your `Runner` folder in Xcode, like [explained here](https://stackoverflow.com/a/49377095/10160176).
 
 ### Android installation steps
 
@@ -43,13 +43,14 @@ android {
 }
 ```
 
+Then, add your audio asset(s) to your project like usual.
+
 ## How to use
 
 Add to your pubspec.yaml:
 ```
 flutter pub add alarm
 ```
-
 
 First, you have to initialize the Alarm service:
 ```Dart
@@ -60,7 +61,7 @@ Then, you can finally set your alarm:
 ```Dart
 Alarm.set(
   alarmDateTime: dateTime,
-  assetAudio: "alarm.mp3",
+  assetAudio: "assets/alarm.mp3",
   onRing: () => setState(() => isRinging = true),
   notifTitle: 'Alarm notification',
   notifBody: 'Your alarm is ringing',
@@ -69,8 +70,8 @@ Alarm.set(
 
 Property |   Type     | Description
 -------- |------------| ---------------
-alarmDateTime |   `DateTime`     | The date and time you want your alarm to ring
-assetAudio |   `String`     | The path to you audio asset you want to use as ringtone.
+alarmDateTime |   `DateTime`     | The date and time you want your alarm to ring.
+assetAudio |   `String`     | The path to you audio asset you want to use as ringtone. Can be local asset or network URL.
 loopMode |   `bool`     | If set to true, audio will repeat indefinitely until it is stopped.
 onRing | `void Function()` | A callback that will be called at the moment the alarm starts ringing.
 notifTitle |   `String`     | (optional) The title of the notification triggered when alarm rings if app is on background.
