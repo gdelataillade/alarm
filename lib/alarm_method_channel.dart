@@ -47,6 +47,8 @@ class MethodChannelAlarm extends AlarmPlatform {
 
     print("[Alarm] setAlarm returned: $res");
 
+    if (res == null || res == false) return false;
+
     periodicTimer(onRing, dateTime);
 
     listenAppStateChange(
@@ -60,7 +62,7 @@ class MethodChannelAlarm extends AlarmPlatform {
       },
     );
 
-    return res ?? false;
+    return true;
   }
 
   @override

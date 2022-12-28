@@ -21,9 +21,9 @@ class Alarm {
   /// [onRing] will be called when alarm is triggered at [alarmDateTime]
   ///
   /// [assetAudio] is the audio asset you want to use as the alarm ringtone.
-  /// If null, the default ringtone will be used
   /// For iOS, you need to drag and drop your asset(s) to your `Runner` folder
-  /// in Xcode and make sure 'Copy items if needed' is checked
+  /// in Xcode and make sure 'Copy items if needed' is checked.
+  /// Can also be an URL.
   ///
   /// If [loopAudio] is set to true, [assetAudio] will repeat indefinitely
   /// until it is stopped. Default value is false.

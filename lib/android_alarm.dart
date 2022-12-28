@@ -80,7 +80,7 @@ class AndroidAlarm {
       if (loopAudio) audioPlayer.setLoopMode(LoopMode.all);
 
       audioPlayer.play();
-      send.send('[Alarm] Alarm playing...');
+      send.send('[Alarm] Alarm playing');
     } catch (e) {
       send.send('[Alarm] AudioPlayer error: ${e.toString()}');
       await AudioPlayer.clearAssetCache();
@@ -129,12 +129,7 @@ class AndroidAlarm {
     }
 
     final res = await AndroidAlarmManager.cancel(alarmId);
-    // Storage.setAppLocalData("androidAlarm", false);
 
     return res;
-  }
-
-  static Future<void> ring() async {
-    print("[Alarm] ring callback");
   }
 }
