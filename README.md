@@ -112,4 +112,4 @@ These are some features that I have in mind that could be useful:
 
 Thank you for considering contributing to this package. Your help is greatly appreciated!
 
-❤️ Let me know if you like the package by liking it on pub.dev and starring the repo on Github 🙂
+❤️ Let me know if you like the package by liking it on [pub.dev](https://pub.dev/packages/alarm) and starring the repo on [Github](https://github.com/gdelataillade/alarm) 🙂
