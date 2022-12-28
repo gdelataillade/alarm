@@ -33,7 +33,7 @@ class Alarm {
   static Future<bool> set({
     required DateTime alarmDateTime,
     void Function()? onRing,
-    String assetAudio = 'package:alarm/assets/sample.mp3',
+    required String assetAudio,
     bool loopAudio = false,
     String? notifTitle,
     String? notifBody,

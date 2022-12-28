@@ -60,6 +60,7 @@ class _MyAppState extends State<MyApp> {
   Future<void> setAlarm(DateTime dateTime, [bool enableNotif = true]) async {
     await Alarm.set(
       alarmDateTime: dateTime,
+      assetAudio: 'assets/sample.mp3',
       loopAudio: loopAudio,
       onRing: () {
         setState(() {

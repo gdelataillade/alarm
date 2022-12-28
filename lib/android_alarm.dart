@@ -66,19 +66,25 @@ class AndroidAlarm {
     send.send('ring');
 
     try {
-      await audioPlayer.setAudioSource(
-        AudioSource.uri(
-          Uri.parse("asset:///assets/${data["assetAudioPath"]}"),
-        ),
-      );
+      final assetAudioPath = data["assetAudioPath"] as String;
 
-      final loopAudio = data["loopAudio"] ?? false;
+      if (assetAudioPath.startsWith('http')) {
+        send.send('[Alarm] Setting audio source url: $assetAudioPath');
+        await audioPlayer.setUrl(assetAudioPath);
+      } else {
+        send.send('[Alarm] Setting audio source local asset: $assetAudioPath');
+        await audioPlayer.setAsset(assetAudioPath);
+      }
+
+      final loopAudio = data["loopAudio"];
       if (loopAudio) audioPlayer.setLoopMode(LoopMode.all);
 
       audioPlayer.play();
       send.send('[Alarm] Alarm playing...');
     } catch (e) {
-      send.send('[Alarm] AudioPlayer error: $e');
+      send.send('[Alarm] AudioPlayer error: ${e.toString()}');
+      await AudioPlayer.clearAssetCache();
+      send.send('[Alarm] Asset cache reset. Please try again.');
     }
 
     final notifTitle = data["notifTitle"];
