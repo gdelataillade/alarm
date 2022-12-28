@@ -25,12 +25,27 @@ The issue is that asynchronous native code is suspended when app goes on backgro
 
 ## Getting Started
 
+### iOS installation steps
+
+In order to use custom alarm audios, you will need to drag and drop your asset(s) to your `Runner` folder in Xcode, like [explained here](https://stackoverflow.com/a/49377095/10160176).
+
+### Android installation steps
+
+In your `android/app/build.gradle`, make sure to update your `compileSdkVersion`:
+```Gradle
+android {
+  compileSdkVersion 33
+  [...]
+}
+```
+
+## How to use
+
 Add to your pubspec.yaml:
 ```
 flutter pub add flutter_fgbg
 ```
 
-In order to use custom alarm audios, you will need to drag and drop your asset(s) to your `Runner` folder in Xcode, like [explained here](https://stackoverflow.com/a/49377095/10160176).
 
 After that, you can start using the package initializing the Alarm service:
 ```Dart
