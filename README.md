@@ -4,7 +4,7 @@ This Flutter package provides a simple and easy-to-use interface for setting and
 
 ## Why this package ?
 
-As a Flutter developer at [Evolum](evolum.co), my CTO and I needed to develop an alarm feature for the new version of our app.
+As a Flutter developer at [Evolum](https://evolum.co), my CTO and I needed to develop an alarm feature for the new version of our app.
 
 An alarm feature is a great way to increase users engagement.
 
