@@ -7,13 +7,17 @@ import 'package:alarm/notification.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:just_audio/just_audio.dart';
 
+/// For Android support, AndroidAlarmManager is used to set an alarm
+/// and trigger a callback when the given time is reached.
 class AndroidAlarm {
   static const int alarmId = 888;
   static String ringPort = 'alarm-ring';
   static String stopPort = 'alarm-stop';
 
+  /// Initializes AndroidAlarmManager dependency
   static Future<void> init() => AndroidAlarmManager.initialize();
 
+  /// Create isolate receive port and set alarm at given time
   static Future<bool> set(
     DateTime alarmDateTime,
     void Function()? onRing,
@@ -58,6 +62,11 @@ class AndroidAlarm {
     return res;
   }
 
+  /// Callback triggered when alarmDateTime is reached.
+  /// The message 'ring' is sent to the main thread in order to
+  /// tell the device that the alarm is starting to ring.
+  /// Alarm is played with AudioPlayer and stopped when the message 'stop'
+  /// is received from the main thread.
   @pragma('vm:entry-point')
   static Future<void> playAlarm(int id, Map<String, dynamic> data) async {
     final audioPlayer = AudioPlayer();
@@ -119,6 +128,8 @@ class AndroidAlarm {
     }
   }
 
+  /// This function will send the message 'stop' to the isolate so
+  /// the audio player can stop playing and dispose.
   static Future<bool> stop() async {
     try {
       final SendPort send = IsolateNameServer.lookupPortByName(stopPort)!;

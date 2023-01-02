@@ -4,15 +4,20 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
+/// The purpose of this class is to show a notification to the user
+/// when the alarm rings so the user can understand where the audio
+/// come from. He also can tap the notification to open directly the app.
 class Notification {
   Notification._();
 
   static final instance = Notification._();
 
+  /// A unique identifier because it can be only one alarm.
   static const alarmId = 888;
   final FlutterLocalNotificationsPlugin localNotif =
       FlutterLocalNotificationsPlugin();
 
+  /// Add configuration for local notifications and initialize.
   Future<void> init() async {
     const initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -30,6 +35,7 @@ class Notification {
     tz.initializeTimeZones();
   }
 
+  /// Show notification permission request.
   Future<bool> requestPermission() async {
     final result = await localNotif
         .resolvePlatformSpecificImplementation<
@@ -62,6 +68,7 @@ class Notification {
     return scheduledDate;
   }
 
+  /// Schedule notification for iOS at the given time.
   Future<void> scheduleIOSAlarmNotif({
     required DateTime dateTime,
     required String title,
@@ -101,6 +108,7 @@ class Notification {
     }
   }
 
+  /// Show notification for Android instantly.
   Future<void> androidAlarmNotif({
     required String title,
     required String body,
@@ -127,5 +135,6 @@ class Notification {
     );
   }
 
+  /// Cancel notification. Called when the alarm is cancelled.
   Future<void> cancel() => localNotif.cancel(alarmId);
 }

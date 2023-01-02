@@ -10,6 +10,8 @@ import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'alarm_platform_interface.dart';
 
 /// An implementation of [AlarmPlatform] that uses method channels.
+/// You can found the native functions called in the
+/// SwiftAlarmPlugin.swift file in the ios folder.
 class MethodChannelAlarm extends AlarmPlatform {
   /// The method channel used to interact with the native platform.
   @visibleForTesting
@@ -17,6 +19,8 @@ class MethodChannelAlarm extends AlarmPlatform {
 
   Timer? timer;
 
+  /// Schedule an iOS notification for the moment the alarm starts ringing.
+  /// Then call the native function setAlarm.
   @override
   Future<bool> setAlarm(
     DateTime dateTime,
@@ -65,6 +69,7 @@ class MethodChannelAlarm extends AlarmPlatform {
     return true;
   }
 
+  /// Call the native stopAlarm function.
   @override
   Future<bool> stopAlarm() async {
     final res = await methodChannel.invokeMethod<bool?>('stopAlarm');
@@ -72,6 +77,9 @@ class MethodChannelAlarm extends AlarmPlatform {
     return res ?? false;
   }
 
+  /// Check if alarm is ringing by getting the native audio player's
+  /// current time at two different moments. If the two values are different,
+  /// it means the alarm is ringing.
   @override
   Future<bool> checkIfRinging() async {
     final pos1 =
@@ -83,6 +91,7 @@ class MethodChannelAlarm extends AlarmPlatform {
     return pos2 > pos1;
   }
 
+  /// Listen when app goes foreground so we can check if alarm is ringing.
   static void listenAppStateChange(
       {required void Function() onForeground}) async {
     FGBGEvents.stream.listen((event) {
@@ -91,6 +100,7 @@ class MethodChannelAlarm extends AlarmPlatform {
     });
   }
 
+  /// Check periodically if alarm is ringing, as long as app is in foreground.
   void periodicTimer(void Function()? onRing, DateTime dt) async {
     timer?.cancel();
 
