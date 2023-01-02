@@ -19,39 +19,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     DispatchQueue.global(qos: .default).async {
       if call.method == "setAlarm" {
-        self.setUpAudio()
-
-        let args = call.arguments as! NSDictionary
-        let assetAudio = args["assetAudio"] as! String
-        let delayInSeconds = args["delayInSeconds"] as! Double
-        let loopAudio = args["loopAudio"] as! Bool
-
-        let bundle = Bundle.main
-        guard let path = bundle.path(
-          forResource: assetAudio,
-          ofType: nil
-        ) else {
-          fatalError()
-        }
-
-        let url = URL(fileURLWithPath: path)
-        do {
-          self.audioPlayer = try AVAudioPlayer(contentsOf: url)
-        } catch {
-          result(false)
-        }
-
-        let currentTime = self.audioPlayer.deviceCurrentTime
-        let time = currentTime + delayInSeconds
-
-        if loopAudio {
-          self.audioPlayer.numberOfLoops = -1
-        }
-
-        self.audioPlayer.prepareToPlay()
-        self.audioPlayer.play(atTime: time)
-
-        result(true)
+        self.setAlarm(call: call, result: result)
       } else if call.method == "stopAlarm" {
         self.audioPlayer.stop()
         result(true)
@@ -63,5 +31,37 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
       }
     }
+  }
+
+  private func setAlarm(call: FlutterMethodCall, result: FlutterResult) {
+    self.setUpAudio()
+
+    let args = call.arguments as! Dictionary<String, Any>
+    let assetAudio = args["assetAudio"] as! String
+    let delayInSeconds = args["delayInSeconds"] as! Double
+    let loopAudio = args["loopAudio"] as! Bool
+
+    if let audioPath = Bundle.main.path(forResource: assetAudio, ofType: nil) {
+      let audioUrl = URL(fileURLWithPath: audioPath)
+      do {
+        self.audioPlayer = try AVAudioPlayer(contentsOf: audioUrl)
+      } catch {
+        result(FlutterError.init(code: "NATIVE_ERR", message: "[Alarm] Error loading AVAudioPlayer with given asset path or url", details: nil))
+      }
+    } else {
+      result(FlutterError.init(code: "NATIVE_ERR", message: "[Alarm] Error with audio file: path is \(assetAudio)", details: nil))
+    }
+
+    let currentTime = self.audioPlayer.deviceCurrentTime
+    let time = currentTime + delayInSeconds
+
+    if loopAudio {
+      self.audioPlayer.numberOfLoops = -1
+    }
+
+    self.audioPlayer.prepareToPlay()
+    self.audioPlayer.play(atTime: time)
+
+    result(true)
   }
 }
