@@ -87,7 +87,7 @@ class Notification {
 
     final hasPermission = await requestPermission();
     if (!hasPermission) {
-      print("[Alarm] Notif permission denied");
+      print("[Alarm] Notification permission denied");
       return;
     }
 
@@ -102,9 +102,9 @@ class Notification {
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
       );
-      print("[Alarm] Notif scheduled successfuly at ${zdt.toString()}");
+      print("[Alarm] Notification scheduled successfuly at ${zdt.toString()}");
     } catch (e) {
-      print("[Alarm] show notif error: $e");
+      print("[Alarm] Schedule notification error: $e");
     }
   }
 

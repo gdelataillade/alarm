@@ -100,7 +100,7 @@ class AndroidAlarm {
     final notifBody = data["notifBody"];
     if (notifTitle != null && notifBody != null) {
       await Notification.instance
-          .androidAlarmNotif(title: "title", body: "body");
+          .androidAlarmNotif(title: notifTitle, body: notifBody);
     }
 
     try {
@@ -115,7 +115,7 @@ class AndroidAlarm {
 
       port.listen(
         (message) async {
-          send.send("[AndroidAlarm] (isolate) received: $message");
+          send.send("[Alarm] (isolate) received: $message");
           if (message == 'stop') {
             await audioPlayer.stop();
             await audioPlayer.dispose();
@@ -124,7 +124,7 @@ class AndroidAlarm {
         },
       );
     } catch (e) {
-      send.send("[AndroidAlarm] (isolate) ReceivePort error: $e");
+      send.send("[Alarm] (isolate) ReceivePort error: $e");
     }
   }
 
@@ -133,10 +133,10 @@ class AndroidAlarm {
   static Future<bool> stop() async {
     try {
       final SendPort send = IsolateNameServer.lookupPortByName(stopPort)!;
-      print("[AndroidAlarm] (main) send stop to isolate");
+      print("[Alarm] (main) send stop to isolate");
       send.send('stop');
     } catch (e) {
-      print("[AndroidAlarm] (main) SendPort error: $e");
+      print("[Alarm] (main) SendPort error: $e");
     }
 
     final res = await AndroidAlarmManager.cancel(alarmId);

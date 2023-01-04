@@ -41,17 +41,18 @@ class MethodChannelAlarm extends AlarmPlatform {
     }
 
     final res = await methodChannel.invokeMethod<bool?>(
-      'setAlarm',
-      {
-        "assetAudio": assetAudio,
-        "delayInSeconds": delay.inSeconds.abs().toDouble(),
-        "loopAudio": loopAudio,
-      },
-    );
+          'setAlarm',
+          {
+            "assetAudio": assetAudio,
+            "delayInSeconds": delay.inSeconds.abs().toDouble(),
+            "loopAudio": loopAudio,
+          },
+        ) ??
+        false;
 
-    print("[Alarm] setAlarm returned: $res");
+    print("[Alarm] alarm set ${res ? 'successfully' : 'failed'}");
 
-    if (res == null || res == false) return false;
+    if (res == false) return false;
 
     periodicTimer(onRing, dateTime);
 
@@ -72,9 +73,9 @@ class MethodChannelAlarm extends AlarmPlatform {
   /// Call the native stopAlarm function.
   @override
   Future<bool> stopAlarm() async {
-    final res = await methodChannel.invokeMethod<bool?>('stopAlarm');
-    print("[Alarm] stopAlarm returned: $res");
-    return res ?? false;
+    final res = await methodChannel.invokeMethod<bool?>('stopAlarm') ?? false;
+    print("[Alarm] alarm stopped ${res ? 'with success' : 'failed'}");
+    return res;
   }
 
   /// Check if alarm is ringing by getting the native audio player's
@@ -87,8 +88,9 @@ class MethodChannelAlarm extends AlarmPlatform {
     await Future.delayed(const Duration(milliseconds: 100));
     final pos2 =
         await methodChannel.invokeMethod<double?>('audioCurrentTime') ?? 0.0;
-    print("[Alarm] player audioCurrentTime $pos1 and $pos2");
-    return pos2 > pos1;
+    final isRinging = pos2 > pos1;
+    print("[Alarm] alarm is ringing: $isRinging");
+    return isRinging;
   }
 
   /// Listen when app goes foreground so we can check if alarm is ringing.
@@ -111,7 +113,7 @@ class MethodChannelAlarm extends AlarmPlatform {
 
     timer = Timer.periodic(const Duration(milliseconds: 500), (_) {
       if (DateTime.now().isAfter(dt)) {
-        debugPrint("[Alarm] timer periodic over");
+        print("[Alarm] onRing");
         onRing?.call();
         timer?.cancel();
       }
