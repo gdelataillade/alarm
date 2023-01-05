@@ -27,7 +27,9 @@ The issue is that asynchronous native code is suspended when app goes on backgro
 
 ### iOS installation steps
 
-To import your alarm audio(s), you will need to drag and drop your asset(s) to your `Runner` folder in Xcode, like [explained here](https://stackoverflow.com/a/49377095/10160176).
+To import your alarm audio(s), you will need to drag and drop your asset(s) to your `Runner` folder in Xcode. 
+I published a Gist to show you the steps to follow, and also give you a tip to save your app some weight. 
+It's [right here](https://gist.github.com/gdelataillade/68834caacdd6727f1418e46788f70b53).
 
 ### Android installation steps
 
