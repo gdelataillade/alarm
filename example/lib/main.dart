@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-
 import 'package:alarm/alarm.dart';
+import 'package:alarm/shared_preferences.dart';
 
-void main() => runApp(const MaterialApp(home: MyApp()));
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  SharedPreference.init();
+  runApp(const MaterialApp(home: MyApp()));
+}
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
