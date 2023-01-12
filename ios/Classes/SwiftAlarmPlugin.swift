@@ -10,6 +10,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
   }
 
   public var audioPlayer: AVAudioPlayer!
+  public var notificationTitleOnKill: String = "Application killed"
+  public var notificationBodyOnKill: String = "Alarm will not ring."
 
   private func setUpAudio() {
     try! AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
@@ -21,12 +23,9 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
       if call.method == "setAlarm" {
         self.setAlarm(call: call, result: result)
       } else if call.method == "stopAlarm" {
-        if self.audioPlayer != nil {
-          self.audioPlayer.stop()
-          self.audioPlayer = nil
-          result(true)
-        }
-        result(false)
+        self.audioPlayer.stop()
+        NotificationCenter.default.removeObserver(self, name: UIApplication.willTerminateNotification, object: nil)
+        result(true)
       } else if call.method == "audioCurrentTime" {
         if self.audioPlayer != nil {
           result(Double(self.audioPlayer.currentTime))
@@ -43,6 +42,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
   private func setAlarm(call: FlutterMethodCall, result: FlutterResult) {
     self.setUpAudio()
+    NotificationCenter.default.addObserver(self, selector: #selector(applicationWillTerminate(_:)), name: UIApplication.willTerminateNotification, object: nil)
 
     let args = call.arguments as! Dictionary<String, Any>
     let assetAudio = args["assetAudio"] as! String
@@ -71,5 +71,18 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     self.audioPlayer.play(atTime: time)
 
     result(true)
+  }
+
+  @objc func applicationWillTerminate(_ notification: Notification) {
+    let content = UNMutableNotificationContent()
+    content.title = notificationTitleOnKill
+    content.body = notificationBodyOnKill
+    NSLog("===> NSLog Notif applicationWillTerminate")
+    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+    let request = UNNotificationRequest(identifier: "notification when terminate", content: content, trigger: trigger)
+    UNUserNotificationCenter.current().add(request)
+
+    // TODO: add value to storage to check when alarm kill
+    // CHECK IF WE CAN READ IT FROM FLUTTER.
   }
 }

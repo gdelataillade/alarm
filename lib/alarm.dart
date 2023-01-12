@@ -5,9 +5,13 @@ import 'package:alarm/android_alarm.dart';
 import 'package:alarm/notification.dart';
 
 class Alarm {
+  /// To get the singleton instance
   static AlarmPlatform get platform => AlarmPlatform.instance;
 
+  /// To know if it's iOS device
   static bool get iOS => Platform.isIOS;
+
+  /// To know if it's Android device
   static bool get android => Platform.isAndroid;
 
   /// Initialize Alarm service

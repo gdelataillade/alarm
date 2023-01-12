@@ -4,6 +4,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
+const text = "";
+
 /// The purpose of this class is to show a notification to the user
 /// when the alarm rings so the user can understand where the audio
 /// come from. He also can tap the notification to open directly the app.
@@ -137,4 +139,45 @@ class Notification {
 
   /// Cancel notification. Called when the alarm is cancelled.
   Future<void> cancel() => localNotif.cancel(alarmId);
+
+  // This code is used to send a notification with a title and body to an Android or iOS device.
+  // It first imports the FlutterLocalNotificationsPlugin, then sets up the Android and iOS initialization settings.
+  // After that, it creates the platform-specific notification details for both Android and iOS.
+  // Finally, it uses the show() method to send the notification with the given title and body.
+  static Future<void> sendNotification(
+    String title,
+    String body,
+  ) async {
+    final FlutterLocalNotificationsPlugin lNotif =
+        FlutterLocalNotificationsPlugin();
+    const initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const initializationSettingsIOS = DarwinInitializationSettings(
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
+    );
+    const initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+      iOS: initializationSettingsIOS,
+    );
+    await lNotif.initialize(initializationSettings);
+    const androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      'alarm-package',
+      'alarm',
+      channelDescription: 'alarm to wake up',
+    );
+    const iOSPlatformChannelSpecifics = DarwinNotificationDetails();
+    const platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+      iOS: iOSPlatformChannelSpecifics,
+    );
+
+    await lNotif.show(
+      12345,
+      title,
+      body,
+      platformChannelSpecifics,
+    );
+  }
 }
