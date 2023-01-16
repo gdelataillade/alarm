@@ -153,7 +153,10 @@ class _MyAppState extends State<MyApp> {
             RawMaterialButton(
               onPressed: () async {
                 final stop = await Alarm.stop();
-                if (stop && isRinging) setState(() => isRinging = false);
+                setState(() {
+                  selectedTime = null;
+                  if (stop && isRinging) isRinging = false;
+                });
               },
               fillColor: Colors.red,
               child: const Text('Stop'),
