@@ -46,6 +46,8 @@ class MethodChannelAlarm extends AlarmPlatform {
             "assetAudio": assetAudio,
             "delayInSeconds": delay.inSeconds.abs().toDouble(),
             "loopAudio": loopAudio,
+            "notifTitleOnAppKill": "notifTitle",
+            "notifDescriptionOnAppKill": "notifDescription",
           },
         ) ??
         false;

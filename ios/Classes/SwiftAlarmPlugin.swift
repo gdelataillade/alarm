@@ -10,8 +10,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
   }
 
   public var audioPlayer: AVAudioPlayer!
-  public var notificationTitleOnKill: String = "Application killed"
-  public var notificationBodyOnKill: String = "Alarm will not ring."
+  public var notificationTitleOnKill: String!
+  public var notificationBodyOnKill: String!
 
   private func setUpAudio() {
     try! AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
@@ -42,9 +42,14 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
   private func setAlarm(call: FlutterMethodCall, result: FlutterResult) {
     self.setUpAudio()
-    NotificationCenter.default.addObserver(self, selector: #selector(applicationWillTerminate(_:)), name: UIApplication.willTerminateNotification, object: nil)
 
     let args = call.arguments as! Dictionary<String, Any>
+
+    notificationTitleOnKill = args["notifTitleOnAppKill"] as! String
+    notificationBodyOnKill = args["notifDescriptionOnAppKill"] as! String
+
+    NotificationCenter.default.addObserver(self, selector: #selector(applicationWillTerminate(_:)), name: UIApplication.willTerminateNotification, object: nil)
+
     let assetAudio = args["assetAudio"] as! String
     let delayInSeconds = args["delayInSeconds"] as! Double
     let loopAudio = args["loopAudio"] as! Bool
@@ -81,8 +86,5 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
     let request = UNNotificationRequest(identifier: "notification when terminate", content: content, trigger: trigger)
     UNUserNotificationCenter.current().add(request)
-
-    // TODO: add value to storage to check when alarm kill
-    // CHECK IF WE CAN READ IT FROM FLUTTER.
   }
 }
