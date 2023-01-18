@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:alarm/notification.dart';
+import 'package:alarm/storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
@@ -27,16 +28,16 @@ class MethodChannelAlarm extends AlarmPlatform {
     void Function()? onRing,
     String assetAudio,
     bool loopAudio,
-    String? notifTitle,
-    String? notifBody,
+    String? notificationTitle,
+    String? notificationBody,
   ) async {
     final delay = dateTime.difference(DateTime.now());
 
-    if (notifTitle != null && notifBody != null) {
+    if (notificationTitle != null && notificationBody != null) {
       Notification.instance.scheduleIOSAlarmNotif(
         dateTime: dateTime,
-        title: notifTitle,
-        body: notifBody,
+        title: notificationTitle,
+        body: notificationBody,
       );
     }
 
@@ -46,8 +47,8 @@ class MethodChannelAlarm extends AlarmPlatform {
             "assetAudio": assetAudio,
             "delayInSeconds": delay.inSeconds.abs().toDouble(),
             "loopAudio": loopAudio,
-            "notifTitleOnAppKill": "notifTitle",
-            "notifDescriptionOnAppKill": "notifDescription",
+            "notifTitleOnAppKill": Storage.getNotificationOnAppKillTitle(),
+            "notifDescriptionOnAppKill": Storage.getNotificationOnAppKillBody(),
           },
         ) ??
         false;

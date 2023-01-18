@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:alarm/notification.dart';
+import 'package:alarm/storage.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
@@ -52,8 +53,8 @@ class AndroidAlarm {
       await platform.invokeMethod(
         'setNotificationOnKillService',
         {
-          'title': 'notifTitle',
-          'description': 'notifDescription',
+          'title': Storage.getNotificationOnAppKillTitle(),
+          'description': Storage.getNotificationOnAppKillBody(),
         },
       );
       print("[Alarm] NotificationOnKillService set with success");

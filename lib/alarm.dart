@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:alarm/alarm_platform_interface.dart';
 import 'package:alarm/android_alarm.dart';
 import 'package:alarm/notification.dart';
+import 'package:alarm/storage.dart';
 
 class Alarm {
   /// To get the singleton instance
@@ -14,11 +15,12 @@ class Alarm {
   /// To know if it's Android device
   static bool get android => Platform.isAndroid;
 
-  /// Initialize Alarm service
-  static Future<void> init() async {
-    if (android) await AndroidAlarm.init();
-    await Notification.instance.init();
-  }
+  /// Initialize Alarm services
+  static Future<void> init() => Future.wait([
+        if (android) AndroidAlarm.init(),
+        Notification.instance.init(),
+        Storage.init(),
+      ]);
 
   /// Schedule alarm for [alarmDateTime]
   ///
@@ -64,6 +66,21 @@ class Alarm {
     );
   }
 
+  /// When the app is killed, all the processes are terminated
+  /// so the alarm may never ring. To warn the user, a notification
+  /// is shown at the moment he kills the app.
+  /// This methods allows you to customize the notification content.
+  ///
+  /// [title] default value is `Your alarm may not ring`
+  ///
+  /// [body] default value is
+  /// `You killed the app. Please reopen so your alarm can ring.`
+  static Future<void> setNotificationOnAppKillContent(
+    String title,
+    String body,
+  ) =>
+      Storage.setNotificationContentOnAppKill(title, body);
+
   /// Stop alarm
   static Future<bool> stop() async {
     if (iOS) {
@@ -73,6 +90,6 @@ class Alarm {
     return await AndroidAlarm.stop();
   }
 
-  /// Check if alarm is ringing
+  /// Whether the alarm is ringing
   static Future<bool> isRinging() => platform.checkIfRinging();
 }
