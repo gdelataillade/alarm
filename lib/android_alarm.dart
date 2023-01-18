@@ -5,6 +5,7 @@ import 'dart:ui';
 
 import 'package:alarm/notification.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
+import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 
 /// For Android support, AndroidAlarmManager is used to set an alarm
@@ -16,6 +17,9 @@ class AndroidAlarm {
 
   /// Initializes AndroidAlarmManager dependency
   static Future<void> init() => AndroidAlarmManager.initialize();
+
+  static const platform =
+      MethodChannel('com.gdelataillade.alarm/notifOnAppKill');
 
   /// Create isolate receive port and set alarm at given time
   static Future<bool> set(
@@ -42,6 +46,19 @@ class AndroidAlarm {
     } catch (e) {
       print("[Alarm] (main) ReceivePort error: $e");
       return false;
+    }
+
+    try {
+      await platform.invokeMethod(
+        'setNotificationOnKillService',
+        {
+          'title': 'notifTitle',
+          'description': 'notifDescription',
+        },
+      );
+      print("[Alarm] NotificationOnKillService set with success");
+    } catch (e) {
+      print("[Alarm] NotificationOnKillService error: $e");
     }
 
     final res = await AndroidAlarmManager.oneShotAt(
@@ -137,6 +154,16 @@ class AndroidAlarm {
       send.send('stop');
     } catch (e) {
       print("[Alarm] (main) SendPort error: $e");
+    }
+
+    try {
+      await platform.invokeMethod(
+        'stopNotificationOnKillService',
+        'Custom title',
+      );
+      print("[Alarm] NotificationOnKillService stopped with success");
+    } catch (e) {
+      print("[Alarm] NotificationOnKillService error: $e");
     }
 
     final res = await AndroidAlarmManager.cancel(alarmId);

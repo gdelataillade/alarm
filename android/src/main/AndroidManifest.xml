@@ -6,6 +6,10 @@
   <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
   <application>
     <service
+        android:name=".NotificationOnKillService"
+        android:enabled="true"
+        android:exported="false"/>
+    <service
         android:name="dev.fluttercommunity.plus.androidalarmmanager.AlarmService"
         android:permission="android.permission.BIND_JOB_SERVICE"
         android:exported="false"/>
