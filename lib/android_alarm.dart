@@ -157,10 +157,7 @@ class AndroidAlarm {
     }
 
     try {
-      await platform.invokeMethod(
-        'stopNotificationOnKillService',
-        'Custom title',
-      );
+      await platform.invokeMethod('stopNotificationOnKillService');
       print("[Alarm] NotificationOnKillService stopped with success");
     } catch (e) {
       print("[Alarm] NotificationOnKillService error: $e");
