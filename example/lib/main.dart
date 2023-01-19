@@ -1,3 +1,4 @@
+import 'package:alarm/alarm_model.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
@@ -22,6 +23,8 @@ class _MyAppState extends State<MyApp> {
   bool showNotif = true;
   bool isRinging = false;
   bool loopAudio = false;
+
+  StreamSubscription? subscription;
 
   Future<void> pickTime() async {
     final res = await showTimePicker(
@@ -64,16 +67,12 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> setAlarm(DateTime dateTime, [bool enableNotif = true]) async {
     await Alarm.set(
-      alarmDateTime: dateTime,
-      assetAudio: 'assets/sample.mp3',
-      onRing: () {
-        setState(() {
-          isRinging = true;
-          selectedTime = null;
-        });
-      },
-      notifTitle: showNotif && enableNotif ? 'This is the title' : null,
-      notifBody: showNotif && enableNotif ? 'This is the body' : null,
+      alarmModel: AlarmModel(
+        alarmDateTime: dateTime,
+        assetAudioPath: 'assets/sample.mp3',
+        notifTitle: showNotif && enableNotif ? 'This is the title' : null,
+        notifBody: showNotif && enableNotif ? 'This is the body' : null,
+      ),
     );
   }
 
@@ -81,6 +80,17 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     Alarm.init();
+
+    subscription = Alarm.streamController.stream.listen((event) {
+      debugPrint('===> Stream listen');
+      if (event) {
+        debugPrint('===> Stream listen RING ');
+        setState(() {
+          isRinging = true;
+          selectedTime = null;
+        });
+      }
+    });
   }
 
   @override
@@ -169,5 +179,11 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    subscription?.cancel();
+    super.dispose();
   }
 }

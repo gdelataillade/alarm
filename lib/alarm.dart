@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:alarm/alarm_model.dart';
 import 'package:alarm/alarm_platform_interface.dart';
 import 'package:alarm/android_alarm.dart';
 import 'package:alarm/notification.dart';
@@ -15,14 +17,32 @@ class Alarm {
   /// To know if it's Android device
   static bool get android => Platform.isAndroid;
 
-  /// Initialize Alarm services
-  static Future<void> init() => Future.wait([
-        if (android) AndroidAlarm.init(),
-        Notification.instance.init(),
-        Storage.init(),
-      ]);
+  static StreamController<bool> streamController = StreamController<bool>();
 
-  /// Schedule alarm for [alarmDateTime]
+  /// Create a function that check if there is a futur alarm
+  /// if there is it's will run a callback
+  static void checkAlarm() {
+    final currentAlarm = Storage.getCurrentAlarm();
+    if (currentAlarm == null) return;
+
+    final now = DateTime.now();
+
+    if (currentAlarm.alarmDateTime.isBefore(now)) {
+      set(alarmModel: currentAlarm);
+    }
+  }
+
+  /// Initialize Alarm services
+  static Future<void> init() async {
+    await Future.wait([
+      if (android) AndroidAlarm.init(),
+      Notification.instance.init(),
+      Storage.init(),
+    ]);
+    checkAlarm();
+  }
+
+  /// Schedule alarm for [alarmDateTime]x
   ///
   /// [onRing] will be called when alarm is triggered at [alarmDateTime]
   ///
@@ -34,33 +54,34 @@ class Alarm {
   /// If you want to show a notification when alarm is triggered,
   /// [notifTitle] and [notifBody] must not be null
   static Future<bool> set({
-    required DateTime alarmDateTime,
-    void Function()? onRing,
-    required String assetAudio,
-    String? notifTitle,
-    String? notifBody,
+    required AlarmModel alarmModel,
   }) async {
     final loopAudio = Storage.getBool('loop') ?? true;
 
     if (iOS) {
-      assetAudio = assetAudio.split('/').last;
+      final assetAudio = alarmModel.assetAudioPath.split('/').last;
       return platform.setAlarm(
-        alarmDateTime,
-        onRing,
+        alarmModel.alarmDateTime,
+        () {
+          streamController.add(true);
+        },
         assetAudio,
         loopAudio,
-        notifTitle,
-        notifBody,
+        alarmModel.notifTitle,
+        alarmModel.notifBody,
       );
     }
 
+    Storage.setCurrentAlarm(alarmModel);
     return await AndroidAlarm.set(
-      alarmDateTime,
-      onRing,
-      assetAudio,
+      alarmModel.alarmDateTime,
+      () {
+        streamController.add(true);
+      },
+      alarmModel.assetAudioPath,
       loopAudio,
-      notifTitle,
-      notifBody,
+      alarmModel.notifTitle,
+      alarmModel.notifBody,
     );
   }
 

@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:alarm/alarm_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const notificationOnRingTitle = 'notificationOnRingTitle';
@@ -16,6 +19,18 @@ class Storage {
       prefs.setBool(key, value);
 
   static bool? getBool(String key) => prefs.getBool(key);
+
+  static Future<void> setCurrentAlarm(
+    AlarmModel currentAlarm,
+  ) async {
+    await prefs.setString("currentAlarm", json.encode(currentAlarm.toString()));
+  }
+
+  static AlarmModel? getCurrentAlarm() {
+    final res = prefs.getString("currentAlarm");
+    if (res == null) return null;
+    AlarmModel.fromJson(json.decode(res!));
+  }
 
   static Future<void> setNotificationContentOnRing(
     String title,
