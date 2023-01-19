@@ -66,7 +66,6 @@ class _MyAppState extends State<MyApp> {
     await Alarm.set(
       alarmDateTime: dateTime,
       assetAudio: 'assets/sample.mp3',
-      loopAudio: loopAudio,
       onRing: () {
         setState(() {
           isRinging = true;

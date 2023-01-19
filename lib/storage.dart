@@ -1,5 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+const notificationOnRingTitle = 'notificationOnRingTitle';
+const notificationOnRingBody = 'notificationOnRingBody';
 const notificationOnAppKillTitle = 'notificationOnAppKillTitle';
 const notificationOnAppKillBody = 'notificationOnAppKillBody';
 
@@ -9,6 +11,25 @@ class Storage {
   static Future<void> init() async {
     prefs = await SharedPreferences.getInstance();
   }
+
+  static Future<void> setBool(String key, bool value) =>
+      prefs.setBool(key, value);
+
+  static bool? getBool(String key) => prefs.getBool(key);
+
+  static Future<void> setNotificationContentOnRing(
+    String title,
+    String body,
+  ) async {
+    await prefs.setString(notificationOnRingTitle, title);
+    await prefs.setString(notificationOnRingBody, body);
+  }
+
+  static String getNotificationOnRingTitle() =>
+      prefs.getString(notificationOnRingTitle) ?? 'Your alarm is ringing...';
+
+  static String getNotificationOnRingBody() =>
+      prefs.getString(notificationOnRingBody) ?? 'Tap here to open the app';
 
   static Future<void> setNotificationContentOnAppKill(
     String title,

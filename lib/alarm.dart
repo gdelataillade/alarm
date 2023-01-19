@@ -31,19 +31,17 @@ class Alarm {
   /// in Xcode and make sure 'Copy items if needed' is checked.
   /// Can also be an URL.
   ///
-  /// If [loopAudio] is set to true, [assetAudio] will repeat indefinitely
-  /// until it is stopped. Default value is false.
-  ///
   /// If you want to show a notification when alarm is triggered,
   /// [notifTitle] and [notifBody] must not be null
   static Future<bool> set({
     required DateTime alarmDateTime,
     void Function()? onRing,
     required String assetAudio,
-    bool loopAudio = false,
     String? notifTitle,
     String? notifBody,
   }) async {
+    final loopAudio = Storage.getBool('loop') ?? true;
+
     if (iOS) {
       assetAudio = assetAudio.split('/').last;
       return platform.setAlarm(
@@ -66,6 +64,19 @@ class Alarm {
     );
   }
 
+  /// If set to `true`, the alarm audio will repeat indefinitely
+  /// until it is stopped.
+  ///
+  /// By default, the loop mode is enabled.
+  static Future<void> loop(bool loop) => Storage.setBool('loop', loop);
+
+  /// Sets a notification that will show when alarm starts ringing.
+  static Future<void> setNotificationOnRing(
+    String title,
+    String body,
+  ) =>
+      Storage.setNotificationContentOnRing(title, body);
+
   /// When the app is killed, all the processes are terminated
   /// so the alarm may never ring. To warn the user, a notification
   /// is shown at the moment he kills the app.
@@ -73,8 +84,7 @@ class Alarm {
   ///
   /// [title] default value is `Your alarm may not ring`
   ///
-  /// [body] default value is
-  /// `You killed the app. Please reopen so your alarm can ring.`
+  /// [body] default value is `You killed the app. Please reopen so your alarm can ring.`
   static Future<void> setNotificationOnAppKillContent(
     String title,
     String body,
