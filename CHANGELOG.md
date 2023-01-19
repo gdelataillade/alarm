@@ -1,3 +1,7 @@
+## 0.0.6
+
+* Fix iOS crash when stop method is called and no alarm is set
+
 ## 0.0.5
 
 * Add [a Gist](https://gist.github.com/gdelataillade/68834caacdd6727f1418e46788f70b53) in the README.md to explain how to import assets on Xcode without adding weight to your app.

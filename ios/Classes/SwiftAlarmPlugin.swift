@@ -21,10 +21,18 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
       if call.method == "setAlarm" {
         self.setAlarm(call: call, result: result)
       } else if call.method == "stopAlarm" {
-        self.audioPlayer.stop()
-        result(true)
+        if self.audioPlayer != nil {
+          self.audioPlayer.stop()
+          self.audioPlayer = nil
+          result(true)
+        }
+        result(false)
       } else if call.method == "audioCurrentTime" {
-        result(Double(self.audioPlayer.currentTime))
+        if self.audioPlayer != nil {
+          result(Double(self.audioPlayer.currentTime))
+        } else {
+          result(0.0)
+        }
       } else {
         DispatchQueue.main.sync {
           result(FlutterMethodNotImplemented)

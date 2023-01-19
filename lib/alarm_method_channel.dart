@@ -74,7 +74,9 @@ class MethodChannelAlarm extends AlarmPlatform {
   @override
   Future<bool> stopAlarm() async {
     final res = await methodChannel.invokeMethod<bool?>('stopAlarm') ?? false;
-    print("[Alarm] alarm stopped ${res ? 'with success' : 'failed'}");
+    print(res
+        ? "[Alarm] alarm stopped with success"
+        : "[Alarm] stop failed: no alarm was set");
     return res;
   }
 
