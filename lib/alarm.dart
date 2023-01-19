@@ -17,16 +17,15 @@ class Alarm {
   /// To know if it's Android device
   static bool get android => Platform.isAndroid;
 
-  static StreamController<bool> streamController = StreamController<bool>();
+  static StreamController<AlarmModel> ringStream =
+      StreamController<AlarmModel>();
 
   /// Create a function that check if there is a futur alarm
   /// if there is it's will run a callback
   static void checkAlarm() {
     final currentAlarm = Storage.getCurrentAlarm();
     if (currentAlarm == null) return;
-
     final now = DateTime.now();
-
     if (currentAlarm.alarmDateTime.isBefore(now)) {
       set(alarmModel: currentAlarm);
     }
@@ -63,7 +62,7 @@ class Alarm {
       return platform.setAlarm(
         alarmModel.alarmDateTime,
         () {
-          streamController.add(true);
+          ringStream.add(alarmModel);
         },
         assetAudio,
         loopAudio,
@@ -76,7 +75,7 @@ class Alarm {
     return await AndroidAlarm.set(
       alarmModel.alarmDateTime,
       () {
-        streamController.add(true);
+        ringStream.add(alarmModel);
       },
       alarmModel.assetAudioPath,
       loopAudio,

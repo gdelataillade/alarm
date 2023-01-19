@@ -5,8 +5,8 @@ class AlarmModel {
   final DateTime alarmDateTime;
   final String assetAudioPath;
   final bool loopAudio;
-  final String? notifTitle;
-  final String? notifBody;
+  final String notifTitle;
+  final String notifBody;
 
   AlarmModel({
     required this.alarmDateTime,
@@ -22,8 +22,8 @@ class AlarmModel {
     required DateTime alarmDateTime,
     required String assetAudioPath,
     required bool loopAudio,
-    String? notifTitle,
-    String? notifBody,
+    String notifTitle = 'This is the title',
+    String notifBody = 'This is the body',
   }) {
     return AlarmModel(
       alarmDateTime: alarmDateTime,
@@ -35,8 +35,8 @@ class AlarmModel {
   }
 
   factory AlarmModel.fromJson(Map<String, dynamic> json) => AlarmModel(
-        alarmDateTime: DateTime.fromMicrosecondsSinceEpoch(
-            int.parse(json['alarmDateTime'])),
+        alarmDateTime:
+            DateTime.fromMicrosecondsSinceEpoch(json['alarmDateTime'] as int),
         assetAudioPath: json['assetAudioPath'] as String,
         notifTitle: json['notifTitle'] as String,
         notifBody: json['notifBody'] as String,

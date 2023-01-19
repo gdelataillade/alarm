@@ -23,7 +23,7 @@ class Storage {
   static Future<void> setCurrentAlarm(
     AlarmModel currentAlarm,
   ) async {
-    await prefs.setString("currentAlarm", json.encode(currentAlarm.toString()));
+    await prefs.setString("currentAlarm", json.encode(currentAlarm.toJson()));
   }
 
   static AlarmModel? getCurrentAlarm() {

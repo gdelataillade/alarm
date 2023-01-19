@@ -70,8 +70,8 @@ class _MyAppState extends State<MyApp> {
       alarmModel: AlarmModel(
         alarmDateTime: dateTime,
         assetAudioPath: 'assets/sample.mp3',
-        notifTitle: showNotif && enableNotif ? 'This is the title' : null,
-        notifBody: showNotif && enableNotif ? 'This is the body' : null,
+        notifTitle: showNotif && enableNotif ? 'This is the title' : "",
+        notifBody: showNotif && enableNotif ? 'This is the body' : "",
       ),
     );
   }
@@ -81,15 +81,11 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     Alarm.init();
 
-    subscription = Alarm.streamController.stream.listen((event) {
-      debugPrint('===> Stream listen');
-      if (event) {
-        debugPrint('===> Stream listen RING ');
-        setState(() {
-          isRinging = true;
-          selectedTime = null;
-        });
-      }
+    subscription = Alarm.ringStream.stream.listen((_) {
+      setState(() {
+        isRinging = true;
+        selectedTime = null;
+      });
     });
   }
 
