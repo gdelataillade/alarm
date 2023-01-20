@@ -2,38 +2,31 @@
 
 import 'dart:async';
 
-import 'package:alarm/notification.dart';
-import 'package:alarm/storage.dart';
-import 'package:flutter/foundation.dart';
+import 'package:alarm/service/notification.dart';
+import 'package:alarm/service/storage.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 
-import 'alarm_platform_interface.dart';
+/// Uses method channel to interact with the native platform.
+class IOSAlarm {
+  static MethodChannel methodChannel =
+      const MethodChannel('com.gdelataillade/alarm');
 
-/// An implementation of [AlarmPlatform] that uses method channels.
-/// You can found the native functions called in the
-/// SwiftAlarmPlugin.swift file in the ios folder.
-class MethodChannelAlarm extends AlarmPlatform {
-  /// The method channel used to interact with the native platform.
-  @visibleForTesting
-  final methodChannel = const MethodChannel('com.gdelataillade/alarm');
-
-  Timer? timer;
+  static Timer? timer;
 
   /// Schedule an iOS notification for the moment the alarm starts ringing.
   /// Then call the native function setAlarm.
-  @override
-  Future<bool> setAlarm(
+  static Future<bool> setAlarm(
     DateTime dateTime,
     void Function()? onRing,
     String assetAudio,
     bool loopAudio,
-    String? notificationTitle,
-    String? notificationBody,
+    String notificationTitle,
+    String notificationBody,
   ) async {
     final delay = dateTime.difference(DateTime.now());
 
-    if (notificationTitle != null && notificationBody != null) {
+    if (notificationTitle.isNotEmpty && notificationBody.isNotEmpty) {
       Notification.instance.scheduleIOSAlarmNotif(
         dateTime: dateTime,
         title: notificationTitle,
@@ -73,9 +66,8 @@ class MethodChannelAlarm extends AlarmPlatform {
     return true;
   }
 
-  /// Call the native stopAlarm function.
-  @override
-  Future<bool> stopAlarm() async {
+  /// Calls the native stopAlarm function.
+  static Future<bool> stopAlarm() async {
     final res = await methodChannel.invokeMethod<bool?>('stopAlarm') ?? false;
     print(res
         ? "[Alarm] alarm stopped with success"
@@ -83,11 +75,10 @@ class MethodChannelAlarm extends AlarmPlatform {
     return res;
   }
 
-  /// Check if alarm is ringing by getting the native audio player's
+  /// Checks whether alarm is ringing by getting the native audio player's
   /// current time at two different moments. If the two values are different,
   /// it means the alarm is ringing.
-  @override
-  Future<bool> checkIfRinging() async {
+  static Future<bool> checkIfRinging() async {
     final pos1 =
         await methodChannel.invokeMethod<double?>('audioCurrentTime') ?? 0.0;
     await Future.delayed(const Duration(milliseconds: 100));
@@ -98,7 +89,7 @@ class MethodChannelAlarm extends AlarmPlatform {
     return isRinging;
   }
 
-  /// Listen when app goes foreground so we can check if alarm is ringing.
+  /// Listens when app goes foreground so we can check if alarm is ringing.
   static void listenAppStateChange(
       {required void Function() onForeground}) async {
     FGBGEvents.stream.listen((event) {
@@ -107,8 +98,8 @@ class MethodChannelAlarm extends AlarmPlatform {
     });
   }
 
-  /// Check periodically if alarm is ringing, as long as app is in foreground.
-  void periodicTimer(void Function()? onRing, DateTime dt) async {
+  /// Checks periodically if alarm is ringing, as long as app is in foreground.
+  static void periodicTimer(void Function()? onRing, DateTime dt) async {
     timer?.cancel();
 
     if (DateTime.now().isAfter(dt)) {

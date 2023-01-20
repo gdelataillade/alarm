@@ -1,13 +1,13 @@
-import 'package:alarm/alarm_model.dart';
-import 'package:flutter/material.dart';
 import 'dart:async';
-
+import 'package:flutter/material.dart';
 import 'package:alarm/alarm.dart';
 import 'package:flutter/services.dart';
+import 'package:alarm/model/alarm_settings.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  Alarm.init();
   runApp(const MaterialApp(home: MyApp()));
 }
 
@@ -22,15 +22,16 @@ class _MyAppState extends State<MyApp> {
   TimeOfDay? selectedTime;
   bool showNotif = true;
   bool isRinging = false;
-  bool loopAudio = false;
+  bool loopAudio = true;
 
   StreamSubscription? subscription;
 
   Future<void> pickTime() async {
+    final now = DateTime.now();
     final res = await showTimePicker(
       initialTime: TimeOfDay(
-        hour: TimeOfDay.now().hour,
-        minute: TimeOfDay.now().minute + 1,
+        hour: now.hour,
+        minute: now.add(const Duration(minutes: 1)).minute,
       ),
       context: context,
       confirmText: 'SET ALARM',
@@ -39,7 +40,6 @@ class _MyAppState extends State<MyApp> {
     if (res == null) return;
     setState(() => selectedTime = res);
 
-    final now = DateTime.now();
     DateTime dt = DateTime(
       now.year,
       now.month,
@@ -66,27 +66,31 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> setAlarm(DateTime dateTime, [bool enableNotif = true]) async {
-    await Alarm.set(
-      alarmModel: AlarmModel(
-        alarmDateTime: dateTime,
-        assetAudioPath: 'assets/sample.mp3',
-        notifTitle: showNotif && enableNotif ? 'This is the title' : "",
-        notifBody: showNotif && enableNotif ? 'This is the body' : "",
-      ),
+    final alarmSettings = AlarmSettings(
+      alarmDateTime: dateTime,
+      assetAudioPath: 'assets/sample.mp3',
+      loopAudio: loopAudio,
+      notificationTitle: showNotif && enableNotif ? 'Alarm example' : "",
+      notificationBody: showNotif && enableNotif ? 'Your alarm is ringing' : "",
     );
+    await Alarm.set(settings: alarmSettings);
   }
 
   @override
   void initState() {
     super.initState();
-    Alarm.init();
-
     subscription = Alarm.ringStream.stream.listen((_) {
       setState(() {
         isRinging = true;
         selectedTime = null;
       });
     });
+  }
+
+  @override
+  void dispose() {
+    subscription?.cancel();
+    super.dispose();
   }
 
   @override
@@ -175,11 +179,5 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    subscription?.cancel();
-    super.dispose();
   }
 }

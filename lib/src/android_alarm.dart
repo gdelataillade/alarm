@@ -3,8 +3,8 @@
 import 'dart:isolate';
 import 'dart:ui';
 
-import 'package:alarm/notification.dart';
-import 'package:alarm/storage.dart';
+import 'package:alarm/service/notification.dart';
+import 'package:alarm/service/storage.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
@@ -28,8 +28,8 @@ class AndroidAlarm {
     void Function()? onRing,
     String assetAudioPath,
     bool loopAudio,
-    String? notifTitle,
-    String? notifBody,
+    String notificationTitle,
+    String notificationBody,
   ) async {
     try {
       final ReceivePort port = ReceivePort();
@@ -73,8 +73,8 @@ class AndroidAlarm {
       params: {
         "assetAudioPath": assetAudioPath,
         "loopAudio": loopAudio,
-        "notifTitle": notifTitle,
-        "notifBody": notifBody,
+        "notifTitle": notificationTitle,
+        "notifBody": notificationBody,
       },
     );
     return res;
@@ -114,11 +114,13 @@ class AndroidAlarm {
       send.send('[Alarm] Asset cache reset. Please try again.');
     }
 
-    final notifTitle = data["notifTitle"];
-    final notifBody = data["notifBody"];
-    if (notifTitle != null && notifBody != null) {
-      await Notification.instance
-          .androidAlarmNotif(title: notifTitle, body: notifBody);
+    final notificationTitle = data["notifTitle"] as String;
+    final notificationBody = data["notifBody"] as String;
+    if (notificationTitle.isNotEmpty && notificationBody.isNotEmpty) {
+      await Notification.instance.androidAlarmNotif(
+        title: notificationTitle,
+        body: notificationBody,
+      );
     }
 
     try {

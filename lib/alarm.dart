@@ -1,37 +1,36 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:alarm/alarm_model.dart';
-import 'package:alarm/alarm_platform_interface.dart';
-import 'package:alarm/android_alarm.dart';
-import 'package:alarm/notification.dart';
-import 'package:alarm/storage.dart';
+import 'package:alarm/src/ios_alarm.dart';
+import 'package:alarm/model/alarm_settings.dart';
+import 'package:alarm/src/android_alarm.dart';
+import 'package:alarm/service/notification.dart';
+import 'package:alarm/service/storage.dart';
 
 class Alarm {
-  /// To get the singleton instance
-  static AlarmPlatform get platform => AlarmPlatform.instance;
-
-  /// To know if it's iOS device
+  /// Whether it's iOS device.
   static bool get iOS => Platform.isIOS;
 
-  /// To know if it's Android device
+  /// Whether it's Android device.
   static bool get android => Platform.isAndroid;
 
-  static StreamController<AlarmModel> ringStream =
-      StreamController<AlarmModel>();
+  /// Stream of the ringing status.
+  static final ringStream = StreamController<AlarmSettings>();
 
-  /// Create a function that check if there is a futur alarm
-  /// if there is it's will run a callback
+  /// Checks if an alarm is set.
   static void checkAlarm() {
     final currentAlarm = Storage.getCurrentAlarm();
     if (currentAlarm == null) return;
     final now = DateTime.now();
     if (currentAlarm.alarmDateTime.isBefore(now)) {
-      set(alarmModel: currentAlarm);
+      set(settings: currentAlarm);
     }
   }
 
-  /// Initialize Alarm services
+  /// Initializes Alarm services.
+  ///
+  /// Also calls `checkAlarm` that will reschedule the alarm is app was killed
+  /// while an alarm was set.
   static Future<void> init() async {
     await Future.wait([
       if (android) AndroidAlarm.init(),
@@ -41,61 +40,31 @@ class Alarm {
     checkAlarm();
   }
 
-  /// Schedule alarm for [alarmDateTime]x
-  ///
-  /// [onRing] will be called when alarm is triggered at [alarmDateTime]
-  ///
-  /// [assetAudio] is the audio asset you want to use as the alarm ringtone.
-  /// For iOS, you need to drag and drop your asset(s) to your `Runner` folder
-  /// in Xcode and make sure 'Copy items if needed' is checked.
-  /// Can also be an URL.
-  ///
-  /// If you want to show a notification when alarm is triggered,
-  /// [notifTitle] and [notifBody] must not be null
-  static Future<bool> set({
-    required AlarmModel alarmModel,
-  }) async {
-    final loopAudio = Storage.getBool('loop') ?? true;
+  /// Schedules alarm with given [settings].
+  static Future<bool> set({required AlarmSettings settings}) async {
+    await Storage.setCurrentAlarm(settings);
 
     if (iOS) {
-      final assetAudio = alarmModel.assetAudioPath.split('/').last;
-      return platform.setAlarm(
-        alarmModel.alarmDateTime,
-        () {
-          ringStream.add(alarmModel);
-        },
+      final assetAudio = settings.assetAudioPath.split('/').last;
+      return IOSAlarm.setAlarm(
+        settings.alarmDateTime,
+        () => ringStream.add(settings),
         assetAudio,
-        loopAudio,
-        alarmModel.notifTitle,
-        alarmModel.notifBody,
+        settings.loopAudio,
+        settings.notificationTitle,
+        settings.notificationBody,
       );
     }
 
-    Storage.setCurrentAlarm(alarmModel);
     return await AndroidAlarm.set(
-      alarmModel.alarmDateTime,
-      () {
-        ringStream.add(alarmModel);
-      },
-      alarmModel.assetAudioPath,
-      loopAudio,
-      alarmModel.notifTitle,
-      alarmModel.notifBody,
+      settings.alarmDateTime,
+      () => ringStream.add(settings),
+      settings.assetAudioPath,
+      settings.loopAudio,
+      settings.notificationTitle,
+      settings.notificationBody,
     );
   }
-
-  /// If set to `true`, the alarm audio will repeat indefinitely
-  /// until it is stopped.
-  ///
-  /// By default, the loop mode is enabled.
-  static Future<void> loop(bool loop) => Storage.setBool('loop', loop);
-
-  /// Sets a notification that will show when alarm starts ringing.
-  static Future<void> setNotificationOnRing(
-    String title,
-    String body,
-  ) =>
-      Storage.setNotificationContentOnRing(title, body);
 
   /// When the app is killed, all the processes are terminated
   /// so the alarm may never ring. To warn the user, a notification
@@ -111,15 +80,15 @@ class Alarm {
   ) =>
       Storage.setNotificationContentOnAppKill(title, body);
 
-  /// Stop alarm
+  /// Stops alarm.
   static Future<bool> stop() async {
     if (iOS) {
       Notification.instance.cancel();
-      return await platform.stopAlarm();
+      return await IOSAlarm.stopAlarm();
     }
     return await AndroidAlarm.stop();
   }
 
-  /// Whether the alarm is ringing
-  static Future<bool> isRinging() => platform.checkIfRinging();
+  /// Whether the alarm is ringing.
+  static Future<bool> isRinging() => IOSAlarm.checkIfRinging();
 }
