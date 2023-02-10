@@ -22,9 +22,9 @@ class AndroidAlarm {
   static const platform =
       MethodChannel('com.gdelataillade.alarm/notifOnAppKill');
 
-  /// Create isolate receive port and set alarm at given time
+  /// Create isolate receive port and set alarm at given [dateTime]
   static Future<bool> set(
-    DateTime alarmDateTime,
+    DateTime dateTime,
     void Function()? onRing,
     String assetAudioPath,
     bool loopAudio,
@@ -41,11 +41,11 @@ class AndroidAlarm {
         IsolateNameServer.registerPortWithName(port.sendPort, ringPort);
       }
       port.listen((message) {
-        print("[Alarm] (main) received: $message");
+        print('[Alarm] (main) received: $message');
         if (message == 'ring') onRing?.call();
       });
     } catch (e) {
-      print("[Alarm] (main) ReceivePort error: $e");
+      print('[Alarm] (main) ReceivePort error: $e');
       return false;
     }
 
@@ -57,13 +57,13 @@ class AndroidAlarm {
           'description': Storage.getNotificationOnAppKillBody(),
         },
       );
-      print("[Alarm] NotificationOnKillService set with success");
+      print('[Alarm] NotificationOnKillService set with success');
     } catch (e) {
-      print("[Alarm] NotificationOnKillService error: $e");
+      print('[Alarm] NotificationOnKillService error: $e');
     }
 
     final res = await AndroidAlarmManager.oneShotAt(
-      alarmDateTime,
+      dateTime,
       alarmId,
       AndroidAlarm.playAlarm,
       alarmClock: true,
@@ -71,10 +71,10 @@ class AndroidAlarm {
       exact: true,
       rescheduleOnReboot: true,
       params: {
-        "assetAudioPath": assetAudioPath,
-        "loopAudio": loopAudio,
-        "notifTitle": notificationTitle,
-        "notifBody": notificationBody,
+        'assetAudioPath': assetAudioPath,
+        'loopAudio': loopAudio,
+        'notifTitle': notificationTitle,
+        'notifBody': notificationBody,
       },
     );
     return res;
@@ -93,7 +93,7 @@ class AndroidAlarm {
     send.send('ring');
 
     try {
-      final assetAudioPath = data["assetAudioPath"] as String;
+      final assetAudioPath = data['assetAudioPath'] as String;
 
       if (assetAudioPath.startsWith('http')) {
         send.send('[Alarm] Setting audio source url: $assetAudioPath');
@@ -103,7 +103,7 @@ class AndroidAlarm {
         await audioPlayer.setAsset(assetAudioPath);
       }
 
-      final loopAudio = data["loopAudio"];
+      final loopAudio = data['loopAudio'];
       if (loopAudio) audioPlayer.setLoopMode(LoopMode.all);
 
       audioPlayer.play();
@@ -114,8 +114,8 @@ class AndroidAlarm {
       send.send('[Alarm] Asset cache reset. Please try again.');
     }
 
-    final notificationTitle = data["notifTitle"] as String;
-    final notificationBody = data["notifBody"] as String;
+    final notificationTitle = data['notifTitle'] as String;
+    final notificationBody = data['notifBody'] as String;
     if (notificationTitle.isNotEmpty && notificationBody.isNotEmpty) {
       await Notification.instance.androidAlarmNotif(
         title: notificationTitle,
@@ -135,7 +135,7 @@ class AndroidAlarm {
 
       port.listen(
         (message) async {
-          send.send("[Alarm] (isolate) received: $message");
+          send.send('[Alarm] (isolate) received: $message');
           if (message == 'stop') {
             await audioPlayer.stop();
             await audioPlayer.dispose();
@@ -144,7 +144,7 @@ class AndroidAlarm {
         },
       );
     } catch (e) {
-      send.send("[Alarm] (isolate) ReceivePort error: $e");
+      send.send('[Alarm] (isolate) ReceivePort error: $e');
     }
   }
 
@@ -153,17 +153,17 @@ class AndroidAlarm {
   static Future<bool> stop() async {
     try {
       final SendPort send = IsolateNameServer.lookupPortByName(stopPort)!;
-      print("[Alarm] (main) send stop to isolate");
+      print('[Alarm] (main) send stop to isolate');
       send.send('stop');
     } catch (e) {
-      print("[Alarm] (main) SendPort error: $e");
+      print('[Alarm] (main) SendPort error: $e');
     }
 
     try {
       await platform.invokeMethod('stopNotificationOnKillService');
-      print("[Alarm] NotificationOnKillService stopped with success");
+      print('[Alarm] NotificationOnKillService stopped with success');
     } catch (e) {
-      print("[Alarm] NotificationOnKillService error: $e");
+      print('[Alarm] NotificationOnKillService error: $e');
     }
 
     final res = await AndroidAlarmManager.cancel(alarmId);

@@ -4,8 +4,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
-const text = "";
-
 /// The purpose of this class is to show a notification to the user
 /// when the alarm rings so the user can understand where the audio
 /// come from. He also can tap the notification to open directly the app.
@@ -89,7 +87,7 @@ class Notification {
 
     final hasPermission = await requestPermission();
     if (!hasPermission) {
-      print("[Alarm] Notification permission denied");
+      print('[Alarm] Notification permission denied');
       return;
     }
 
@@ -104,9 +102,9 @@ class Notification {
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
       );
-      print("[Alarm] Notification scheduled successfuly at ${zdt.toString()}");
+      print('[Alarm] Notification scheduled successfuly at ${zdt.toString()}');
     } catch (e) {
-      print("[Alarm] Schedule notification error: $e");
+      print('[Alarm] Schedule notification error: $e');
     }
   }
 

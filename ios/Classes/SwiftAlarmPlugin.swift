@@ -82,9 +82,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     let content = UNMutableNotificationContent()
     content.title = notificationTitleOnKill
     content.body = notificationBodyOnKill
-    NSLog("===> NSLog Notif applicationWillTerminate")
     let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
-    let request = UNNotificationRequest(identifier: "notification when terminate", content: content, trigger: trigger)
+    let request = UNNotificationRequest(identifier: "notification on app kill", content: content, trigger: trigger)
     UNUserNotificationCenter.current().add(request)
   }
 }

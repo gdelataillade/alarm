@@ -37,16 +37,16 @@ class IOSAlarm {
     final res = await methodChannel.invokeMethod<bool?>(
           'setAlarm',
           {
-            "assetAudio": assetAudio,
-            "delayInSeconds": delay.inSeconds.abs().toDouble(),
-            "loopAudio": loopAudio,
-            "notifTitleOnAppKill": Storage.getNotificationOnAppKillTitle(),
-            "notifDescriptionOnAppKill": Storage.getNotificationOnAppKillBody(),
+            'assetAudio': assetAudio,
+            'delayInSeconds': delay.inSeconds.abs().toDouble(),
+            'loopAudio': loopAudio,
+            'notifTitleOnAppKill': Storage.getNotificationOnAppKillTitle(),
+            'notifDescriptionOnAppKill': Storage.getNotificationOnAppKillBody(),
           },
         ) ??
         false;
 
-    print("[Alarm] alarm set ${res ? 'successfully' : 'failed'}");
+    print('[Alarm] alarm set ${res ? 'successfully' : 'failed'}');
 
     if (res == false) return false;
 
@@ -69,9 +69,7 @@ class IOSAlarm {
   /// Calls the native stopAlarm function.
   static Future<bool> stopAlarm() async {
     final res = await methodChannel.invokeMethod<bool?>('stopAlarm') ?? false;
-    print(res
-        ? "[Alarm] alarm stopped with success"
-        : "[Alarm] stop failed: no alarm was set");
+    print('[Alarm] alarm stopped ${res ? 'with success' : 'failed'}');
     return res;
   }
 
@@ -85,7 +83,7 @@ class IOSAlarm {
     final pos2 =
         await methodChannel.invokeMethod<double?>('audioCurrentTime') ?? 0.0;
     final isRinging = pos2 > pos1;
-    print("[Alarm] alarm is ringing: $isRinging");
+    print('[Alarm] alarm is ringing: $isRinging');
     return isRinging;
   }
 
@@ -93,7 +91,7 @@ class IOSAlarm {
   static void listenAppStateChange(
       {required void Function() onForeground}) async {
     FGBGEvents.stream.listen((event) {
-      print("[Alarm] onAppStateChange $event");
+      print('[Alarm] onAppStateChange $event');
       if (event == FGBGType.foreground) onForeground();
     });
   }
@@ -109,7 +107,7 @@ class IOSAlarm {
 
     timer = Timer.periodic(const Duration(milliseconds: 500), (_) {
       if (DateTime.now().isAfter(dt)) {
-        print("[Alarm] onRing");
+        print('[Alarm] onRing');
         onRing?.call();
         timer?.cancel();
       }

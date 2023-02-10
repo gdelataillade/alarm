@@ -17,16 +17,6 @@ class Alarm {
   /// Stream of the ringing status.
   static final ringStream = StreamController<AlarmSettings>();
 
-  /// Checks if an alarm is set.
-  static void checkAlarm() {
-    final currentAlarm = Storage.getCurrentAlarm();
-    if (currentAlarm == null) return;
-    final now = DateTime.now();
-    if (currentAlarm.alarmDateTime.isBefore(now)) {
-      set(settings: currentAlarm);
-    }
-  }
-
   /// Initializes Alarm services.
   ///
   /// Also calls `checkAlarm` that will reschedule the alarm is app was killed
@@ -40,14 +30,29 @@ class Alarm {
     checkAlarm();
   }
 
-  /// Schedules alarm with given [settings].
+  /// Checks if an alarm was set on another session.
+  /// If it's the case, reschedules it.
+  static void checkAlarm() {
+    final alarm = Storage.getSavedAlarm();
+    if (alarm == null) return;
+
+    final now = DateTime.now();
+    if (alarm.dateTime.isAfter(now)) {
+      set(settings: alarm);
+    }
+  }
+
+  /// Schedules an alarm with given [settings].
   static Future<bool> set({required AlarmSettings settings}) async {
-    await Storage.setCurrentAlarm(settings);
+    await Storage.saveAlarm(settings);
+
+    // final alarm = Storage.getSavedAlarm();
+    // print(alarm);
 
     if (iOS) {
       final assetAudio = settings.assetAudioPath.split('/').last;
       return IOSAlarm.setAlarm(
-        settings.alarmDateTime,
+        settings.dateTime,
         () => ringStream.add(settings),
         assetAudio,
         settings.loopAudio,
@@ -57,7 +62,7 @@ class Alarm {
     }
 
     return await AndroidAlarm.set(
-      settings.alarmDateTime,
+      settings.dateTime,
       () => ringStream.add(settings),
       settings.assetAudioPath,
       settings.loopAudio,
@@ -67,9 +72,9 @@ class Alarm {
   }
 
   /// When the app is killed, all the processes are terminated
-  /// so the alarm may never ring. To warn the user, a notification
+  /// so the alarm may never ring. By default, to warn the user, a notification
   /// is shown at the moment he kills the app.
-  /// This methods allows you to customize the notification content.
+  /// This methods allows you to customize this notification content.
   ///
   /// [title] default value is `Your alarm may not ring`
   ///
@@ -82,6 +87,8 @@ class Alarm {
 
   /// Stops alarm.
   static Future<bool> stop() async {
+    await Storage.unsaveAlarm();
+
     if (iOS) {
       Notification.instance.cancel();
       return await IOSAlarm.stopAlarm();

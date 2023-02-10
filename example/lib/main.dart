@@ -4,10 +4,12 @@ import 'package:alarm/alarm.dart';
 import 'package:flutter/services.dart';
 import 'package:alarm/model/alarm_settings.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  Alarm.init();
+
+  await Alarm.init();
+
   runApp(const MaterialApp(home: MyApp()));
 }
 
@@ -67,11 +69,11 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> setAlarm(DateTime dateTime, [bool enableNotif = true]) async {
     final alarmSettings = AlarmSettings(
-      alarmDateTime: dateTime,
+      dateTime: dateTime,
       assetAudioPath: 'assets/sample.mp3',
       loopAudio: loopAudio,
-      notificationTitle: showNotif && enableNotif ? 'Alarm example' : "",
-      notificationBody: showNotif && enableNotif ? 'Your alarm is ringing' : "",
+      notificationTitle: showNotif && enableNotif ? 'Alarm example' : '',
+      notificationBody: showNotif && enableNotif ? 'Your alarm is ringing' : '',
     );
     await Alarm.set(settings: alarmSettings);
   }
@@ -104,7 +106,7 @@ class _MyAppState extends State<MyApp> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text("Display notification (if backgrounded)"),
+                const Text('Display notification (if backgrounded)'),
                 Switch(
                   value: showNotif,
                   onChanged: (value) => setState(() => showNotif = value),
@@ -114,7 +116,7 @@ class _MyAppState extends State<MyApp> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text("Loop alarm audio"),
+                const Text('Loop alarm audio'),
                 Switch(
                   value: loopAudio,
                   onChanged: (value) => setState(() => loopAudio = value),
@@ -162,7 +164,7 @@ class _MyAppState extends State<MyApp> {
               child: const Text('Ring alarm on next minute'),
             ),
             const SizedBox(height: 50),
-            if (isRinging) const Text("Ringing..."),
+            if (isRinging) const Text('Ringing...'),
             const SizedBox(height: 50),
             RawMaterialButton(
               onPressed: () async {
