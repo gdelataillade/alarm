@@ -3,11 +3,13 @@ import 'dart:io';
 import 'package:alarm/alarm_platform_interface.dart';
 import 'package:alarm/android_alarm.dart';
 import 'package:alarm/notification.dart';
+import 'package:alarm/shared_preferences.dart';
 
 class Alarm {
   static AlarmPlatform get platform => AlarmPlatform.instance;
 
   static bool get iOS => Platform.isIOS;
+
   static bool get android => Platform.isAndroid;
 
   /// Initialize Alarm service
@@ -38,6 +40,10 @@ class Alarm {
     String? notifTitle,
     String? notifBody,
   }) async {
+    if (loopAudio != SharedPreference.getLoopAudio()) {
+      SharedPreference.setLoopAudio(loopAudio);
+    }
+    SharedPreference.setAudioAssets(assetAudio);
     if (iOS) {
       assetAudio = assetAudio.split('/').last;
       return platform.setAlarm(
