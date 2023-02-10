@@ -106,6 +106,7 @@ We welcome contributions to this package! If you would like to make a change or 
 
 These are some features that I have in mind that could be useful:
 - Multiple alarms management
+- Use ffigen and jnigen binding generators to call native code more efficiently instead of using method channels.
 - Optional vibrations when alarm rings
 - [Notification actions](https://pub.dev/packages/flutter_local_notifications#notification-actions): stop and snooze
 - Progressive alarm volume option
