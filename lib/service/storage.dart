@@ -22,6 +22,9 @@ class Storage {
   /// Remove alarm from local storage.
   static Future<void> unsaveAlarm() => prefs.remove(currentAlarm);
 
+  /// Wether an alarm is set or not.
+  static bool hasAlarm() => prefs.getString(currentAlarm) != null;
+
   /// Gets alarm info from local storage in the case app is terminated and
   /// we need to restore the alarm.
   static AlarmSettings? getSavedAlarm() {

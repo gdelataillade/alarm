@@ -13,6 +13,7 @@ class IOSAlarm {
       const MethodChannel('com.gdelataillade/alarm');
 
   static Timer? timer;
+  static StreamSubscription<FGBGType>? fgbgSubscription;
 
   /// Schedule an iOS notification for the moment the alarm starts ringing.
   /// Then call the native function setAlarm.
@@ -53,9 +54,15 @@ class IOSAlarm {
     periodicTimer(onRing, dateTime);
 
     listenAppStateChange(
+      onBackground: () => timer?.cancel(),
       onForeground: () async {
+        final hasAlarm = Storage.hasAlarm();
+        print('[Alarm] Storage has alarm: ${hasAlarm ? 'true' : 'false'}');
+        if (!hasAlarm) return;
+
         final isRinging = await checkIfRinging();
         if (isRinging) {
+          dispose();
           onRing?.call();
         } else {
           periodicTimer(onRing, dateTime);
@@ -83,16 +90,19 @@ class IOSAlarm {
     final pos2 =
         await methodChannel.invokeMethod<double?>('audioCurrentTime') ?? 0.0;
     final isRinging = pos2 > pos1;
-    print('[Alarm] alarm is ringing: $isRinging');
+    print('[Alarm] check if ringing: $isRinging');
     return isRinging;
   }
 
   /// Listens when app goes foreground so we can check if alarm is ringing.
-  static void listenAppStateChange(
-      {required void Function() onForeground}) async {
-    FGBGEvents.stream.listen((event) {
+  static void listenAppStateChange({
+    required void Function() onForeground,
+    required void Function() onBackground,
+  }) async {
+    fgbgSubscription = FGBGEvents.stream.listen((event) {
       print('[Alarm] onAppStateChange $event');
       if (event == FGBGType.foreground) onForeground();
+      if (event == FGBGType.background) onBackground();
     });
   }
 
@@ -100,17 +110,27 @@ class IOSAlarm {
   static void periodicTimer(void Function()? onRing, DateTime dt) async {
     timer?.cancel();
 
-    if (DateTime.now().isAfter(dt)) {
-      onRing?.call();
-      return;
-    }
-
     timer = Timer.periodic(const Duration(milliseconds: 500), (_) {
+      print('[Alarm] tick');
+      final hasAlarm = Storage.hasAlarm();
+      if (!hasAlarm) {
+        dispose();
+        return;
+      }
+
       if (DateTime.now().isAfter(dt)) {
-        print('[Alarm] onRing');
+        print('[Alarm] onRing from periodicTimer');
+        print('[Alarm] now: ${DateTime.now()} vs $dt');
+        print(
+            '[Alarm] ${DateTime.now().millisecondsSinceEpoch} vs ${dt.millisecondsSinceEpoch}');
+        dispose();
         onRing?.call();
-        timer?.cancel();
       }
     });
+  }
+
+  static void dispose() {
+    fgbgSubscription?.cancel();
+    timer?.cancel();
   }
 }

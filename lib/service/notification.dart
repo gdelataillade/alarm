@@ -135,7 +135,8 @@ class Notification {
     );
   }
 
-  /// Cancel notification. Called when the alarm is cancelled.
+  /// Cancel notification. Called when the alarm is cancelled or
+  /// when an alarm is overriden.
   Future<void> cancel() => localNotif.cancel(alarmId);
 
   // This code is used to send a notification with a title and body to an Android or iOS device.

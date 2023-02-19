@@ -45,9 +45,7 @@ class Alarm {
   /// Schedules an alarm with given [settings].
   static Future<bool> set({required AlarmSettings settings}) async {
     await Storage.saveAlarm(settings);
-
-    // final alarm = Storage.getSavedAlarm();
-    // print(alarm);
+    await Notification.instance.cancel();
 
     if (iOS) {
       final assetAudio = settings.assetAudioPath.split('/').last;
