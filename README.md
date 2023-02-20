@@ -105,7 +105,8 @@ Alarm.ringStream.stream.listen((_) => yourOnRingCallback());
 
 **Don't hesitate to check out the example's code, here's a screenshot:**
 
-![example_app_screensot](https://user-images.githubusercontent.com/32983806/209820781-bb8d15fa-efc1-4f48-a1d3-bcfcaf9efccf.jpeg)
+![example_app_screensot](https://user-images.githubusercontent.com/32983806/220070209-2636ce9c-183a-43e7-91ec-a5d0fb3bdfe8.jpeg)
+
 
 ## Feature request
 
