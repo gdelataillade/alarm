@@ -8,9 +8,11 @@ As a Flutter developer at [Evolum](https://evolum.co), my CTO and I needed to de
 
 An alarm feature is a great way to increase users engagement.
 
-For the Android part, we used `android_alarm_manager_plus` package, but to be honest it was not very intuitive.
+For the Android part, we used `android_alarm_manager_plus` package, but to be honest it was not very intuitive and incomplete.
 
 Then, for the iOS part, we couldn't find any package or tutorial to add this feature.
+
+Another issue we found is that when a user kills the app, all processes are terminated so the alarm may not ring. The workaround we thought about was to show a notification when the user kills the app to warn him that the alarm may not ring, He just has to reopen the app to reschedule the alarm.
 
 Therefore, we decided to write our own package to wrap everything and make it easy for everybody.
 
@@ -28,8 +30,7 @@ The issue is that asynchronous native code is suspended when app goes on backgro
 ### iOS installation steps
 
 To import your alarm audio(s), you will need to drag and drop your asset(s) to your `Runner` folder in Xcode. 
-I published a Gist to show you the steps to follow, and also give you a tip to save your app some weight. 
-It's [right here](https://gist.github.com/gdelataillade/68834caacdd6727f1418e46788f70b53).
+I published a Gist to show you the steps to follow, and also give you a tip to save your app some weight using symbolic links. It's [right here](https://gist.github.com/gdelataillade/68834caacdd6727f1418e46788f70b53).
 
 ### Android installation steps
 
@@ -50,24 +51,30 @@ Then, add your audio asset(s) to your project like usual.
 ## How to use
 
 Add to your pubspec.yaml:
-```
+```Bash
 flutter pub add alarm
 ```
 
-First, you have to initialize the Alarm service:
+First, you have to initialize the Alarm service in your `main` function:
 ```Dart
-Alarm.initialize();
+await Alarm.init()
 ```
 
-Then, you can finally set your alarm:
+Then, you have to define your alarm settings:
 ```Dart
-Alarm.set(
-  alarmDateTime: dateTime,
-  assetAudio: "assets/alarm.mp3",
-  onRing: () => setState(() => isRinging = true),
-  notifTitle: 'Alarm notification',
-  notifBody: 'Your alarm is ringing',
+final alarmSettings = AlarmSettings(
+  dateTime: dateTime,
+  assetAudioPath: 'assets/sample.mp3',
+  loopAudio: true,
+  notificationTitle: 'This is the title',
+  notificationBody: 'This is the body',
+  enableNotificationOnKill: true,
 );
+```
+
+And finally set the alarm:
+```Dart
+await Alarm.set(settings: alarmSettings)
 ```
 
 Property |   Type     | Description
@@ -75,21 +82,30 @@ Property |   Type     | Description
 alarmDateTime |   `DateTime`     | The date and time you want your alarm to ring.
 assetAudio |   `String`     | The path to you audio asset you want to use as ringtone. Can be local asset or network URL.
 loopMode |   `bool`     | If set to true, audio will repeat indefinitely until it is stopped.
-onRing | `void Function()` | A callback that will be called at the moment the alarm starts ringing.
-notifTitle |   `String`     | (optional) The title of the notification triggered when alarm rings if app is on background.
-notifBody | `String` | (optional) The body of the notification.
+notificationTitle |   `String`     | The title of the notification triggered when alarm rings if app is on background.
+notificationBody | `String` | The body of the notification.
+enableNotificationOnKill |   `bool`     | Whether to show a notification when application is killed to warn the user that the alarm he set may not ring. Enabled by default.
 
-The parameters `notifTitle` and `notifBody` are optional, but if you want a notification to be triggered, you will have to provide **both of them**.
+The notification shown on alarm ring can be disabled simply by ignoring the parameters `notificationTitle` and `notificationBody`. However, if you want a notification to be triggered, you will have to provide **both of them**.
+
+If you enabled `enableNotificationOnKill`, you can chose your own notification title and body by using this method:
+```Dart
+await Alarm.setNotificationOnAppKillContent(title, body)
+```
 
 This is how to stop/cancel your alarm:
 ```Dart
-Alarm.stop()
+await Alarm.stop()
+```
+
+This is how to run some code when alarm starts ringing. We implemented it as a stream so even if your app was previously killed, your custom callback can still be triggered.
+```Dart
+Alarm.ringStream.stream.listen((_) => yourOnRingCallback());
 ```
 
 **Don't hesitate to check out the example's code, here's a screenshot:**
 
 ![example_app_screensot](https://user-images.githubusercontent.com/32983806/209820781-bb8d15fa-efc1-4f48-a1d3-bcfcaf9efccf.jpeg)
-
 
 ## Feature request
 
@@ -106,7 +122,7 @@ We welcome contributions to this package! If you would like to make a change or 
 
 These are some features that I have in mind that could be useful:
 - Multiple alarms management
-- Use ffigen and jnigen binding generators to call native code more efficiently instead of using method channels.
+- Use `ffigen` and `jnigen` binding generators to call native code more efficiently instead of using method channels.
 - Optional vibrations when alarm rings
 - [Notification actions](https://pub.dev/packages/flutter_local_notifications#notification-actions): stop and snooze
 - Progressive alarm volume option
