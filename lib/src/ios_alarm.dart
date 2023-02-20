@@ -57,7 +57,6 @@ class IOSAlarm {
       onBackground: () => timer?.cancel(),
       onForeground: () async {
         final hasAlarm = Storage.hasAlarm();
-        print('[Alarm] Storage has alarm: ${hasAlarm ? 'true' : 'false'}');
         if (!hasAlarm) return;
 
         final isRinging = await checkIfRinging();
@@ -90,7 +89,6 @@ class IOSAlarm {
     final pos2 =
         await methodChannel.invokeMethod<double?>('audioCurrentTime') ?? 0.0;
     final isRinging = pos2 > pos1;
-    print('[Alarm] check if ringing: $isRinging');
     return isRinging;
   }
 
@@ -100,7 +98,6 @@ class IOSAlarm {
     required void Function() onBackground,
   }) async {
     fgbgSubscription = FGBGEvents.stream.listen((event) {
-      print('[Alarm] onAppStateChange $event');
       if (event == FGBGType.foreground) onForeground();
       if (event == FGBGType.background) onBackground();
     });
@@ -111,7 +108,6 @@ class IOSAlarm {
     timer?.cancel();
 
     timer = Timer.periodic(const Duration(milliseconds: 500), (_) {
-      print('[Alarm] tick');
       final hasAlarm = Storage.hasAlarm();
       if (!hasAlarm) {
         dispose();
@@ -119,10 +115,6 @@ class IOSAlarm {
       }
 
       if (DateTime.now().isAfter(dt)) {
-        print('[Alarm] onRing from periodicTimer');
-        print('[Alarm] now: ${DateTime.now()} vs $dt');
-        print(
-            '[Alarm] ${DateTime.now().millisecondsSinceEpoch} vs ${dt.millisecondsSinceEpoch}');
         dispose();
         onRing?.call();
       }

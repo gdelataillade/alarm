@@ -41,7 +41,6 @@ class AndroidAlarm {
         IsolateNameServer.registerPortWithName(port.sendPort, ringPort);
       }
       port.listen((message) {
-        print('[Alarm] (main) received: $message');
         if (message == 'ring') onRing?.call();
       });
     } catch (e) {
@@ -153,7 +152,6 @@ class AndroidAlarm {
   static Future<bool> stop() async {
     try {
       final SendPort send = IsolateNameServer.lookupPortByName(stopPort)!;
-      print('[Alarm] (main) send stop to isolate');
       send.send('stop');
     } catch (e) {
       print('[Alarm] (main) SendPort error: $e');
