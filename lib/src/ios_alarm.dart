@@ -15,7 +15,7 @@ class IOSAlarm {
   static Timer? timer;
   static StreamSubscription<FGBGType>? fgbgSubscription;
 
-  /// Schedule an iOS notification for the moment the alarm starts ringing.
+  /// Schedules an iOS notification for the moment the alarm starts ringing.
   /// Then call the native function setAlarm.
   static Future<bool> setAlarm(
     DateTime dateTime,
@@ -93,6 +93,7 @@ class IOSAlarm {
   }
 
   /// Listens when app goes foreground so we can check if alarm is ringing.
+  /// When app goes background, periodical timer will be disposed.
   static void listenAppStateChange({
     required void Function() onForeground,
     required void Function() onBackground,
@@ -121,6 +122,7 @@ class IOSAlarm {
     });
   }
 
+  /// Disposes FGBGType subscription and periodical timer.
   static void dispose() {
     fgbgSubscription?.cancel();
     timer?.cancel();
