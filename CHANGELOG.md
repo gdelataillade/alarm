@@ -1,6 +1,11 @@
-## 0.0.6
-
-* Fix iOS crash when stop method is called and no alarm is set
+## 0.1.0
+* **Breaking changes**: `Alarm.set` method now takes a `AlarmSettings` as only parameter.
+* **Breaking changes**: You will have to create a `StreamSubscription` attached to `Alarm.ringStream.stream` in order to listen to the alarm ringing state now. This way, even if your app was previously killed, your custom callback can still be triggered.
+* By default, if an alarm was set and the app is killed, a notification will be shown to warn
+the user that the alarm may not ring, with the possibility to reopen the app and automatically reschedule the alarm.
+To disable this feature, you can call the method `Alarm.toggleNotificationOnAppKill(false)`.
+* Add notification on kill notification switch button in example app.
+* Add some minor fixes and improvements.
 
 ## 0.0.5
 

@@ -87,7 +87,7 @@ class Notification {
 
     final hasPermission = await requestPermission();
     if (!hasPermission) {
-      print("[Alarm] Notification permission denied");
+      print('[Alarm] Notification permission denied');
       return;
     }
 
@@ -102,9 +102,9 @@ class Notification {
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
       );
-      print("[Alarm] Notification scheduled successfuly at ${zdt.toString()}");
+      print('[Alarm] Notification scheduled successfuly at ${zdt.toString()}');
     } catch (e) {
-      print("[Alarm] Schedule notification error: $e");
+      print('[Alarm] Schedule notification error: $e');
     }
   }
 
@@ -135,6 +135,48 @@ class Notification {
     );
   }
 
-  /// Cancel notification. Called when the alarm is cancelled.
+  /// Cancel notification. Called when the alarm is cancelled or
+  /// when an alarm is overriden.
   Future<void> cancel() => localNotif.cancel(alarmId);
+
+  // This code is used to send a notification with a title and body to an Android or iOS device.
+  // It first imports the FlutterLocalNotificationsPlugin, then sets up the Android and iOS initialization settings.
+  // After that, it creates the platform-specific notification details for both Android and iOS.
+  // Finally, it uses the show() method to send the notification with the given title and body.
+  static Future<void> sendNotification(
+    String title,
+    String body,
+  ) async {
+    final FlutterLocalNotificationsPlugin lNotif =
+        FlutterLocalNotificationsPlugin();
+    const initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const initializationSettingsIOS = DarwinInitializationSettings(
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
+    );
+    const initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+      iOS: initializationSettingsIOS,
+    );
+    await lNotif.initialize(initializationSettings);
+    const androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      'alarm-package',
+      'alarm',
+      channelDescription: 'alarm to wake up',
+    );
+    const iOSPlatformChannelSpecifics = DarwinNotificationDetails();
+    const platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+      iOS: iOSPlatformChannelSpecifics,
+    );
+
+    await lNotif.show(
+      12345,
+      title,
+      body,
+      platformChannelSpecifics,
+    );
+  }
 }

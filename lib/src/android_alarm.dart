@@ -3,8 +3,10 @@
 import 'dart:isolate';
 import 'dart:ui';
 
-import 'package:alarm/notification.dart';
+import 'package:alarm/service/notification.dart';
+import 'package:alarm/service/storage.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
+import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 
 /// For Android support, AndroidAlarmManager is used to set an alarm
@@ -17,14 +19,18 @@ class AndroidAlarm {
   /// Initializes AndroidAlarmManager dependency
   static Future<void> init() => AndroidAlarmManager.initialize();
 
-  /// Create isolate receive port and set alarm at given time
+  static const platform =
+      MethodChannel('com.gdelataillade.alarm/notifOnAppKill');
+
+  /// Create isolate receive port and set alarm at given [dateTime]
   static Future<bool> set(
-    DateTime alarmDateTime,
+    DateTime dateTime,
     void Function()? onRing,
     String assetAudioPath,
     bool loopAudio,
-    String? notifTitle,
-    String? notifBody,
+    String? notificationTitle,
+    String? notificationBody,
+    bool enableNotificationOnKill,
   ) async {
     try {
       final ReceivePort port = ReceivePort();
@@ -36,16 +42,30 @@ class AndroidAlarm {
         IsolateNameServer.registerPortWithName(port.sendPort, ringPort);
       }
       port.listen((message) {
-        print("[Alarm] (main) received: $message");
         if (message == 'ring') onRing?.call();
       });
     } catch (e) {
-      print("[Alarm] (main) ReceivePort error: $e");
+      print('[Alarm] (main) ReceivePort error: $e');
       return false;
     }
 
+    if (enableNotificationOnKill) {
+      try {
+        await platform.invokeMethod(
+          'setNotificationOnKillService',
+          {
+            'title': Storage.getNotificationOnAppKillTitle(),
+            'description': Storage.getNotificationOnAppKillBody(),
+          },
+        );
+        print('[Alarm] NotificationOnKillService set with success');
+      } catch (e) {
+        print('[Alarm] NotificationOnKillService error: $e');
+      }
+    }
+
     final res = await AndroidAlarmManager.oneShotAt(
-      alarmDateTime,
+      dateTime,
       alarmId,
       AndroidAlarm.playAlarm,
       alarmClock: true,
@@ -53,10 +73,10 @@ class AndroidAlarm {
       exact: true,
       rescheduleOnReboot: true,
       params: {
-        "assetAudioPath": assetAudioPath,
-        "loopAudio": loopAudio,
-        "notifTitle": notifTitle,
-        "notifBody": notifBody,
+        'assetAudioPath': assetAudioPath,
+        'loopAudio': loopAudio,
+        'notificationTitle': notificationTitle,
+        'notificationBody': notificationBody,
       },
     );
     return res;
@@ -75,7 +95,7 @@ class AndroidAlarm {
     send.send('ring');
 
     try {
-      final assetAudioPath = data["assetAudioPath"] as String;
+      final assetAudioPath = data['assetAudioPath'] as String;
 
       if (assetAudioPath.startsWith('http')) {
         send.send('[Alarm] Setting audio source url: $assetAudioPath');
@@ -85,7 +105,7 @@ class AndroidAlarm {
         await audioPlayer.setAsset(assetAudioPath);
       }
 
-      final loopAudio = data["loopAudio"];
+      final loopAudio = data['loopAudio'];
       if (loopAudio) audioPlayer.setLoopMode(LoopMode.all);
 
       audioPlayer.play();
@@ -96,11 +116,16 @@ class AndroidAlarm {
       send.send('[Alarm] Asset cache reset. Please try again.');
     }
 
-    final notifTitle = data["notifTitle"];
-    final notifBody = data["notifBody"];
-    if (notifTitle != null && notifBody != null) {
-      await Notification.instance
-          .androidAlarmNotif(title: notifTitle, body: notifBody);
+    final notificationTitle = data['notificationTitle'] as String?;
+    final notificationBody = data['notificationBody'] as String?;
+    if (notificationTitle != null &&
+        notificationTitle.isNotEmpty &&
+        notificationBody != null &&
+        notificationBody.isNotEmpty) {
+      await Notification.instance.androidAlarmNotif(
+        title: notificationTitle,
+        body: notificationBody,
+      );
     }
 
     try {
@@ -115,7 +140,7 @@ class AndroidAlarm {
 
       port.listen(
         (message) async {
-          send.send("[Alarm] (isolate) received: $message");
+          send.send('[Alarm] (isolate) received: $message');
           if (message == 'stop') {
             await audioPlayer.stop();
             await audioPlayer.dispose();
@@ -124,7 +149,7 @@ class AndroidAlarm {
         },
       );
     } catch (e) {
-      send.send("[Alarm] (isolate) ReceivePort error: $e");
+      send.send('[Alarm] (isolate) ReceivePort error: $e');
     }
   }
 
@@ -133,14 +158,24 @@ class AndroidAlarm {
   static Future<bool> stop() async {
     try {
       final SendPort send = IsolateNameServer.lookupPortByName(stopPort)!;
-      print("[Alarm] (main) send stop to isolate");
       send.send('stop');
     } catch (e) {
-      print("[Alarm] (main) SendPort error: $e");
+      print('[Alarm] (main) SendPort error: $e');
     }
+
+    stopNotificationOnKillService();
 
     final res = await AndroidAlarmManager.cancel(alarmId);
 
     return res;
+  }
+
+  static Future<void> stopNotificationOnKillService() async {
+    try {
+      await platform.invokeMethod('stopNotificationOnKillService');
+      print('[Alarm] NotificationOnKillService stopped with success');
+    } catch (e) {
+      print('[Alarm] NotificationOnKillService error: $e');
+    }
   }
 }

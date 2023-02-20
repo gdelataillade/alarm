@@ -1,9 +1,17 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
-
+import 'package:flutter/material.dart';
 import 'package:alarm/alarm.dart';
+import 'package:flutter/services.dart';
+import 'package:alarm/model/alarm_settings.dart';
 
-void main() => runApp(const MaterialApp(home: MyApp()));
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+
+  await Alarm.init();
+
+  runApp(const MaterialApp(home: MyApp()));
+}
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -14,15 +22,19 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   TimeOfDay? selectedTime;
-  bool showNotif = true;
+  bool showNotifOnRing = true;
+  bool showNotifOnKill = true;
   bool isRinging = false;
-  bool loopAudio = false;
+  bool loopAudio = true;
+
+  StreamSubscription? subscription;
 
   Future<void> pickTime() async {
+    final now = DateTime.now();
     final res = await showTimePicker(
       initialTime: TimeOfDay(
-        hour: TimeOfDay.now().hour,
-        minute: TimeOfDay.now().minute + 1,
+        hour: now.hour,
+        minute: now.add(const Duration(minutes: 1)).minute,
       ),
       context: context,
       confirmText: 'SET ALARM',
@@ -31,7 +43,6 @@ class _MyAppState extends State<MyApp> {
     if (res == null) return;
     setState(() => selectedTime = res);
 
-    final now = DateTime.now();
     DateTime dt = DateTime(
       now.year,
       now.month,
@@ -58,107 +69,144 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> setAlarm(DateTime dateTime, [bool enableNotif = true]) async {
-    await Alarm.set(
-      alarmDateTime: dateTime,
-      assetAudio: 'assets/sample.mp3',
+    final alarmSettings = AlarmSettings(
+      dateTime: dateTime,
+      assetAudioPath: 'assets/sample.mp3',
       loopAudio: loopAudio,
-      onRing: () {
-        setState(() {
-          isRinging = true;
-          selectedTime = null;
-        });
-      },
-      notifTitle: showNotif && enableNotif ? 'This is the title' : null,
-      notifBody: showNotif && enableNotif ? 'This is the body' : null,
+      notificationTitle:
+          showNotifOnRing && enableNotif ? 'Alarm example' : null,
+      notificationBody:
+          showNotifOnRing && enableNotif ? 'Your alarm is ringing' : null,
+      enableNotificationOnKill: true,
     );
+    await Alarm.set(settings: alarmSettings);
   }
 
   @override
   void initState() {
     super.initState();
-    Alarm.init();
+    subscription = Alarm.ringStream.stream.listen((_) {
+      setState(() {
+        isRinging = true;
+        selectedTime = null;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    subscription?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Package alarm example app')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text("Display notification (if backgrounded)"),
-                Switch(
-                  value: showNotif,
-                  onChanged: (value) => setState(() => showNotif = value),
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text("Loop alarm audio"),
-                Switch(
-                  value: loopAudio,
-                  onChanged: (value) => setState(() => loopAudio = value),
-                ),
-              ],
-            ),
-            RawMaterialButton(
-              onPressed: pickTime,
-              fillColor: Colors.red,
-              child: const Text('Pick time'),
-            ),
-            if (selectedTime != null)
-              Text(
-                'Alarm will ring ${ringDay()} at ${selectedTime!.format(context)}',
+      body: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Display notification (if backgrounded)'),
+                  Switch(
+                    value: showNotifOnRing,
+                    onChanged: (value) =>
+                        setState(() => showNotifOnRing = value),
+                  ),
+                ],
               ),
-            const SizedBox(height: 50),
-            RawMaterialButton(
-              onPressed: () => setAlarm(DateTime.now(), false),
-              fillColor: Colors.lightBlueAccent,
-              child: const Text('Ring alarm now'),
-            ),
-            RawMaterialButton(
-              onPressed: () => setAlarm(
-                DateTime.now().add(const Duration(seconds: 3)),
-                false,
+              Tooltip(
+                message:
+                    'Warns the user that alarm may not ring because app was killed.',
+                showDuration: const Duration(seconds: 2),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.info_outline_rounded,
+                      color: Colors.grey,
+                      size: 15,
+                    ),
+                    const SizedBox(width: 5),
+                    const Text('Show notification on app kill'),
+                    Switch(
+                      value: showNotifOnKill,
+                      onChanged: (value) =>
+                          setState(() => showNotifOnKill = value),
+                    ),
+                  ],
+                ),
               ),
-              fillColor: Colors.lightBlueAccent,
-              child: const Text('Ring alarm in 3 seconds (no notif)'),
-            ),
-            RawMaterialButton(
-              onPressed: () {
-                DateTime now = DateTime.now();
-                setAlarm(
-                  DateTime(
-                    now.year,
-                    now.month,
-                    now.day,
-                    now.hour,
-                    now.minute,
-                    0,
-                  ).add(const Duration(minutes: 1)),
-                );
-              },
-              fillColor: Colors.lightBlueAccent,
-              child: const Text('Ring alarm on next minute'),
-            ),
-            const SizedBox(height: 50),
-            if (isRinging) const Text("Ringing..."),
-            const SizedBox(height: 50),
-            RawMaterialButton(
-              onPressed: () async {
-                final stop = await Alarm.stop();
-                if (stop && isRinging) setState(() => isRinging = false);
-              },
-              fillColor: Colors.red,
-              child: const Text('Stop'),
-            ),
-          ],
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Loop alarm audio'),
+                  Switch(
+                    value: loopAudio,
+                    onChanged: (value) => setState(() => loopAudio = value),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              RawMaterialButton(
+                onPressed: pickTime,
+                fillColor: Colors.green,
+                child: const Text('Pick time'),
+              ),
+              if (selectedTime != null)
+                Text(
+                  'Alarm will ring ${ringDay()} at ${selectedTime!.format(context)}',
+                ),
+              const SizedBox(height: 20),
+              RawMaterialButton(
+                onPressed: () => setAlarm(DateTime.now(), false),
+                fillColor: Colors.lightBlueAccent,
+                child: const Text('Ring alarm now'),
+              ),
+              RawMaterialButton(
+                onPressed: () => setAlarm(
+                  DateTime.now().add(const Duration(seconds: 3)),
+                  false,
+                ),
+                fillColor: Colors.lightBlueAccent,
+                child: const Text('Ring alarm in 3 seconds (no notif)'),
+              ),
+              RawMaterialButton(
+                onPressed: () {
+                  DateTime now = DateTime.now();
+                  setAlarm(
+                    DateTime(
+                      now.year,
+                      now.month,
+                      now.day,
+                      now.hour,
+                      now.minute,
+                      0,
+                    ).add(const Duration(minutes: 1)),
+                  );
+                },
+                fillColor: Colors.lightBlueAccent,
+                child: const Text('Ring alarm on next minute'),
+              ),
+              const SizedBox(height: 20),
+              if (isRinging) const Text('🔔 Ringing 🔔'),
+              RawMaterialButton(
+                onPressed: () async {
+                  final stop = await Alarm.stop();
+                  setState(() {
+                    selectedTime = null;
+                    if (stop && isRinging) isRinging = false;
+                  });
+                },
+                fillColor: Colors.red,
+                child: const Text('Stop'),
+              ),
+            ],
+          ),
         ),
       ),
     );
