@@ -32,25 +32,30 @@ class NotificationOnKillService: Service() {
     override fun onTaskRemoved(rootIntent: Intent?) {
         Log.d("NotificationOnKillService", "onTaskRemoved start")
         try {
-            
+
+            val notificationIntent = packageManager.getLaunchIntentForPackage(packageName)
+            val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
+
             val notificationBuilder = NotificationCompat.Builder(this, "com.gdelataillade.alarm.alarm")
                 .setSmallIcon(android.R.drawable.ic_notification_overlay)
                 .setContentTitle(title)
                 .setContentText(description)
                 .setAutoCancel(false)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setContentIntent(pendingIntent)
 
-                val name = "Alarm notification service on application kill"
-                val descriptionText = "If an alarm was set and the app is killed, a notification will show to warn the user the alarm will not ring as long as the app is killed"
-                val importance = NotificationManager.IMPORTANCE_DEFAULT
-                val channel = NotificationChannel("com.gdelataillade.alarm.alarm", name, importance).apply {
-                    description = descriptionText
-                }
-                // Register the channel with the system
-                val notificationManager: NotificationManager =
-                    getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                notificationManager.createNotificationChannel(channel)
-                notificationManager.notify(123, notificationBuilder.build())
+            val name = "Alarm notification service on application kill"
+            val descriptionText = "If an alarm was set and the app is killed, a notification will show to warn the user the alarm will not ring as long as the app is killed"
+            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val channel = NotificationChannel("com.gdelataillade.alarm.alarm", name, importance).apply {
+                description = descriptionText
+            }
+
+            // Register the channel with the system
+            val notificationManager: NotificationManager =
+                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+            notificationManager.notify(123, notificationBuilder.build())
         } catch (e: Exception) {
             Log.d("NotificationOnKillService", "Error showing notification", e)
         }
