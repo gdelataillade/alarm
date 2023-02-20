@@ -10,6 +10,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
   }
 
   public var audioPlayer: AVAudioPlayer!
+  public var notifOnKillEnabled: Bool!
   public var notificationTitleOnKill: String!
   public var notificationBodyOnKill: String!
 
@@ -45,10 +46,13 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
     let args = call.arguments as! Dictionary<String, Any>
 
+    notifOnKillEnabled = args["notifOnKillEnabled"] as! Bool
     notificationTitleOnKill = args["notifTitleOnAppKill"] as! String
     notificationBodyOnKill = args["notifDescriptionOnAppKill"] as! String
 
-    NotificationCenter.default.addObserver(self, selector: #selector(applicationWillTerminate(_:)), name: UIApplication.willTerminateNotification, object: nil)
+    if notifOnKillEnabled {
+      NotificationCenter.default.addObserver(self, selector: #selector(applicationWillTerminate(_:)), name: UIApplication.willTerminateNotification, object: nil)
+    }
 
     let assetAudio = args["assetAudio"] as! String
     let delayInSeconds = args["delayInSeconds"] as! Double

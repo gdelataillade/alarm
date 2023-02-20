@@ -47,6 +47,10 @@ class Alarm {
     await Storage.saveAlarm(settings);
     await Notification.instance.cancel();
 
+    if (settings.enableNotificationOnKill) {
+      await Notification.instance.requestPermission();
+    }
+
     if (iOS) {
       final assetAudio = settings.assetAudioPath.split('/').last;
       return IOSAlarm.setAlarm(
@@ -56,6 +60,7 @@ class Alarm {
         settings.loopAudio,
         settings.notificationTitle,
         settings.notificationBody,
+        settings.enableNotificationOnKill,
       );
     }
 
@@ -66,6 +71,7 @@ class Alarm {
       settings.loopAudio,
       settings.notificationTitle,
       settings.notificationBody,
+      settings.enableNotificationOnKill,
     );
   }
 

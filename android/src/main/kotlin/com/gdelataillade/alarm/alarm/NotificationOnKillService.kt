@@ -19,8 +19,6 @@ class NotificationOnKillService: Service() {
     private lateinit var description: String
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d("NotificationOnKillService", "onStartCommand")
-
         title = intent?.getStringExtra("title") ?: "The app was killed"
         description = intent?.getStringExtra("description") ?: "Your alarm may not ring, you should reopen the app."
 
@@ -30,7 +28,6 @@ class NotificationOnKillService: Service() {
     @SuppressLint("UnspecifiedImmutableFlag")
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onTaskRemoved(rootIntent: Intent?) {
-        Log.d("NotificationOnKillService", "onTaskRemoved start")
         try {
 
             val notificationIntent = packageManager.getLaunchIntentForPackage(packageName)
@@ -59,12 +56,10 @@ class NotificationOnKillService: Service() {
         } catch (e: Exception) {
             Log.d("NotificationOnKillService", "Error showing notification", e)
         }
-        Log.d("NotificationOnKillService", "onTaskRemoved end")
         super.onTaskRemoved(rootIntent)
     }
 
     override fun onBind(intent: Intent?): IBinder? {
-        Log.d("NotificationOnKillService", "onBind")
         return null
     }
 }

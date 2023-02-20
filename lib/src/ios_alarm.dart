@@ -16,18 +16,22 @@ class IOSAlarm {
   static StreamSubscription<FGBGType>? fgbgSubscription;
 
   /// Schedules an iOS notification for the moment the alarm starts ringing.
-  /// Then call the native function setAlarm.
+  /// Then call the native function setAlarm and listen to alarm ring state.
   static Future<bool> setAlarm(
     DateTime dateTime,
     void Function()? onRing,
     String assetAudio,
     bool loopAudio,
-    String notificationTitle,
-    String notificationBody,
+    String? notificationTitle,
+    String? notificationBody,
+    bool enableNotificationOnKill,
   ) async {
     final delay = dateTime.difference(DateTime.now());
 
-    if (notificationTitle.isNotEmpty && notificationBody.isNotEmpty) {
+    if (notificationTitle != null &&
+        notificationTitle.isNotEmpty &&
+        notificationBody != null &&
+        notificationBody.isNotEmpty) {
       Notification.instance.scheduleIOSAlarmNotif(
         dateTime: dateTime,
         title: notificationTitle,
@@ -41,6 +45,7 @@ class IOSAlarm {
             'assetAudio': assetAudio,
             'delayInSeconds': delay.inSeconds.abs().toDouble(),
             'loopAudio': loopAudio,
+            'notifOnKillEnabled': enableNotificationOnKill,
             'notifTitleOnAppKill': Storage.getNotificationOnAppKillTitle(),
             'notifDescriptionOnAppKill': Storage.getNotificationOnAppKillBody(),
           },

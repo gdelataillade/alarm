@@ -4,6 +4,7 @@ import 'package:alarm/model/alarm_settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const currentAlarm = 'currentAlarm';
+const notificationOnAppKill = 'notificationOnAppKill';
 const notificationOnAppKillTitle = 'notificationOnAppKillTitle';
 const notificationOnAppKillBody = 'notificationOnAppKillBody';
 
@@ -43,9 +44,11 @@ class Storage {
         prefs.setString(notificationOnAppKillBody, body),
       ]);
 
+  /// Returns notification on app kill title.
   static String getNotificationOnAppKillTitle() =>
       prefs.getString(notificationOnAppKillTitle) ?? 'Your alarm may not ring';
 
+  /// Returns notification on app kill body.
   static String getNotificationOnAppKillBody() =>
       prefs.getString(notificationOnAppKillBody) ??
       'You killed the app. Please reopen so your alarm can be rescheduled.';

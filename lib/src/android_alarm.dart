@@ -28,8 +28,9 @@ class AndroidAlarm {
     void Function()? onRing,
     String assetAudioPath,
     bool loopAudio,
-    String notificationTitle,
-    String notificationBody,
+    String? notificationTitle,
+    String? notificationBody,
+    bool enableNotificationOnKill,
   ) async {
     try {
       final ReceivePort port = ReceivePort();
@@ -48,17 +49,19 @@ class AndroidAlarm {
       return false;
     }
 
-    try {
-      await platform.invokeMethod(
-        'setNotificationOnKillService',
-        {
-          'title': Storage.getNotificationOnAppKillTitle(),
-          'description': Storage.getNotificationOnAppKillBody(),
-        },
-      );
-      print('[Alarm] NotificationOnKillService set with success');
-    } catch (e) {
-      print('[Alarm] NotificationOnKillService error: $e');
+    if (enableNotificationOnKill) {
+      try {
+        await platform.invokeMethod(
+          'setNotificationOnKillService',
+          {
+            'title': Storage.getNotificationOnAppKillTitle(),
+            'description': Storage.getNotificationOnAppKillBody(),
+          },
+        );
+        print('[Alarm] NotificationOnKillService set with success');
+      } catch (e) {
+        print('[Alarm] NotificationOnKillService error: $e');
+      }
     }
 
     final res = await AndroidAlarmManager.oneShotAt(
@@ -72,8 +75,8 @@ class AndroidAlarm {
       params: {
         'assetAudioPath': assetAudioPath,
         'loopAudio': loopAudio,
-        'notifTitle': notificationTitle,
-        'notifBody': notificationBody,
+        'notificationTitle': notificationTitle,
+        'notificationBody': notificationBody,
       },
     );
     return res;
@@ -113,9 +116,12 @@ class AndroidAlarm {
       send.send('[Alarm] Asset cache reset. Please try again.');
     }
 
-    final notificationTitle = data['notifTitle'] as String;
-    final notificationBody = data['notifBody'] as String;
-    if (notificationTitle.isNotEmpty && notificationBody.isNotEmpty) {
+    final notificationTitle = data['notificationTitle'] as String?;
+    final notificationBody = data['notificationBody'] as String?;
+    if (notificationTitle != null &&
+        notificationTitle.isNotEmpty &&
+        notificationBody != null &&
+        notificationBody.isNotEmpty) {
       await Notification.instance.androidAlarmNotif(
         title: notificationTitle,
         body: notificationBody,
@@ -157,15 +163,19 @@ class AndroidAlarm {
       print('[Alarm] (main) SendPort error: $e');
     }
 
+    stopNotificationOnKillService();
+
+    final res = await AndroidAlarmManager.cancel(alarmId);
+
+    return res;
+  }
+
+  static Future<void> stopNotificationOnKillService() async {
     try {
       await platform.invokeMethod('stopNotificationOnKillService');
       print('[Alarm] NotificationOnKillService stopped with success');
     } catch (e) {
       print('[Alarm] NotificationOnKillService error: $e');
     }
-
-    final res = await AndroidAlarmManager.cancel(alarmId);
-
-    return res;
   }
 }
