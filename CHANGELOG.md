@@ -1,8 +1,8 @@
 ## 0.1.0
 * **Breaking changes**: `Alarm.set` method now takes a `AlarmSettings` as only parameter.
-* **Breaking changes**: You will have to use a `StreamSubscription` to listen to the alarm ringing state now, attached to `Alarm.ringStream.stream`. This way, even if your app was previously killed, your custom callback can still be triggered.
+* **Breaking changes**: You will have to create a `StreamSubscription` attached to `Alarm.ringStream.stream` in order to listen to the alarm ringing state now. This way, even if your app was previously killed, your custom callback can still be triggered.
 * By default, if an alarm was set and the app is killed, a notification will be shown to warn
-the user that the alarm may not ring, with the possibility to reopen the app and reschedule the alarm.
+the user that the alarm may not ring, with the possibility to reopen the app and automatically reschedule the alarm.
 To disable this feature, you can call the method `Alarm.toggleNotificationOnAppKill(false)`.
 * Add notification on kill notification switch button in example app.
 * Add some minor fixes and improvements.
