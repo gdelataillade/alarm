@@ -1,3 +1,8 @@
+## 0.1.1
+* Add `Alarm.hasAlarm` method.
+* Fix: cancel on-application-kill notification warning when alarm starts ringing, instead of when user stops alarm. 
+* Export `AlarmSettings` model in `Alarm` service so it's not necessary to import it separately anymore.
+
 ## 0.1.0
 * **Breaking changes**: `Alarm.set` method now takes a `AlarmSettings` as only parameter.
 * **Breaking changes**: You will have to create a `StreamSubscription` attached to `Alarm.ringStream.stream` in order to listen to the alarm ringing state now. This way, even if your app was previously killed, your custom callback can still be triggered.
