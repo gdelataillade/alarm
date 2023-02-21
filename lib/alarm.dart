@@ -102,4 +102,7 @@ class Alarm {
 
   /// Whether the alarm is ringing.
   static Future<bool> isRinging() => IOSAlarm.checkIfRinging();
+
+  /// Whether an alarm is set.
+  static bool hasAlarm() => Storage.hasAlarm();
 }
