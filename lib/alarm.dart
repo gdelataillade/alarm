@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:alarm/src/ios_alarm.dart';
 import 'package:alarm/model/alarm_settings.dart';
+import 'package:alarm/src/ios_alarm.dart';
 import 'package:alarm/src/android_alarm.dart';
 import 'package:alarm/service/notification.dart';
 import 'package:alarm/service/storage.dart';
@@ -32,13 +32,15 @@ class Alarm {
 
   /// Checks if an alarm was set on another session.
   /// If it's the case, reschedules it.
-  static void checkAlarm() {
+  static Future<void> checkAlarm() async {
     final alarm = Storage.getSavedAlarm();
     if (alarm == null) return;
 
     final now = DateTime.now();
     if (alarm.dateTime.isAfter(now)) {
       set(settings: alarm);
+    } else {
+      await Storage.unsaveAlarm();
     }
   }
 
