@@ -25,8 +25,9 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         self.setAlarm(call: call, result: result)
       } else if call.method == "stopAlarm" {
         self.audioPlayer.stop()
-        NotificationCenter.default.removeObserver(self, name: UIApplication.willTerminateNotification, object: nil)
         result(true)
+      } else if call.method == "stopNotificationOnKillService" {
+        self.stopNotificationOnKillService(result: result)
       } else if call.method == "audioCurrentTime" {
         if self.audioPlayer != nil {
           result(Double(self.audioPlayer.currentTime))
@@ -79,6 +80,11 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     self.audioPlayer.prepareToPlay()
     self.audioPlayer.play(atTime: time)
 
+    result(true)
+  }
+
+  private func stopNotificationOnKillService(result: FlutterResult) {
+    NotificationCenter.default.removeObserver(self, name: UIApplication.willTerminateNotification, object: nil)
     result(true)
   }
 

@@ -97,6 +97,17 @@ class IOSAlarm {
     return isRinging;
   }
 
+  /// Cancels the observer that triggers the notification warning when
+  /// user kills the application.
+  static Future<void> stopNotificationOnKillService() async {
+    try {
+      await methodChannel.invokeMethod('stopNotificationOnKillService');
+      print('[Alarm] NotificationOnKillService stopped with success');
+    } catch (e) {
+      print('[Alarm] NotificationOnKillService error: $e');
+    }
+  }
+
   /// Listens when app goes foreground so we can check if alarm is ringing.
   /// When app goes background, periodical timer will be disposed.
   static void listenAppStateChange({
@@ -128,7 +139,9 @@ class IOSAlarm {
   }
 
   /// Disposes FGBGType subscription and periodical timer.
+  /// Also calls stopNotificationOnKillService method.
   static void dispose() {
+    stopNotificationOnKillService();
     fgbgSubscription?.cancel();
     timer?.cancel();
   }
