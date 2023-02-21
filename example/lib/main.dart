@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:alarm/alarm.dart';
 import 'package:flutter/services.dart';
-import 'package:alarm/model/alarm_settings.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

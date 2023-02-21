@@ -1,3 +1,5 @@
+export 'package:alarm/model/alarm_settings.dart';
+
 import 'dart:async';
 import 'dart:io';
 
