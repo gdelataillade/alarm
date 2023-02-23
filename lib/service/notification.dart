@@ -6,7 +6,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 /// The purpose of this class is to show a notification to the user
 /// when the alarm rings so the user can understand where the audio
-/// come from. He also can tap the notification to open directly the app.
+/// comes from. He also can tap the notification to open directly the app.
 class Notification {
   Notification._();
 
@@ -17,7 +17,7 @@ class Notification {
   final FlutterLocalNotificationsPlugin localNotif =
       FlutterLocalNotificationsPlugin();
 
-  /// Add configuration for local notifications and initialize.
+  /// Adds configuration for local notifications and initialize service.
   Future<void> init() async {
     const initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -35,7 +35,7 @@ class Notification {
     tz.initializeTimeZones();
   }
 
-  /// Show notification permission request.
+  /// Shows notification permission request.
   Future<bool> requestPermission() async {
     final result = await localNotif
         .resolvePlatformSpecificImplementation<
@@ -68,7 +68,7 @@ class Notification {
     return scheduledDate;
   }
 
-  /// Schedule notification for iOS at the given time.
+  /// Schedules notification for iOS at the given time.
   Future<void> scheduleIOSAlarmNotif({
     required DateTime dateTime,
     required String title,
@@ -108,7 +108,7 @@ class Notification {
     }
   }
 
-  /// Show notification for Android instantly.
+  /// Shows notification for Android instantly.
   Future<void> androidAlarmNotif({
     required String title,
     required String body,
@@ -135,7 +135,7 @@ class Notification {
     );
   }
 
-  /// Cancel notification. Called when the alarm is cancelled or
+  /// Cancels notification. Called when the alarm is cancelled or
   /// when an alarm is overriden.
   Future<void> cancel() => localNotif.cancel(alarmId);
 
