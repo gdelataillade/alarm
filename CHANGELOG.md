@@ -1,3 +1,8 @@
+## 0.1.2
+* Add more Android installation steps in the README.
+* Add alarm behaviour details in the README.
+* Fix Android alarm while screen is locked.
+
 ## 0.1.1
 * Add `Alarm.hasAlarm` method.
 * Fix: cancel on-application-kill notification warning when alarm starts ringing, instead of when user stops alarm. 
