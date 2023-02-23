@@ -48,7 +48,36 @@ android {
 }
 ```
 
-Then, add your audio asset(s) to your project like usual.
+After that, add the following to your `AndroidManifest.xml` within the `<manifest></manifest>` tags:
+
+```xml
+<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+<uses-permission android:name="android.permission.WAKE_LOCK"/>
+<!-- For apps with targetSDK=31 (Android 12) -->
+<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+```
+
+Next, within the `<application></application>` tags, add:
+
+```xml
+<service
+    android:name="dev.fluttercommunity.plus.androidalarmmanager.AlarmService"
+    android:permission="android.permission.BIND_JOB_SERVICE"
+    android:exported="false"/>
+<receiver
+    android:name="dev.fluttercommunity.plus.androidalarmmanager.AlarmBroadcastReceiver"
+    android:exported="false"/>
+<receiver
+    android:name="dev.fluttercommunity.plus.androidalarmmanager.RebootBroadcastReceiver"
+    android:enabled="false"
+    android:exported="false">
+    <intent-filter>
+        <action android:name="android.intent.action.BOOT_COMPLETED" />
+    </intent-filter>
+</receiver>
+```
+
+Finally, add your audio asset(s) to your project like usual.
 
 ## How to use
 
@@ -109,6 +138,19 @@ Alarm.ringStream.stream.listen((_) => yourOnRingCallback());
 
 ![example_app_screensot](https://user-images.githubusercontent.com/32983806/220070209-2636ce9c-183a-43e7-91ec-a5d0fb3bdfe8.jpeg)
 
+
+## Alarm behaviour
+
+After running multiple tests, iOS and Android seem to have the same behaviour:
+
+|               | iOS and Android (tested on OxygenOS)
+| ------------- | ----------- 
+| Locked screen | Still rings.
+| Silent / Mute | Still rings.
+| Do not disturb| Still rings but notification is silenced.
+| Sleep mode    | Still rings but notification is silenced.
+| While playing other media| The alarm sound plays along with the media sound.
+| App killed    | Doesn't ring. Only iOS notif shows.
 
 ## Feature request
 
