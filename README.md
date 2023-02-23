@@ -2,7 +2,7 @@
 
 This Flutter package provides a simple and easy-to-use interface for setting and canceling alarms on iOS and Android devices. It utilizes the `android_alarm_manager_plus` package for Android and the native iOS `AVAudioPlayer` class.
 
-*Please note that this project is still in beta. Feel free to open issues or pull requests to help us in the project development.*
+*Please note that this project is still in beta. Feel free to send us your issues, questions and suggestions to help us in the project development.*
 
 ## Why this package ?
 
