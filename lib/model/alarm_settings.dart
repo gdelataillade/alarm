@@ -1,4 +1,5 @@
 class AlarmSettings {
+  final int id;
   final DateTime dateTime;
   final String assetAudioPath;
   final bool loopAudio;
@@ -7,7 +8,8 @@ class AlarmSettings {
   final String? notificationBody;
   final bool enableNotificationOnKill;
 
-  /// Model that contains all the settings to customize and set an alarm.
+  /// Model that contains all the settings to customize and set an alarm
+  /// with a given [id].
   ///
   /// [onRing] will be called when alarm is triggered at [dateTime].
   ///
@@ -25,6 +27,7 @@ class AlarmSettings {
   /// If you want to show a notification when alarm is triggered,
   /// [notificationTitle] and [notificationBody] must not be null nor empty.
   AlarmSettings({
+    required this.id,
     required this.dateTime,
     required this.assetAudioPath,
     this.loopAudio = true,
@@ -37,6 +40,7 @@ class AlarmSettings {
   /// Creates a copy of AlarmSettings but with the given fields replaced with the
   /// new values.
   AlarmSettings copyWith({
+    required int id,
     required DateTime dateTime,
     required String assetAudioPath,
     required bool loopAudio,
@@ -45,6 +49,7 @@ class AlarmSettings {
     String? notificationBody,
   }) {
     return AlarmSettings(
+      id: id,
       dateTime: dateTime,
       assetAudioPath: assetAudioPath,
       loopAudio: loopAudio,
@@ -56,6 +61,7 @@ class AlarmSettings {
 
   /// Converts json data to an AlarmSettings
   factory AlarmSettings.fromJson(Map<String, dynamic> json) => AlarmSettings(
+        id: json['id'] as int,
         dateTime: DateTime.fromMicrosecondsSinceEpoch(json['dateTime'] as int),
         assetAudioPath: json['assetAudioPath'] as String,
         loopAudio: json['loopAudio'] as bool,
@@ -66,6 +72,7 @@ class AlarmSettings {
 
   /// Converts an AlarmSettings to json data
   Map<String, dynamic> toJson() => {
+        'int': id,
         'dateTime': dateTime.microsecondsSinceEpoch,
         'assetAudioPath': assetAudioPath,
         'loopAudio': loopAudio,

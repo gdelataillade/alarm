@@ -35,14 +35,14 @@ class Alarm {
   /// Checks if an alarm was set on another session.
   /// If it's the case, reschedules it.
   static Future<void> checkAlarm() async {
-    final alarm = AlarmStorage.getSavedAlarm();
+    final alarm = AlarmStorage.getSavedAlarm(1);
     if (alarm == null) return;
 
     final now = DateTime.now();
     if (alarm.dateTime.isAfter(now)) {
       set(settings: alarm);
     } else {
-      await AlarmStorage.unsaveAlarm();
+      await AlarmStorage.unsaveAlarm(1);
     }
   }
 
@@ -97,7 +97,7 @@ class Alarm {
 
   /// Stops alarm.
   static Future<bool> stop() async {
-    await AlarmStorage.unsaveAlarm();
+    await AlarmStorage.unsaveAlarm(1);
 
     if (iOS) {
       AlarmNotification.instance.cancel();
