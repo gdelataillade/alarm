@@ -12,8 +12,6 @@ class AlarmNotification {
 
   static final instance = AlarmNotification._();
 
-  /// A unique identifier because it can be only one alarm.
-  static const alarmId = 888;
   final FlutterLocalNotificationsPlugin localNotif =
       FlutterLocalNotificationsPlugin();
 
@@ -70,6 +68,7 @@ class AlarmNotification {
 
   /// Schedules notification for iOS at the given time.
   Future<void> scheduleIOSAlarmNotif({
+    required int id,
     required DateTime dateTime,
     required String title,
     required String body,
@@ -93,7 +92,7 @@ class AlarmNotification {
 
     try {
       await localNotif.zonedSchedule(
-        alarmId,
+        id,
         title,
         body,
         zdt,
@@ -102,14 +101,16 @@ class AlarmNotification {
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
       );
-      print('[Alarm] Notification scheduled successfuly at ${zdt.toString()}');
+      print(
+          '[Alarm] Notification with id $id scheduled successfuly at ${zdt.toString()}');
     } catch (e) {
-      print('[Alarm] Schedule notification error: $e');
+      print('[Alarm] Schedule notification with id $id error: $e');
     }
   }
 
   /// Shows notification for Android instantly.
   Future<void> androidAlarmNotif({
+    required int id,
     required String title,
     required String body,
   }) async {
@@ -128,7 +129,7 @@ class AlarmNotification {
     );
 
     await localNotif.show(
-      alarmId,
+      id,
       title,
       body,
       platformChannelSpecifics,
@@ -137,46 +138,5 @@ class AlarmNotification {
 
   /// Cancels notification. Called when the alarm is cancelled or
   /// when an alarm is overriden.
-  Future<void> cancel() => localNotif.cancel(alarmId);
-
-  // This code is used to send a notification with a title and body to an Android or iOS device.
-  // It first imports the FlutterLocalNotificationsPlugin, then sets up the Android and iOS initialization settings.
-  // After that, it creates the platform-specific notification details for both Android and iOS.
-  // Finally, it uses the show() method to send the notification with the given title and body.
-  static Future<void> sendNotification(
-    String title,
-    String body,
-  ) async {
-    final FlutterLocalNotificationsPlugin lNotif =
-        FlutterLocalNotificationsPlugin();
-    const initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-    const initializationSettingsIOS = DarwinInitializationSettings(
-      requestAlertPermission: false,
-      requestBadgePermission: false,
-      requestSoundPermission: false,
-    );
-    const initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsIOS,
-    );
-    await lNotif.initialize(initializationSettings);
-    const androidPlatformChannelSpecifics = AndroidNotificationDetails(
-      'alarm-package',
-      'alarm',
-      channelDescription: 'alarm to wake up',
-    );
-    const iOSPlatformChannelSpecifics = DarwinNotificationDetails();
-    const platformChannelSpecifics = NotificationDetails(
-      android: androidPlatformChannelSpecifics,
-      iOS: iOSPlatformChannelSpecifics,
-    );
-
-    await lNotif.show(
-      12345,
-      title,
-      body,
-      platformChannelSpecifics,
-    );
-  }
+  Future<void> cancel(int id) => localNotif.cancel(id);
 }

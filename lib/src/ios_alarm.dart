@@ -18,6 +18,7 @@ class IOSAlarm {
   /// Schedules an iOS notification for the moment the alarm starts ringing.
   /// Then call the native function setAlarm and listen to alarm ring state.
   static Future<bool> setAlarm(
+    int id,
     DateTime dateTime,
     void Function()? onRing,
     String assetAudio,
@@ -34,6 +35,7 @@ class IOSAlarm {
         notificationBody != null &&
         notificationBody.isNotEmpty) {
       AlarmNotification.instance.scheduleIOSAlarmNotif(
+        id: id,
         dateTime: dateTime,
         title: notificationTitle,
         body: notificationBody,

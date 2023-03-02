@@ -49,7 +49,7 @@ class Alarm {
   /// Schedules an alarm with given [settings].
   static Future<bool> set({required AlarmSettings settings}) async {
     await AlarmStorage.saveAlarm(settings);
-    await AlarmNotification.instance.cancel();
+    await AlarmNotification.instance.cancel(settings.id);
 
     if (settings.enableNotificationOnKill) {
       await AlarmNotification.instance.requestPermission();
@@ -58,6 +58,7 @@ class Alarm {
     if (iOS) {
       final assetAudio = settings.assetAudioPath.split('/').last;
       return IOSAlarm.setAlarm(
+        settings.id,
         settings.dateTime,
         () => ringStream.add(settings),
         assetAudio,
@@ -70,6 +71,7 @@ class Alarm {
     }
 
     return await AndroidAlarm.set(
+      settings.id,
       settings.dateTime,
       () => ringStream.add(settings),
       settings.assetAudioPath,
@@ -96,14 +98,14 @@ class Alarm {
       AlarmStorage.setNotificationContentOnAppKill(title, body);
 
   /// Stops alarm.
-  static Future<bool> stop() async {
+  static Future<bool> stop(int id) async {
     await AlarmStorage.unsaveAlarm(1);
 
     if (iOS) {
-      AlarmNotification.instance.cancel();
+      AlarmNotification.instance.cancel(id);
       return await IOSAlarm.stopAlarm();
     }
-    return await AndroidAlarm.stop();
+    return await AndroidAlarm.stop(id);
   }
 
   /// Whether the alarm is ringing.

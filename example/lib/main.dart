@@ -27,6 +27,8 @@ class _MyAppState extends State<MyApp> {
   bool loopAudio = true;
   bool fadeVolume = false;
 
+  static const alarmId = 1;
+
   StreamSubscription? subscription;
 
   Future<void> pickTime() async {
@@ -70,7 +72,7 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> setAlarm(DateTime dateTime, [bool enableNotif = true]) async {
     final alarmSettings = AlarmSettings(
-      id: 1,
+      id: alarmId,
       dateTime: dateTime,
       assetAudioPath: 'assets/sample.mp3',
       loopAudio: loopAudio,
@@ -208,7 +210,7 @@ class _MyAppState extends State<MyApp> {
               if (isRinging) const Text('🔔 Ringing 🔔'),
               RawMaterialButton(
                 onPressed: () async {
-                  final stop = await Alarm.stop();
+                  final stop = await Alarm.stop(alarmId);
                   setState(() {
                     selectedTime = null;
                     if (stop && isRinging) isRinging = false;
