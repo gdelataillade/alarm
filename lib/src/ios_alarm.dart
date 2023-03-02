@@ -32,7 +32,7 @@ class IOSAlarm {
         notificationTitle.isNotEmpty &&
         notificationBody != null &&
         notificationBody.isNotEmpty) {
-      Notification.instance.scheduleIOSAlarmNotif(
+      AlarmNotification.instance.scheduleIOSAlarmNotif(
         dateTime: dateTime,
         title: notificationTitle,
         body: notificationBody,
@@ -46,8 +46,9 @@ class IOSAlarm {
             'delayInSeconds': delay.inSeconds.abs().toDouble(),
             'loopAudio': loopAudio,
             'notifOnKillEnabled': enableNotificationOnKill,
-            'notifTitleOnAppKill': Storage.getNotificationOnAppKillTitle(),
-            'notifDescriptionOnAppKill': Storage.getNotificationOnAppKillBody(),
+            'notifTitleOnAppKill': AlarmStorage.getNotificationOnAppKillTitle(),
+            'notifDescriptionOnAppKill':
+                AlarmStorage.getNotificationOnAppKillBody(),
           },
         ) ??
         false;
@@ -61,7 +62,7 @@ class IOSAlarm {
     listenAppStateChange(
       onBackground: () => timer?.cancel(),
       onForeground: () async {
-        final hasAlarm = Storage.hasAlarm();
+        final hasAlarm = AlarmStorage.hasAlarm();
         if (!hasAlarm) return;
 
         final isRinging = await checkIfRinging();
@@ -125,7 +126,7 @@ class IOSAlarm {
     timer?.cancel();
 
     timer = Timer.periodic(const Duration(milliseconds: 500), (_) {
-      final hasAlarm = Storage.hasAlarm();
+      final hasAlarm = AlarmStorage.hasAlarm();
       if (!hasAlarm) {
         dispose();
         return;

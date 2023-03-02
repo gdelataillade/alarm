@@ -26,8 +26,8 @@ class Alarm {
   static Future<void> init() async {
     await Future.wait([
       if (android) AndroidAlarm.init(),
-      Notification.instance.init(),
-      Storage.init(),
+      AlarmNotification.instance.init(),
+      AlarmStorage.init(),
     ]);
     checkAlarm();
   }
@@ -35,24 +35,24 @@ class Alarm {
   /// Checks if an alarm was set on another session.
   /// If it's the case, reschedules it.
   static Future<void> checkAlarm() async {
-    final alarm = Storage.getSavedAlarm();
+    final alarm = AlarmStorage.getSavedAlarm();
     if (alarm == null) return;
 
     final now = DateTime.now();
     if (alarm.dateTime.isAfter(now)) {
       set(settings: alarm);
     } else {
-      await Storage.unsaveAlarm();
+      await AlarmStorage.unsaveAlarm();
     }
   }
 
   /// Schedules an alarm with given [settings].
   static Future<bool> set({required AlarmSettings settings}) async {
-    await Storage.saveAlarm(settings);
-    await Notification.instance.cancel();
+    await AlarmStorage.saveAlarm(settings);
+    await AlarmNotification.instance.cancel();
 
     if (settings.enableNotificationOnKill) {
-      await Notification.instance.requestPermission();
+      await AlarmNotification.instance.requestPermission();
     }
 
     if (iOS) {
@@ -91,14 +91,14 @@ class Alarm {
     String title,
     String body,
   ) =>
-      Storage.setNotificationContentOnAppKill(title, body);
+      AlarmStorage.setNotificationContentOnAppKill(title, body);
 
   /// Stops alarm.
   static Future<bool> stop() async {
-    await Storage.unsaveAlarm();
+    await AlarmStorage.unsaveAlarm();
 
     if (iOS) {
-      Notification.instance.cancel();
+      AlarmNotification.instance.cancel();
       return await IOSAlarm.stopAlarm();
     }
     return await AndroidAlarm.stop();
@@ -108,5 +108,5 @@ class Alarm {
   static Future<bool> isRinging() => IOSAlarm.checkIfRinging();
 
   /// Whether an alarm is set.
-  static bool hasAlarm() => Storage.hasAlarm();
+  static bool hasAlarm() => AlarmStorage.hasAlarm();
 }

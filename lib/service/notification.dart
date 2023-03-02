@@ -7,10 +7,10 @@ import 'package:timezone/timezone.dart' as tz;
 /// The purpose of this class is to show a notification to the user
 /// when the alarm rings so the user can understand where the audio
 /// comes from. He also can tap the notification to open directly the app.
-class Notification {
-  Notification._();
+class AlarmNotification {
+  AlarmNotification._();
 
-  static final instance = Notification._();
+  static final instance = AlarmNotification._();
 
   /// A unique identifier because it can be only one alarm.
   static const alarmId = 888;

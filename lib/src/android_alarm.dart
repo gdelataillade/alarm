@@ -54,8 +54,8 @@ class AndroidAlarm {
         await platform.invokeMethod(
           'setNotificationOnKillService',
           {
-            'title': Storage.getNotificationOnAppKillTitle(),
-            'description': Storage.getNotificationOnAppKillBody(),
+            'title': AlarmStorage.getNotificationOnAppKillTitle(),
+            'description': AlarmStorage.getNotificationOnAppKillBody(),
           },
         );
         print('[Alarm] NotificationOnKillService set with success');
@@ -124,7 +124,7 @@ class AndroidAlarm {
         notificationTitle.isNotEmpty &&
         notificationBody != null &&
         notificationBody.isNotEmpty) {
-      await Notification.instance.androidAlarmNotif(
+      await AlarmNotification.instance.androidAlarmNotif(
         title: notificationTitle,
         body: notificationBody,
       );
