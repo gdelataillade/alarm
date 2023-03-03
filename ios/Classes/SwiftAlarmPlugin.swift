@@ -58,6 +58,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     let assetAudio = args["assetAudio"] as! String
     let delayInSeconds = args["delayInSeconds"] as! Double
     let loopAudio = args["loopAudio"] as! Bool
+    let fadeDuration = args["fadeDuration"] as! Double
 
     if let audioPath = Bundle.main.path(forResource: assetAudio, ofType: nil) {
       let audioUrl = URL(fileURLWithPath: audioPath)
@@ -78,7 +79,16 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
 
     self.audioPlayer.prepareToPlay()
-    self.audioPlayer.play(atTime: time)
+
+    if fadeDuration > 0.0 {
+      self.audioPlayer.volume = 0.1
+      self.audioPlayer.play(atTime: time)
+      DispatchQueue.main.asyncAfter(deadline: .now() + delayInSeconds) {
+        self.audioPlayer.setVolume(1, fadeDuration: fadeDuration)
+      }
+    } else {
+      self.audioPlayer.play(atTime: time)
+    }
 
     result(true)
   }

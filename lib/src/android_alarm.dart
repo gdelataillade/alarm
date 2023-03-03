@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print
 
+import 'dart:async';
 import 'dart:isolate';
 import 'dart:ui';
 
@@ -28,6 +29,7 @@ class AndroidAlarm {
     void Function()? onRing,
     String assetAudioPath,
     bool loopAudio,
+    double fadeDuration,
     String? notificationTitle,
     String? notificationBody,
     bool enableNotificationOnKill,
@@ -42,10 +44,11 @@ class AndroidAlarm {
         IsolateNameServer.registerPortWithName(port.sendPort, ringPort);
       }
       port.listen((message) {
+        print('[Alarm] $message');
         if (message == 'ring') onRing?.call();
       });
     } catch (e) {
-      print('[Alarm] (main) ReceivePort error: $e');
+      print('[Alarm] ReceivePort error: $e');
       return false;
     }
 
@@ -75,6 +78,7 @@ class AndroidAlarm {
       params: {
         'assetAudioPath': assetAudioPath,
         'loopAudio': loopAudio,
+        'fadeDuration': fadeDuration,
         'notificationTitle': notificationTitle,
         'notificationBody': notificationBody,
       },
@@ -100,18 +104,38 @@ class AndroidAlarm {
       final assetAudioPath = data['assetAudioPath'] as String;
 
       if (assetAudioPath.startsWith('http')) {
-        send.send('[Alarm] Setting audio source url: $assetAudioPath');
         await audioPlayer.setUrl(assetAudioPath);
       } else {
-        send.send('[Alarm] Setting audio source local asset: $assetAudioPath');
         await audioPlayer.setAsset(assetAudioPath);
       }
 
       final loopAudio = data['loopAudio'];
       if (loopAudio) audioPlayer.setLoopMode(LoopMode.all);
 
-      audioPlayer.play();
-      send.send('[Alarm] Alarm playing');
+      send.send('[Alarm] Alarm fadeDuration: ${data.toString()}');
+
+      final fadeDuration = (data['fadeDuration'] as int).toDouble();
+
+      if (fadeDuration > 0.0) {
+        int counter = 0;
+
+        audioPlayer.setVolume(0.1);
+        audioPlayer.play();
+
+        send.send('[Alarm] Alarm playing with fadeDuration ${fadeDuration}s');
+
+        Timer.periodic(
+          Duration(milliseconds: fadeDuration * 1000 ~/ 10),
+          (timer) {
+            counter++;
+            audioPlayer.setVolume(counter / 10);
+            if (counter >= 10) timer.cancel();
+          },
+        );
+      } else {
+        audioPlayer.play();
+        send.send('[Alarm] Alarm playing');
+      }
     } catch (e) {
       send.send('[Alarm] AudioPlayer error: ${e.toString()}');
       await AudioPlayer.clearAssetCache();

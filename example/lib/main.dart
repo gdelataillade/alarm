@@ -25,6 +25,7 @@ class _MyAppState extends State<MyApp> {
   bool showNotifOnKill = true;
   bool isRinging = false;
   bool loopAudio = true;
+  bool fadeVolume = false;
 
   StreamSubscription? subscription;
 
@@ -72,6 +73,7 @@ class _MyAppState extends State<MyApp> {
       dateTime: dateTime,
       assetAudioPath: 'assets/sample.mp3',
       loopAudio: loopAudio,
+      fadeDuration: fadeVolume ? 5.0 : 0.0,
       notificationTitle:
           showNotifOnRing && enableNotif ? 'Alarm example' : null,
       notificationBody:
@@ -147,6 +149,16 @@ class _MyAppState extends State<MyApp> {
                   Switch(
                     value: loopAudio,
                     onChanged: (value) => setState(() => loopAudio = value),
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Fade alarm volume'),
+                  Switch(
+                    value: fadeVolume,
+                    onChanged: (value) => setState(() => fadeVolume = value),
                   ),
                 ],
               ),

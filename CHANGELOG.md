@@ -1,3 +1,6 @@
+## 0.1.3
+* Add an optional `fadeDuration` parameter, which is the duration, in seconds, over which to fade the alarm volume.
+
 ## 0.1.2
 * Add more Android installation steps in the README.
 * Add alarm behaviour details in the README.

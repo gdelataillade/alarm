@@ -113,6 +113,7 @@ Property |   Type     | Description
 alarmDateTime |   `DateTime`     | The date and time you want your alarm to ring.
 assetAudio |   `String`     | The path to you audio asset you want to use as ringtone. Can be local asset or network URL.
 loopMode |   `bool`     | If set to true, audio will repeat indefinitely until it is stopped.
+fadeDuration |   `double`     | Duration, in seconds, over which to fade the alarm volume. Set to 0 by default, which means no fade.
 notificationTitle |   `String`     | The title of the notification triggered when alarm rings if app is on background.
 notificationBody | `String` | The body of the notification.
 enableNotificationOnKill |   `bool`     | Whether to show a notification when application is killed to warn the user that the alarm he set may not ring. Enabled by default.
@@ -170,7 +171,6 @@ These are some features that I have in mind that could be useful:
 - Use `ffigen` and `jnigen` binding generators to call native code more efficiently instead of using method channels.
 - Optional vibrations when alarm rings
 - [Notification actions](https://pub.dev/packages/flutter_local_notifications#notification-actions): stop and snooze
-- Progressive alarm volume option
 - Callback when alarm stops ringing
 - Add macOS, Windows, Linux and web support
 

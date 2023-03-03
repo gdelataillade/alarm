@@ -22,6 +22,7 @@ class IOSAlarm {
     void Function()? onRing,
     String assetAudio,
     bool loopAudio,
+    double fadeDuration,
     String? notificationTitle,
     String? notificationBody,
     bool enableNotificationOnKill,
@@ -45,6 +46,7 @@ class IOSAlarm {
             'assetAudio': assetAudio,
             'delayInSeconds': delay.inSeconds.abs().toDouble(),
             'loopAudio': loopAudio,
+            'fadeDuration': fadeDuration >= 0 ? fadeDuration : 0,
             'notifOnKillEnabled': enableNotificationOnKill,
             'notifTitleOnAppKill': AlarmStorage.getNotificationOnAppKillTitle(),
             'notifDescriptionOnAppKill':
