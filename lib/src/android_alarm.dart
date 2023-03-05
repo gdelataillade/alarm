@@ -36,12 +36,14 @@ class AndroidAlarm {
   ) async {
     try {
       final ReceivePort port = ReceivePort();
-      final success =
-          IsolateNameServer.registerPortWithName(port.sendPort, ringPort);
+      final success = IsolateNameServer.registerPortWithName(
+        port.sendPort,
+        "$ringPort-$id",
+      );
 
       if (!success) {
-        IsolateNameServer.removePortNameMapping(ringPort);
-        IsolateNameServer.registerPortWithName(port.sendPort, ringPort);
+        IsolateNameServer.removePortNameMapping("$ringPort-$id");
+        IsolateNameServer.registerPortWithName(port.sendPort, "$ringPort-$id");
       }
       port.listen((message) {
         print('[Alarm] $message');
@@ -52,6 +54,7 @@ class AndroidAlarm {
       return false;
     }
 
+    // TODO: Check if observer already exists
     if (enableNotificationOnKill) {
       try {
         await platform.invokeMethod(
@@ -96,6 +99,7 @@ class AndroidAlarm {
     final audioPlayer = AudioPlayer();
     SendPort send = IsolateNameServer.lookupPortByName(ringPort)!;
 
+    // TODO: Check if observer already exists
     stopNotificationOnKillService();
 
     send.send('ring');
@@ -134,10 +138,10 @@ class AndroidAlarm {
         );
       } else {
         audioPlayer.play();
-        send.send('[Alarm] Alarm playing');
+        send.send('[Alarm] Alarm with id $id starts playing.');
       }
     } catch (e) {
-      send.send('[Alarm] AudioPlayer error: ${e.toString()}');
+      send.send('[Alarm] AudioPlayer with id $id error: ${e.toString()}');
       await AudioPlayer.clearAssetCache();
       send.send('[Alarm] Asset cache reset. Please try again.');
     }

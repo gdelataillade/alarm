@@ -32,17 +32,18 @@ class Alarm {
     checkAlarm();
   }
 
-  /// Checks if an alarm was set on another session.
-  /// If it's the case, reschedules it.
+  /// Checks if some alarms were set on previous session.
+  /// If it's the case then reschedules them.
   static Future<void> checkAlarm() async {
-    final alarm = AlarmStorage.getSavedAlarm(1);
-    if (alarm == null) return;
+    final alarms = AlarmStorage.getSavedAlarms();
 
-    final now = DateTime.now();
-    if (alarm.dateTime.isAfter(now)) {
-      set(settings: alarm);
-    } else {
-      await AlarmStorage.unsaveAlarm(1);
+    for (final alarm in alarms) {
+      final now = DateTime.now();
+      if (alarm.dateTime.isAfter(now)) {
+        set(settings: alarm);
+      } else {
+        await AlarmStorage.unsaveAlarm(alarm.id);
+      }
     }
   }
 
@@ -99,17 +100,17 @@ class Alarm {
 
   /// Stops alarm.
   static Future<bool> stop(int id) async {
-    await AlarmStorage.unsaveAlarm(1);
+    await AlarmStorage.unsaveAlarm(id);
 
     if (iOS) {
       AlarmNotification.instance.cancel(id);
-      return await IOSAlarm.stopAlarm();
+      return await IOSAlarm.stopAlarm(id);
     }
     return await AndroidAlarm.stop(id);
   }
 
   /// Whether the alarm is ringing.
-  static Future<bool> isRinging() => IOSAlarm.checkIfRinging();
+  static Future<bool> isRinging(int id) => IOSAlarm.checkIfRinging(id);
 
   /// Whether an alarm is set.
   static bool hasAlarm() => AlarmStorage.hasAlarm();

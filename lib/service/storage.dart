@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:alarm/alarm.dart';
 import 'package:alarm/model/alarm_settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -35,12 +36,18 @@ class AlarmStorage {
     return false;
   }
 
-  /// Gets alarm info from local storage in the case app is terminated and
-  /// we need to restore the alarm.
-  static AlarmSettings? getSavedAlarm(int id) {
-    final res = prefs.getString("$prefix$id");
-    if (res == null) return null;
-    return AlarmSettings.fromJson(json.decode(res));
+  /// Returns all alarms info from local storage in the case app is terminated
+  /// and we need to restore previously scheduled alarms.
+  static List<AlarmSettings> getSavedAlarms() {
+    final alarms = <AlarmSettings>[];
+    final keys = prefs.getKeys();
+
+    for (final key in keys) {
+      if (key.startsWith(prefix)) {
+        alarms.add(AlarmSettings.fromJson(json.decode(key)));
+      }
+    }
+    return alarms;
   }
 
   /// Saves on app kill notification custom title and body.
