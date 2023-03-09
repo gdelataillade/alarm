@@ -33,7 +33,7 @@ class IOSAlarm {
         notificationTitle.isNotEmpty &&
         notificationBody != null &&
         notificationBody.isNotEmpty) {
-      AlarmNotification.instance.scheduleIOSAlarmNotif(
+      AlarmNotification.instance.scheduleAlarmNotif(
         dateTime: dateTime,
         title: notificationTitle,
         body: notificationBody,

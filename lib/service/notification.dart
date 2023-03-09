@@ -1,5 +1,7 @@
 // ignore_for_file: avoid_print
 
+import 'dart:io';
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -37,15 +39,23 @@ class AlarmNotification {
 
   /// Shows notification permission request.
   Future<bool> requestPermission() async {
-    final result = await localNotif
-        .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>()
-        ?.requestPermissions(
-          alert: true,
-          badge: true,
-          sound: true,
-        );
+    late bool? result;
 
+    if (Platform.isAndroid) {
+      result = await localNotif
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.requestPermission();
+    } else {
+      result = await localNotif
+          .resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin>()
+          ?.requestPermissions(
+            alert: true,
+            badge: true,
+            sound: true,
+          );
+    }
     return result ?? false;
   }
 
@@ -68,8 +78,8 @@ class AlarmNotification {
     return scheduledDate;
   }
 
-  /// Schedules notification for iOS at the given time.
-  Future<void> scheduleIOSAlarmNotif({
+  /// Schedules notification at the given time.
+  Future<void> scheduleAlarmNotif({
     required DateTime dateTime,
     required String title,
     required String body,
@@ -79,15 +89,27 @@ class AlarmNotification {
       presentAlert: false,
       presentBadge: false,
     );
+
+    const androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      'alarm',
+      'alarm_package',
+      channelDescription: 'Alarm package',
+      importance: Importance.max,
+      priority: Priority.max,
+      enableLights: true,
+      playSound: false,
+    );
+
     const platformChannelSpecifics = NotificationDetails(
       iOS: iOSPlatformChannelSpecifics,
+      android: androidPlatformChannelSpecifics,
     );
 
     final zdt = nextInstanceOfTime(Time(dateTime.hour, dateTime.minute));
 
     final hasPermission = await requestPermission();
     if (!hasPermission) {
-      print('[Alarm] Notification permission denied');
+      print('[Alarm] Notification permission not granted');
       return;
     }
 
@@ -106,33 +128,6 @@ class AlarmNotification {
     } catch (e) {
       print('[Alarm] Schedule notification error: $e');
     }
-  }
-
-  /// Shows notification for Android instantly.
-  Future<void> androidAlarmNotif({
-    required String title,
-    required String body,
-  }) async {
-    const androidPlatformChannelSpecifics = AndroidNotificationDetails(
-      'alarm',
-      'alarm',
-      channelDescription: 'Alarm package',
-      importance: Importance.max,
-      priority: Priority.max,
-      enableLights: true,
-      playSound: false,
-    );
-
-    const platformChannelSpecifics = NotificationDetails(
-      android: androidPlatformChannelSpecifics,
-    );
-
-    await localNotif.show(
-      alarmId,
-      title,
-      body,
-      platformChannelSpecifics,
-    );
   }
 
   /// Cancels notification. Called when the alarm is cancelled or
