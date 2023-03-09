@@ -84,10 +84,21 @@ class AndroidAlarm {
         'assetAudioPath': assetAudioPath,
         'loopAudio': loopAudio,
         'fadeDuration': fadeDuration,
-        'notificationTitle': notificationTitle,
-        'notificationBody': notificationBody,
       },
     );
+
+    if (res &&
+        notificationTitle != null &&
+        notificationTitle.isNotEmpty &&
+        notificationBody != null &&
+        notificationBody.isNotEmpty) {
+      await AlarmNotification.instance.scheduleAlarmNotif(
+        id: id,
+        dateTime: dateTime,
+        title: notificationTitle,
+        body: notificationBody,
+      );
+    }
     return res;
   }
 
@@ -145,19 +156,6 @@ class AndroidAlarm {
       send.send('[Alarm] AudioPlayer with id $id error: ${e.toString()}');
       await AudioPlayer.clearAssetCache();
       send.send('[Alarm] Asset cache reset. Please try again.');
-    }
-
-    final notificationTitle = data['notificationTitle'] as String?;
-    final notificationBody = data['notificationBody'] as String?;
-    if (notificationTitle != null &&
-        notificationTitle.isNotEmpty &&
-        notificationBody != null &&
-        notificationBody.isNotEmpty) {
-      await AlarmNotification.instance.androidAlarmNotif(
-        id: id,
-        title: notificationTitle,
-        body: notificationBody,
-      );
     }
 
     try {

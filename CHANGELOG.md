@@ -1,10 +1,13 @@
+## 0.1.4
+* [Android] Fix notification permission for Android 13
+
 ## 0.1.3
 * Add an optional `fadeDuration` parameter, which is the duration, in seconds, over which to fade the alarm volume.
 
 ## 0.1.2
 * Add more Android installation steps in the README.
 * Add alarm behaviour details in the README.
-* Fix Android alarm while screen is locked.
+* [Android] Fix alarm while screen is locked.
 
 ## 0.1.1
 * Add `Alarm.hasAlarm` method.
@@ -26,7 +29,7 @@ To disable this feature, you can call the method `Alarm.toggleNotificationOnAppK
 
 ## 0.0.4
 
-* Fix android notification params
+* [Android] Fix notification parameters
 
 ## 0.0.3
 
