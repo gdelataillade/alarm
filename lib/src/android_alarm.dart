@@ -13,7 +13,6 @@ import 'package:just_audio/just_audio.dart';
 /// For Android support, AndroidAlarmManager is used to set an alarm
 /// and trigger a callback when the given time is reached.
 class AndroidAlarm {
-  static const int alarmId = 888;
   static String ringPort = 'alarm-ring';
   static String stopPort = 'alarm-stop';
 
@@ -23,8 +22,12 @@ class AndroidAlarm {
   static const platform =
       MethodChannel('com.gdelataillade.alarm/notifOnAppKill');
 
-  /// Create isolate receive port and set alarm at given [dateTime]
+  // TODO: Handle case where multiple alarms are all set at the same dt
+  static bool get hasAnotherAlarm => AlarmStorage.getSavedAlarms().length > 1;
+
+  /// Creates isolate receive port and set alarm at given [dateTime]
   static Future<bool> set(
+    int id,
     DateTime dateTime,
     void Function()? onRing,
     String assetAudioPath,
@@ -36,12 +39,14 @@ class AndroidAlarm {
   ) async {
     try {
       final ReceivePort port = ReceivePort();
-      final success =
-          IsolateNameServer.registerPortWithName(port.sendPort, ringPort);
+      final success = IsolateNameServer.registerPortWithName(
+        port.sendPort,
+        "$ringPort-$id",
+      );
 
       if (!success) {
-        IsolateNameServer.removePortNameMapping(ringPort);
-        IsolateNameServer.registerPortWithName(port.sendPort, ringPort);
+        IsolateNameServer.removePortNameMapping("$ringPort-$id");
+        IsolateNameServer.registerPortWithName(port.sendPort, "$ringPort-$id");
       }
       port.listen((message) {
         print('[Alarm] $message');
@@ -52,7 +57,7 @@ class AndroidAlarm {
       return false;
     }
 
-    if (enableNotificationOnKill) {
+    if (enableNotificationOnKill && !hasAnotherAlarm) {
       try {
         await platform.invokeMethod(
           'setNotificationOnKillService',
@@ -69,7 +74,7 @@ class AndroidAlarm {
 
     final res = await AndroidAlarmManager.oneShotAt(
       dateTime,
-      alarmId,
+      id,
       AndroidAlarm.playAlarm,
       alarmClock: true,
       allowWhileIdle: true,
@@ -96,7 +101,7 @@ class AndroidAlarm {
     final audioPlayer = AudioPlayer();
     SendPort send = IsolateNameServer.lookupPortByName(ringPort)!;
 
-    stopNotificationOnKillService();
+    if (!hasAnotherAlarm) stopNotificationOnKillService();
 
     send.send('ring');
 
@@ -134,10 +139,10 @@ class AndroidAlarm {
         );
       } else {
         audioPlayer.play();
-        send.send('[Alarm] Alarm playing');
+        send.send('[Alarm] Alarm with id $id starts playing.');
       }
     } catch (e) {
-      send.send('[Alarm] AudioPlayer error: ${e.toString()}');
+      send.send('[Alarm] AudioPlayer with id $id error: ${e.toString()}');
       await AudioPlayer.clearAssetCache();
       send.send('[Alarm] Asset cache reset. Please try again.');
     }
@@ -149,6 +154,7 @@ class AndroidAlarm {
         notificationBody != null &&
         notificationBody.isNotEmpty) {
       await AlarmNotification.instance.androidAlarmNotif(
+        id: id,
         title: notificationTitle,
         body: notificationBody,
       );
@@ -179,9 +185,9 @@ class AndroidAlarm {
     }
   }
 
-  /// This function will send the message 'stop' to the isolate so
-  /// the audio player can stop playing and dispose.
-  static Future<bool> stop() async {
+  /// Sends the message 'stop' to the isolate so the audio player
+  /// can stop playing and dispose.
+  static Future<bool> stop(int id) async {
     try {
       final SendPort send = IsolateNameServer.lookupPortByName(stopPort)!;
       send.send('stop');
@@ -189,7 +195,7 @@ class AndroidAlarm {
       print('[Alarm] (main) SendPort error: $e');
     }
 
-    final res = await AndroidAlarmManager.cancel(alarmId);
+    final res = await AndroidAlarmManager.cancel(id);
 
     return res;
   }

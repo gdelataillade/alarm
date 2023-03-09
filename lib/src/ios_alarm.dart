@@ -16,8 +16,9 @@ class IOSAlarm {
   static StreamSubscription<FGBGType>? fgbgSubscription;
 
   /// Schedules an iOS notification for the moment the alarm starts ringing.
-  /// Then call the native function setAlarm and listen to alarm ring state.
+  /// Then calls the native function `setAlarm` and listens to alarm ring state.
   static Future<bool> setAlarm(
+    int id,
     DateTime dateTime,
     void Function()? onRing,
     String assetAudio,
@@ -34,15 +35,18 @@ class IOSAlarm {
         notificationBody != null &&
         notificationBody.isNotEmpty) {
       AlarmNotification.instance.scheduleIOSAlarmNotif(
+        id: id,
         dateTime: dateTime,
         title: notificationTitle,
         body: notificationBody,
       );
     }
 
+    // TODO: Add explicit error when wrong asset path is given (instead of crash)
     final res = await methodChannel.invokeMethod<bool?>(
           'setAlarm',
           {
+            'id': id,
             'assetAudio': assetAudio,
             'delayInSeconds': delay.inSeconds.abs().toDouble(),
             'loopAudio': loopAudio,
@@ -55,7 +59,7 @@ class IOSAlarm {
         ) ??
         false;
 
-    print('[Alarm] alarm set ${res ? 'successfully' : 'failed'}');
+    print('[Alarm] alarm with id $id set ${res ? 'successfully' : 'failed'}');
 
     if (res == false) return false;
 
@@ -67,7 +71,7 @@ class IOSAlarm {
         final hasAlarm = AlarmStorage.hasAlarm();
         if (!hasAlarm) return;
 
-        final isRinging = await checkIfRinging();
+        final isRinging = await checkIfRinging(id);
         if (isRinging) {
           dispose();
           onRing?.call();
@@ -81,21 +85,27 @@ class IOSAlarm {
   }
 
   /// Calls the native stopAlarm function.
-  static Future<bool> stopAlarm() async {
-    final res = await methodChannel.invokeMethod<bool?>('stopAlarm') ?? false;
-    print('[Alarm] alarm stopped ${res ? 'with success' : 'failed'}');
+  static Future<bool> stopAlarm(int id) async {
+    final res = await methodChannel.invokeMethod<bool?>(
+          'stopAlarm',
+          {'id': id},
+        ) ??
+        false;
+    print('[Alarm] alarm with id $id stop: ${res ? 'success' : 'failed'}');
     return res;
   }
 
   /// Checks whether alarm is ringing by getting the native audio player's
   /// current time at two different moments. If the two values are different,
   /// it means the alarm is ringing.
-  static Future<bool> checkIfRinging() async {
-    final pos1 =
-        await methodChannel.invokeMethod<double?>('audioCurrentTime') ?? 0.0;
+  static Future<bool> checkIfRinging(int id) async {
+    final pos1 = await methodChannel
+            .invokeMethod<double?>('audioCurrentTime', {'id': id}) ??
+        0.0;
     await Future.delayed(const Duration(milliseconds: 100));
-    final pos2 =
-        await methodChannel.invokeMethod<double?>('audioCurrentTime') ?? 0.0;
+    final pos2 = await methodChannel
+            .invokeMethod<double?>('audioCurrentTime', {'id': id}) ??
+        0.0;
     final isRinging = pos2 > pos1;
     return isRinging;
   }
@@ -144,7 +154,8 @@ class IOSAlarm {
   /// Disposes FGBGType subscription and periodical timer.
   /// Also calls stopNotificationOnKillService method.
   static void dispose() {
-    stopNotificationOnKillService();
+    // TODO: Test that I moved this method in the asyncAfter in the native set method
+    // stopNotificationOnKillService();
     fgbgSubscription?.cancel();
     timer?.cancel();
   }
