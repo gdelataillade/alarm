@@ -84,7 +84,9 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
       self.audioPlayer.volume = 0.1
       self.audioPlayer.play(atTime: time)
       DispatchQueue.main.asyncAfter(deadline: .now() + delayInSeconds) {
+        NSLog("[SwiftAlarmPlugin] ==> Alarm playing. Executing native code in background.")
         self.audioPlayer.setVolume(1, fadeDuration: fadeDuration)
+        // add stopNotificationOnKillService(res);
       }
     } else {
       self.audioPlayer.play(atTime: time)
@@ -94,7 +96,9 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
   }
 
   private func stopNotificationOnKillService(result: FlutterResult) {
+    // TODO: Only if no other audioPlayers are scheduled to play
     NotificationCenter.default.removeObserver(self, name: UIApplication.willTerminateNotification, object: nil)
+    NSLog("[SwiftAlarmPlugin] ==> stopNotificationOnKillService")
     result(true)
   }
 

@@ -22,7 +22,10 @@ class AndroidAlarm {
   static const platform =
       MethodChannel('com.gdelataillade.alarm/notifOnAppKill');
 
-  /// Create isolate receive port and set alarm at given [dateTime]
+  // TODO: Handle case where multiple alarms are all set at the same dt
+  static bool get hasAnotherAlarm => AlarmStorage.getSavedAlarms().length > 1;
+
+  /// Creates isolate receive port and set alarm at given [dateTime]
   static Future<bool> set(
     int id,
     DateTime dateTime,
@@ -54,8 +57,7 @@ class AndroidAlarm {
       return false;
     }
 
-    // TODO: Check if observer already exists
-    if (enableNotificationOnKill) {
+    if (enableNotificationOnKill && !hasAnotherAlarm) {
       try {
         await platform.invokeMethod(
           'setNotificationOnKillService',
@@ -99,8 +101,7 @@ class AndroidAlarm {
     final audioPlayer = AudioPlayer();
     SendPort send = IsolateNameServer.lookupPortByName(ringPort)!;
 
-    // TODO: Check if observer already exists
-    stopNotificationOnKillService();
+    if (!hasAnotherAlarm) stopNotificationOnKillService();
 
     send.send('ring');
 
@@ -184,8 +185,8 @@ class AndroidAlarm {
     }
   }
 
-  /// This function will send the message 'stop' to the isolate so
-  /// the audio player can stop playing and dispose.
+  /// Sends the message 'stop' to the isolate so the audio player
+  /// can stop playing and dispose.
   static Future<bool> stop(int id) async {
     try {
       final SendPort send = IsolateNameServer.lookupPortByName(stopPort)!;

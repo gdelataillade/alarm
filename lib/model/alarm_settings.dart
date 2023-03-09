@@ -4,7 +4,7 @@ class AlarmSettings {
   final String assetAudioPath;
   final bool loopAudio;
   final double fadeDuration;
-  final String? notificationTitle;
+  final String? notificationTitle; // TODO: Make non-nullable, empty vs notEmpty
   final String? notificationBody;
   final bool enableNotificationOnKill;
 
@@ -37,29 +37,28 @@ class AlarmSettings {
     this.enableNotificationOnKill = true,
   });
 
-  /// Creates a copy of AlarmSettings but with the given fields replaced with the
-  /// new values.
+  /// Creates a copy of `AlarmSettings` but with the given fields replaced with
+  /// the new values.
   AlarmSettings copyWith({
-    required int id,
-    required DateTime dateTime,
-    required String assetAudioPath,
-    required bool loopAudio,
-    required double fadeDuration,
+    DateTime? dateTime,
+    String? assetAudioPath,
+    bool? loopAudio,
+    double? fadeDuration,
     String? notificationTitle,
     String? notificationBody,
   }) {
     return AlarmSettings(
       id: id,
-      dateTime: dateTime,
-      assetAudioPath: assetAudioPath,
-      loopAudio: loopAudio,
-      fadeDuration: fadeDuration,
-      notificationTitle: notificationTitle,
-      notificationBody: notificationBody,
+      dateTime: dateTime ?? this.dateTime,
+      assetAudioPath: assetAudioPath ?? this.assetAudioPath,
+      loopAudio: loopAudio ?? this.loopAudio,
+      fadeDuration: fadeDuration ?? this.fadeDuration,
+      notificationTitle: notificationTitle ?? this.notificationTitle,
+      notificationBody: notificationBody ?? this.notificationBody,
     );
   }
 
-  /// Converts json data to an AlarmSettings
+  /// Converts json data to an `AlarmSettings`
   factory AlarmSettings.fromJson(Map<String, dynamic> json) => AlarmSettings(
         id: json['id'] as int,
         dateTime: DateTime.fromMicrosecondsSinceEpoch(json['dateTime'] as int),
@@ -70,9 +69,9 @@ class AlarmSettings {
         notificationBody: json['notificationBody'] as String?,
       );
 
-  /// Converts an AlarmSettings to json data
+  /// Converts an `AlarmSettings` to json data.
   Map<String, dynamic> toJson() => {
-        'int': id,
+        'id': id,
         'dateTime': dateTime.microsecondsSinceEpoch,
         'assetAudioPath': assetAudioPath,
         'loopAudio': loopAudio,
@@ -80,4 +79,12 @@ class AlarmSettings {
         'notificationTitle': notificationTitle,
         'notificationBody': notificationBody,
       };
+
+  /// Returns all the properties of `AlarmSettings` for debug purposes.
+  @override
+  String toString() {
+    Map<String, dynamic> json = toJson();
+    json['dateTime'] = DateTime.fromMicrosecondsSinceEpoch(json['dateTime']);
+    return "AlarmSettings: ${json.toString()}";
+  }
 }

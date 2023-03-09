@@ -23,10 +23,10 @@ class AlarmStorage {
         json.encode(alarmSettings.toJson()),
       );
 
-  /// Remove alarm from local storage.
+  /// Removes alarm from local storage.
   static Future<void> unsaveAlarm(int id) => prefs.remove("$prefix$id");
 
-  /// Wether an alarm is set or not.
+  /// Wether at least one alarm is set.
   static bool hasAlarm() {
     final keys = prefs.getKeys();
 
@@ -44,7 +44,8 @@ class AlarmStorage {
 
     for (final key in keys) {
       if (key.startsWith(prefix)) {
-        alarms.add(AlarmSettings.fromJson(json.decode(key)));
+        final res = prefs.getString(key);
+        alarms.add(AlarmSettings.fromJson(json.decode(res!)));
       }
     }
     return alarms;

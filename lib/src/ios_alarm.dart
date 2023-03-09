@@ -42,6 +42,7 @@ class IOSAlarm {
       );
     }
 
+    // TODO: Add explicit error when wrong asset path is given (instead of crash)
     final res = await methodChannel.invokeMethod<bool?>(
           'setAlarm',
           {
@@ -67,7 +68,6 @@ class IOSAlarm {
     listenAppStateChange(
       onBackground: () => timer?.cancel(),
       onForeground: () async {
-        // TODO: Update
         final hasAlarm = AlarmStorage.hasAlarm();
         if (!hasAlarm) return;
 
@@ -138,7 +138,6 @@ class IOSAlarm {
     timer?.cancel();
 
     timer = Timer.periodic(const Duration(milliseconds: 500), (_) {
-      // TODO: Update
       final hasAlarm = AlarmStorage.hasAlarm();
       if (!hasAlarm) {
         dispose();
@@ -155,7 +154,8 @@ class IOSAlarm {
   /// Disposes FGBGType subscription and periodical timer.
   /// Also calls stopNotificationOnKillService method.
   static void dispose() {
-    stopNotificationOnKillService();
+    // TODO: Test that I moved this method in the asyncAfter in the native set method
+    // stopNotificationOnKillService();
     fgbgSubscription?.cancel();
     timer?.cancel();
   }

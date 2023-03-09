@@ -114,4 +114,6 @@ class Alarm {
 
   /// Whether an alarm is set.
   static bool hasAlarm() => AlarmStorage.hasAlarm();
+
+  static List<AlarmSettings> getAlarms() => AlarmStorage.getSavedAlarms();
 }
