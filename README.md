@@ -94,8 +94,9 @@ await Alarm.init()
 Then, you have to define your alarm settings:
 ```Dart
 final alarmSettings = AlarmSettings(
+  id: 42,
   dateTime: dateTime,
-  assetAudioPath: 'assets/sample.mp3',
+  assetAudioPath: 'assets/alarm.mp3',
   loopAudio: true,
   notificationTitle: 'This is the title',
   notificationBody: 'This is the body',
@@ -110,6 +111,7 @@ await Alarm.set(settings: alarmSettings)
 
 Property |   Type     | Description
 -------- |------------| ---------------
+id |   `int`     | Unique identifier of the alarm.
 alarmDateTime |   `DateTime`     | The date and time you want your alarm to ring.
 assetAudio |   `String`     | The path to you audio asset you want to use as ringtone. Can be local asset or network URL.
 loopMode |   `bool`     | If set to true, audio will repeat indefinitely until it is stopped.
@@ -134,6 +136,8 @@ This is how to run some code when alarm starts ringing. We implemented it as a s
 ```Dart
 Alarm.ringStream.stream.listen((_) => yourOnRingCallback());
 ```
+
+To avoid unexpected behaviors, if you set an alarm for the same time as an existing one, the new alarm will replace the existing one.
 
 **Don't hesitate to check out the example's code, here's a screenshot:**
 
@@ -167,7 +171,6 @@ We welcome contributions to this package! If you would like to make a change or 
 4.  Submit a pull request with a detailed description of your changes.
 
 These are some features that I have in mind that could be useful:
-- Multiple alarms management
 - Use `ffigen` and `jnigen` binding generators to call native code more efficiently instead of using method channels.
 - Optional vibrations when alarm rings
 - [Notification actions](https://pub.dev/packages/flutter_local_notifications#notification-actions): stop and snooze

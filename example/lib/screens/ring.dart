@@ -21,28 +21,33 @@ class ExampleAlarmRingScreen extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
-            const Icon(Icons.alarm_rounded, size: 50),
+            const Text("🔔", style: TextStyle(fontSize: 50)),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 RawMaterialButton(
                   onPressed: () {
-                    // TODO: Need to stop first ?
                     Alarm.set(
-                      settings: alarmSettings.copyWith(
+                      alarmSettings: alarmSettings.copyWith(
                           dateTime: alarmSettings.dateTime
-                            ..add(const Duration(minutes: 1))),
+                              .add(const Duration(minutes: 1))),
                     );
-                    Navigator.pop(context, true);
+                    Navigator.pop(context);
                   },
-                  child: const Text("Snooze"),
+                  child: Text(
+                    "Snooze",
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                 ),
                 RawMaterialButton(
                   onPressed: () {
                     Alarm.stop(alarmSettings.id);
-                    Navigator.pop(context, false);
+                    Navigator.pop(context);
                   },
-                  child: const Text("Stop"),
+                  child: Text(
+                    "Stop",
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                 ),
               ],
             ),

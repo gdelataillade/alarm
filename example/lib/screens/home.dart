@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:alarm/alarm.dart';
 import 'package:alarm_example/screens/edit_alarm.dart';
-import 'package:alarm_example/screens/quick_tests.dart';
 import 'package:alarm_example/screens/ring.dart';
 import 'package:alarm_example/widgets/tile.dart';
 import 'package:flutter/material.dart';
@@ -27,7 +26,12 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
         .listen((alarmSettings) => navigateToRingScreen(alarmSettings));
   }
 
-  void loadAlarms() => setState(() => alarms = Alarm.getAlarms());
+  void loadAlarms() {
+    alarms = Alarm.getAlarms();
+    setState(() {
+      alarms.sort((a, b) => a.dateTime.isBefore(b.dateTime) ? 0 : 1);
+    });
+  }
 
   Future<void> navigateToRingScreen(AlarmSettings alarmSettings) async {
     final res = await Navigator.push(
@@ -37,14 +41,8 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
               ExampleAlarmRingScreen(alarmSettings: alarmSettings),
         ));
     print("[DEV] ring screen returned: $res");
-    if (res) loadAlarms();
+    loadAlarms();
   }
-
-  void navigateToQuickTests() => Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const ExampleAlarmQuickTestsScreen(),
-      ));
 
   Future<void> navigateToAlarmScreen(AlarmSettings? settings) async {
     final res = await showModalBottomSheet<bool?>(
@@ -74,25 +72,13 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Package alarm example app')),
       body: SafeArea(
-        child: ListView.builder(
-          itemCount: alarms.isEmpty ? 1 : alarms.length,
-          itemBuilder: (context, index) {
-            return Column(
-              children: [
-                if (index == 0)
-                  ExampleAlarmTile(
-                    key: const Key('quick_tests'),
-                    title: 'Quick tests',
-                    onPressed: navigateToQuickTests,
-                  ),
-                Divider(
-                  height: index == 0 ? 1 : 0,
-                  color: Colors.black,
-                ),
-                if (alarms.isNotEmpty)
-                  ExampleAlarmTile(
+        child: alarms.isNotEmpty
+            ? ListView.separated(
+                itemCount: alarms.length,
+                separatorBuilder: (context, index) => const Divider(),
+                itemBuilder: (context, index) {
+                  return ExampleAlarmTile(
                     key: Key(alarms[index].id.toString()),
-                    // TODO: Format HH:mm
                     title: TimeOfDay(
                       hour: alarms[index].dateTime.hour,
                       minute: alarms[index].dateTime.minute,
@@ -104,21 +90,42 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
                         setState(() => alarms.remove(alarms[index]));
                       });
                     },
-                  ),
-                if (index == alarms.length - 1)
-                  Divider(
-                    height: index == 0 ? 1 : 0,
-                    color: Colors.black,
-                  ),
-              ],
-            );
-          },
+                  );
+                },
+              )
+            : Center(
+                child: Text(
+                  "No alarms set",
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+      ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            FloatingActionButton(
+              onPressed: () {
+                final alarmSettings = AlarmSettings(
+                  id: 888888,
+                  dateTime: DateTime.now(),
+                  assetAudioPath: 'assets/mozart.mp3',
+                );
+                Alarm.set(alarmSettings: alarmSettings);
+              },
+              backgroundColor: Colors.red,
+              heroTag: null,
+              child: const Text("RING NOW", textAlign: TextAlign.center),
+            ),
+            FloatingActionButton(
+              onPressed: () => navigateToAlarmScreen(null),
+              child: const Icon(Icons.alarm_add_rounded, size: 33),
+            ),
+          ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => navigateToAlarmScreen(null),
-        child: const Icon(Icons.add, size: 30),
-      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }

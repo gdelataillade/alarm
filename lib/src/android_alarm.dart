@@ -22,7 +22,6 @@ class AndroidAlarm {
   static const platform =
       MethodChannel('com.gdelataillade.alarm/notifOnAppKill');
 
-  // TODO: Handle case where multiple alarms are all set at the same dt
   static bool get hasAnotherAlarm => AlarmStorage.getSavedAlarms().length > 1;
 
   /// Creates isolate receive port and set alarm at given [dateTime]
@@ -128,7 +127,7 @@ class AndroidAlarm {
       final loopAudio = data['loopAudio'];
       if (loopAudio) audioPlayer.setLoopMode(LoopMode.all);
 
-      send.send('[Alarm] Alarm fadeDuration: ${data.toString()}');
+      send.send('Alarm fadeDuration: ${data.toString()}');
 
       final fadeDuration = (data['fadeDuration'] as int).toDouble();
 
@@ -138,7 +137,7 @@ class AndroidAlarm {
         audioPlayer.setVolume(0.1);
         audioPlayer.play();
 
-        send.send('[Alarm] Alarm playing with fadeDuration ${fadeDuration}s');
+        send.send('Alarm playing with fadeDuration ${fadeDuration}s');
 
         Timer.periodic(
           Duration(milliseconds: fadeDuration * 1000 ~/ 10),
@@ -150,12 +149,12 @@ class AndroidAlarm {
         );
       } else {
         audioPlayer.play();
-        send.send('[Alarm] Alarm with id $id starts playing.');
+        send.send('Alarm with id $id starts playing.');
       }
     } catch (e) {
-      send.send('[Alarm] AudioPlayer with id $id error: ${e.toString()}');
+      send.send('AudioPlayer with id $id error: ${e.toString()}');
       await AudioPlayer.clearAssetCache();
-      send.send('[Alarm] Asset cache reset. Please try again.');
+      send.send('Asset cache reset. Please try again.');
     }
 
     try {
@@ -170,7 +169,7 @@ class AndroidAlarm {
 
       port.listen(
         (message) async {
-          send.send('[Alarm] (isolate) received: $message');
+          send.send('(isolate) received: $message');
           if (message == 'stop') {
             await audioPlayer.stop();
             await audioPlayer.dispose();
@@ -179,7 +178,7 @@ class AndroidAlarm {
         },
       );
     } catch (e) {
-      send.send('[Alarm] (isolate) ReceivePort error: $e');
+      send.send('(isolate) ReceivePort error: $e');
     }
   }
 

@@ -40,47 +40,57 @@ class Alarm {
     for (final alarm in alarms) {
       final now = DateTime.now();
       if (alarm.dateTime.isAfter(now)) {
-        set(settings: alarm);
+        set(alarmSettings: alarm);
       } else {
         await AlarmStorage.unsaveAlarm(alarm.id);
       }
     }
   }
 
-  /// Schedules an alarm with given [settings].
-  static Future<bool> set({required AlarmSettings settings}) async {
-    await AlarmStorage.saveAlarm(settings);
-    await AlarmNotification.instance.cancel(settings.id);
+  /// Schedules an alarm with given [alarmSettings].
+  ///
+  /// If you set an alarm for the same [dateTime] as an existing one,
+  /// the new alarm will replace the existing one.
+  static Future<bool> set({required AlarmSettings alarmSettings}) async {
+    for (final alarm in Alarm.getAlarms()) {
+      if (alarm.dateTime.hour == alarmSettings.dateTime.hour &&
+          alarm.dateTime.minute == alarmSettings.dateTime.minute) {
+        Alarm.stop(alarm.id);
+      }
+    }
 
-    if (settings.enableNotificationOnKill) {
+    await AlarmStorage.saveAlarm(alarmSettings);
+    await AlarmNotification.instance.cancel(alarmSettings.id);
+
+    if (alarmSettings.enableNotificationOnKill) {
       await AlarmNotification.instance.requestPermission();
     }
 
     if (iOS) {
-      final assetAudio = settings.assetAudioPath.split('/').last;
+      final assetAudio = alarmSettings.assetAudioPath.split('/').last;
       return IOSAlarm.setAlarm(
-        settings.id,
-        settings.dateTime,
-        () => ringStream.add(settings),
+        alarmSettings.id,
+        alarmSettings.dateTime,
+        () => ringStream.add(alarmSettings),
         assetAudio,
-        settings.loopAudio,
-        settings.fadeDuration,
-        settings.notificationTitle,
-        settings.notificationBody,
-        settings.enableNotificationOnKill,
+        alarmSettings.loopAudio,
+        alarmSettings.fadeDuration,
+        alarmSettings.notificationTitle,
+        alarmSettings.notificationBody,
+        alarmSettings.enableNotificationOnKill,
       );
     }
 
     return await AndroidAlarm.set(
-      settings.id,
-      settings.dateTime,
-      () => ringStream.add(settings),
-      settings.assetAudioPath,
-      settings.loopAudio,
-      settings.fadeDuration,
-      settings.notificationTitle,
-      settings.notificationBody,
-      settings.enableNotificationOnKill,
+      alarmSettings.id,
+      alarmSettings.dateTime,
+      () => ringStream.add(alarmSettings),
+      alarmSettings.assetAudioPath,
+      alarmSettings.loopAudio,
+      alarmSettings.fadeDuration,
+      alarmSettings.notificationTitle,
+      alarmSettings.notificationBody,
+      alarmSettings.enableNotificationOnKill,
     );
   }
 

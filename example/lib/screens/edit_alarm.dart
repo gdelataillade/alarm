@@ -29,7 +29,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       selectedTime = TimeOfDay(hour: dt.hour, minute: dt.minute);
       loopAudio = true;
       showNotification = true;
-      assetAudio = 'assets/sample.mp3';
+      assetAudio = 'assets/mozart.mp3';
     } else {
       selectedTime = TimeOfDay(
         hour: widget.alarmSettings!.dateTime.hour,
@@ -76,7 +76,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
   }
 
   Future<void> saveAlarm() async {
-    Alarm.set(settings: buildAlarmSettings());
+    Alarm.set(alarmSettings: buildAlarmSettings());
     Navigator.pop(context, true);
   }
 
@@ -164,13 +164,24 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
                 'Sound',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
-              // TODO: Add new sounds as assets
               DropdownButton(
                 value: assetAudio,
                 items: const [
                   DropdownMenuItem<String>(
-                    value: 'assets/sample.mp3',
-                    child: Text('sample'),
+                    value: 'assets/mozart.mp3',
+                    child: Text('Mozart'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'assets/nokia.mp3',
+                    child: Text('Nokia'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'assets/one_piece.mp3',
+                    child: Text('One Piece'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'assets/star_wars.mp3',
+                    child: Text('Star Wars'),
                   ),
                 ],
                 onChanged: (value) => setState(() => assetAudio = value!),
@@ -188,6 +199,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
                     .copyWith(color: Colors.red),
               ),
             ),
+          const SizedBox(),
         ],
       ),
     );
