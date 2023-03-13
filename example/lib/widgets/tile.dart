@@ -34,7 +34,7 @@ class ExampleAlarmTile extends StatelessWidget {
         onPressed: onPressed,
         child: Container(
           height: 100,
-          padding: const EdgeInsets.all(30),
+          padding: const EdgeInsets.all(35),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

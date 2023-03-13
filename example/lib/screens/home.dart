@@ -22,8 +22,9 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
   void initState() {
     super.initState();
     loadAlarms();
-    subscription ??= Alarm.ringStream.stream
-        .listen((alarmSettings) => navigateToRingScreen(alarmSettings));
+    subscription ??= Alarm.ringStream.stream.listen(
+      (alarmSettings) => navigateToRingScreen(alarmSettings),
+    );
   }
 
   void loadAlarms() {
@@ -34,13 +35,12 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
   }
 
   Future<void> navigateToRingScreen(AlarmSettings alarmSettings) async {
-    final res = await Navigator.push(
+    await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) =>
               ExampleAlarmRingScreen(alarmSettings: alarmSettings),
         ));
-    print("[DEV] ring screen returned: $res");
     loadAlarms();
   }
 
@@ -108,7 +108,7 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
             FloatingActionButton(
               onPressed: () {
                 final alarmSettings = AlarmSettings(
-                  id: 888888,
+                  id: 42,
                   dateTime: DateTime.now(),
                   assetAudioPath: 'assets/mozart.mp3',
                 );

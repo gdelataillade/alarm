@@ -12,8 +12,8 @@ class IOSAlarm {
   static MethodChannel methodChannel =
       const MethodChannel('com.gdelataillade/alarm');
 
-  static Timer? timer;
-  static StreamSubscription<FGBGType>? fgbgSubscription;
+  static Map<int, Timer?> timers = {};
+  static Map<int, StreamSubscription<FGBGType>?> fgbgSubscriptions = {};
 
   /// Schedules an iOS notification for the moment the alarm starts ringing.
   /// Then calls the native function `setAlarm` and listens to alarm ring state.
@@ -63,36 +63,43 @@ class IOSAlarm {
 
     if (res == false) return false;
 
-    periodicTimer(onRing, dateTime);
+    timers[id] = periodicTimer(onRing, dateTime, id);
 
     listenAppStateChange(
-      onBackground: () => timer?.cancel(),
+      id: id,
+      onBackground: () => disposeTimer(id),
       onForeground: () async {
-        final hasAlarm = AlarmStorage.hasAlarm();
-        if (!hasAlarm) return;
-
         final isRinging = await checkIfRinging(id);
+
         if (isRinging) {
-          dispose();
+          disposeAlarm(id);
           onRing?.call();
         } else {
-          periodicTimer(onRing, dateTime);
+          timers[id] = periodicTimer(onRing, dateTime, id);
         }
       },
     );
-
     return true;
   }
 
-  /// Calls the native stopAlarm function.
+  /// Disposes timer and FGBG subscription
+  /// and calls the native stopAlarm function.
   static Future<bool> stopAlarm(int id) async {
-    final res = await methodChannel.invokeMethod<bool?>(
-          'stopAlarm',
-          {'id': id},
-        ) ??
-        false;
-    print('[Alarm] alarm with id $id stop: ${res ? 'success' : 'failed'}');
-    return res;
+    disposeAlarm(id);
+
+    try {
+      final res = await methodChannel.invokeMethod<bool?>(
+            'stopAlarm',
+            {'id': id},
+          ) ??
+          false;
+
+      print('[Alarm] alarm with id $id stopped with success');
+      return res;
+    } catch (e) {
+      print('[Alarm] alarm with id $id stop error: $e');
+      return false;
+    }
   }
 
   /// Checks whether alarm is ringing by getting the native audio player's
@@ -110,53 +117,37 @@ class IOSAlarm {
     return isRinging;
   }
 
-  /// Cancels the observer that triggers the notification warning when
-  /// user kills the application.
-  static Future<void> stopNotificationOnKillService() async {
-    try {
-      await methodChannel.invokeMethod('stopNotificationOnKillService');
-      print('[Alarm] NotificationOnKillService stopped with success');
-    } catch (e) {
-      print('[Alarm] NotificationOnKillService error: $e');
-    }
-  }
-
   /// Listens when app goes foreground so we can check if alarm is ringing.
   /// When app goes background, periodical timer will be disposed.
   static void listenAppStateChange({
+    required int id,
     required void Function() onForeground,
     required void Function() onBackground,
   }) async {
-    fgbgSubscription = FGBGEvents.stream.listen((event) {
+    fgbgSubscriptions[id] = FGBGEvents.stream.listen((event) {
       if (event == FGBGType.foreground) onForeground();
       if (event == FGBGType.background) onBackground();
     });
   }
 
   /// Checks periodically if alarm is ringing, as long as app is in foreground.
-  static void periodicTimer(void Function()? onRing, DateTime dt) async {
-    timer?.cancel();
-
-    timer = Timer.periodic(const Duration(milliseconds: 500), (_) {
-      final hasAlarm = AlarmStorage.hasAlarm();
-      if (!hasAlarm) {
-        dispose();
-        return;
-      }
-
+  static Timer periodicTimer(void Function()? onRing, DateTime dt, int id) {
+    return Timer.periodic(const Duration(milliseconds: 500), (_) {
       if (DateTime.now().isAfter(dt)) {
-        dispose();
+        disposeAlarm(id);
         onRing?.call();
       }
     });
   }
 
-  /// Disposes FGBGType subscription and periodical timer.
-  /// Also calls stopNotificationOnKillService method.
-  static void dispose() {
-    // TODO: Test that I moved this method in the asyncAfter in the native set method
-    // stopNotificationOnKillService();
-    fgbgSubscription?.cancel();
-    timer?.cancel();
+  static void disposeTimer(int id) {
+    timers[id]?.cancel();
+    timers.removeWhere((key, value) => key == id);
+  }
+
+  static void disposeAlarm(int id) {
+    disposeTimer(id);
+    fgbgSubscriptions[id]?.cancel();
+    fgbgSubscriptions.removeWhere((key, value) => key == id);
   }
 }
