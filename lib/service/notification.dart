@@ -67,6 +67,7 @@ class AlarmNotification {
         now.day,
         time.hour,
         time.minute,
+        time.second,
       ),
       tz.local,
     );
@@ -104,7 +105,13 @@ class AlarmNotification {
       android: androidPlatformChannelSpecifics,
     );
 
-    final zdt = nextInstanceOfTime(Time(dateTime.hour, dateTime.minute));
+    final zdt = nextInstanceOfTime(
+      Time(
+        dateTime.hour,
+        dateTime.minute,
+        dateTime.second,
+      ),
+    );
 
     final hasPermission = await requestPermission();
     if (!hasPermission) {

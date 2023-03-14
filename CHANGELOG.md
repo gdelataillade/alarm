@@ -1,3 +1,6 @@
+## 0.1.5
+* Schedule notification with precision to the given second.
+
 ## 0.1.4
 * [Android] Fix notification permission for Android 13
 
