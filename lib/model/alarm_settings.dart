@@ -4,7 +4,7 @@ class AlarmSettings {
   final String assetAudioPath;
   final bool loopAudio;
   final double fadeDuration;
-  final String? notificationTitle; // TODO: Make non-nullable, empty vs notEmpty
+  final String? notificationTitle;
   final String? notificationBody;
   final bool enableNotificationOnKill;
 

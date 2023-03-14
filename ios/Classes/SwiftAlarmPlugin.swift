@@ -11,11 +11,11 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
   private var audioPlayers: [Int: AVAudioPlayer] = [:]
 
-  public var notifOnKillEnabled: Bool!
-  public var notificationTitleOnKill: String!
-  public var notificationBodyOnKill: String!
+  private var notifOnKillEnabled: Bool!
+  private var notificationTitleOnKill: String!
+  private var notificationBodyOnKill: String!
 
-  public var observerAdded = false;
+  private var observerAdded = false;
 
   private func setUpAudio() {
     try! AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
@@ -132,6 +132,13 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     content.body = notificationBodyOnKill
     let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
     let request = UNNotificationRequest(identifier: "notification on app kill", content: content, trigger: trigger)
-    UNUserNotificationCenter.current().add(request)
+
+    UNUserNotificationCenter.current().add(request) { (error) in
+      if let error = error {
+        NSLog("[DEV] ===> Failed to add notification on kill service with error: \(error.localizedDescription)")
+      } else {
+        NSLog("[DEV] ===> Added notification on kill service")
+      }
+    }
   }
 }

@@ -42,7 +42,6 @@ class IOSAlarm {
       );
     }
 
-    // TODO: Add explicit error when wrong asset path is given (instead of crash)
     final res = await methodChannel.invokeMethod<bool?>(
           'setAlarm',
           {

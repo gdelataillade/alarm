@@ -63,10 +63,10 @@ class AlarmStorage {
 
   /// Returns notification on app kill title.
   static String getNotificationOnAppKillTitle() =>
-      prefs.getString(notificationOnAppKillTitle) ?? 'Your alarm may not ring';
+      prefs.getString(notificationOnAppKillTitle) ?? 'Your alarms may not ring';
 
   /// Returns notification on app kill body.
   static String getNotificationOnAppKillBody() =>
       prefs.getString(notificationOnAppKillBody) ??
-      'You killed the app. Please reopen so your alarm can be rescheduled.';
+      'You killed the app. Please reopen so your alarms can be rescheduled.';
 }
