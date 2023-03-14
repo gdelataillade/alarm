@@ -68,16 +68,16 @@ class _MyAppState extends State<MyApp> {
     return 'tomorrow';
   }
 
-  Future<void> setAlarm(DateTime dateTime, [bool enableNotif = true]) async {
+  Future<void> setAlarm(
+    DateTime dateTime,
+  ) async {
     final alarmSettings = AlarmSettings(
       dateTime: dateTime,
       assetAudioPath: 'assets/sample.mp3',
       loopAudio: loopAudio,
       fadeDuration: fadeVolume ? 5.0 : 0.0,
-      notificationTitle:
-          showNotifOnRing && enableNotif ? 'Alarm example' : null,
-      notificationBody:
-          showNotifOnRing && enableNotif ? 'Your alarm is ringing' : null,
+      notificationTitle: showNotifOnRing ? 'Alarm example' : null,
+      notificationBody: showNotifOnRing ? 'Your alarm is ringing' : null,
       enableNotificationOnKill: true,
     );
     await Alarm.set(settings: alarmSettings);
@@ -174,17 +174,16 @@ class _MyAppState extends State<MyApp> {
                 ),
               const SizedBox(height: 20),
               RawMaterialButton(
-                onPressed: () => setAlarm(DateTime.now(), false),
+                onPressed: () => setAlarm(DateTime.now()),
                 fillColor: Colors.lightBlueAccent,
                 child: const Text('Ring alarm now'),
               ),
               RawMaterialButton(
                 onPressed: () => setAlarm(
                   DateTime.now().add(const Duration(seconds: 3)),
-                  false,
                 ),
                 fillColor: Colors.lightBlueAccent,
-                child: const Text('Ring alarm in 3 seconds (no notif)'),
+                child: const Text('Ring alarm in 3 seconds'),
               ),
               RawMaterialButton(
                 onPressed: () {

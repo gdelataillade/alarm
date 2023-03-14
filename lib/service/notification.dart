@@ -69,6 +69,7 @@ class AlarmNotification {
         now.day,
         time.hour,
         time.minute,
+        time.second,
       ),
       tz.local,
     );
@@ -105,7 +106,13 @@ class AlarmNotification {
       android: androidPlatformChannelSpecifics,
     );
 
-    final zdt = nextInstanceOfTime(Time(dateTime.hour, dateTime.minute));
+    final zdt = nextInstanceOfTime(
+      Time(
+        dateTime.hour,
+        dateTime.minute,
+        dateTime.second,
+      ),
+    );
 
     final hasPermission = await requestPermission();
     if (!hasPermission) {
@@ -133,45 +140,4 @@ class AlarmNotification {
   /// Cancels notification. Called when the alarm is cancelled or
   /// when an alarm is overriden.
   Future<void> cancel() => localNotif.cancel(alarmId);
-
-  // This code is used to send a notification with a title and body to an Android or iOS device.
-  // It first imports the FlutterLocalNotificationsPlugin, then sets up the Android and iOS initialization settings.
-  // After that, it creates the platform-specific notification details for both Android and iOS.
-  // Finally, it uses the show() method to send the notification with the given title and body.
-  static Future<void> sendNotification(
-    String title,
-    String body,
-  ) async {
-    final FlutterLocalNotificationsPlugin lNotif =
-        FlutterLocalNotificationsPlugin();
-    const initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-    const initializationSettingsIOS = DarwinInitializationSettings(
-      requestAlertPermission: false,
-      requestBadgePermission: false,
-      requestSoundPermission: false,
-    );
-    const initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsIOS,
-    );
-    await lNotif.initialize(initializationSettings);
-    const androidPlatformChannelSpecifics = AndroidNotificationDetails(
-      'alarm-package',
-      'alarm',
-      channelDescription: 'alarm to wake up',
-    );
-    const iOSPlatformChannelSpecifics = DarwinNotificationDetails();
-    const platformChannelSpecifics = NotificationDetails(
-      android: androidPlatformChannelSpecifics,
-      iOS: iOSPlatformChannelSpecifics,
-    );
-
-    await lNotif.show(
-      12345,
-      title,
-      body,
-      platformChannelSpecifics,
-    );
-  }
 }
