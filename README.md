@@ -151,7 +151,7 @@ After running multiple tests, iOS and Android seem to have the same behaviour:
 | Do not disturb| Still rings but notification is silenced.
 | Sleep mode    | Still rings but notification is silenced.
 | While playing other media| The alarm sound plays along with the media sound.
-| App killed    | Doesn't ring. Only iOS notification shows.
+| App killed    | Doesn't ring. Notification still shows.
 
 ## Feature request
 
