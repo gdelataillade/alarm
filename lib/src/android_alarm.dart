@@ -111,8 +111,6 @@ class AndroidAlarm {
     final audioPlayer = AudioPlayer();
     SendPort send = IsolateNameServer.lookupPortByName("$ringPort-$id")!;
 
-    if (!hasAnotherAlarm) stopNotificationOnKillService();
-
     send.send('ring');
 
     try {
@@ -191,6 +189,8 @@ class AndroidAlarm {
     } catch (e) {
       print('[Alarm] (main) SendPort error: $e');
     }
+
+    if (!hasAnotherAlarm) stopNotificationOnKillService();
 
     final res = await AndroidAlarmManager.cancel(id);
 

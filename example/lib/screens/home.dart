@@ -101,7 +101,7 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
               ),
       ),
       floatingActionButton: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+        padding: const EdgeInsets.all(10),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
