@@ -139,10 +139,10 @@ Alarm.ringStream.stream.listen((_) => yourOnRingCallback());
 
 To avoid unexpected behaviors, if you set an alarm for the same time as an existing one, the new alarm will replace the existing one.
 
-**Don't hesitate to check out the example's code, here's a screenshot:**
+**Don't hesitate to check out the example's code, and take a look at the app:**
 
-![example_app_screensot](https://user-images.githubusercontent.com/32983806/220070209-2636ce9c-183a-43e7-91ec-a5d0fb3bdfe8.jpeg)
-
+![alarm example 1](https://user-images.githubusercontent.com/32983806/225351833-5ced7b18-631f-4c2d-b8c8-13198f26900c.png)
+![alarm example 2](https://user-images.githubusercontent.com/32983806/225352465-940a41fb-24d4-4abd-b7ba-28fae387abd0.png)
 
 ## Alarm behaviour
 
