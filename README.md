@@ -14,7 +14,7 @@ For the Android part, we used `android_alarm_manager_plus` package, but to be ho
 
 Then, for the iOS part, we couldn't find any package or tutorial to add this feature.
 
-Another issue we found is that when a user kills the app, all processes are terminated so the alarm may not ring. The workaround we thought about was to show a notification when the user kills the app to warn him that the alarm may not ring, He just has to reopen the app to reschedule the alarm.
+Another issue we found is that when a user kills the app, all processes are terminated so the alarm may not ring. The workaround we thought about was to show a notification when the user kills the app to warn him that the alarm may not ring. Then, he just has to reopen the app to reschedule the alarm.
 
 Therefore, we decided to write our own package to wrap everything and make it easy for everybody.
 
@@ -98,6 +98,7 @@ final alarmSettings = AlarmSettings(
   dateTime: dateTime,
   assetAudioPath: 'assets/alarm.mp3',
   loopAudio: true,
+  fadeDuration: 3.0,
   notificationTitle: 'This is the title',
   notificationBody: 'This is the body',
   enableNotificationOnKill: true,
@@ -114,7 +115,7 @@ Property |   Type     | Description
 id |   `int`     | Unique identifier of the alarm.
 alarmDateTime |   `DateTime`     | The date and time you want your alarm to ring.
 assetAudio |   `String`     | The path to you audio asset you want to use as ringtone. Can be local asset or network URL.
-loopMode |   `bool`     | If set to true, audio will repeat indefinitely until it is stopped.
+loopAudio |   `bool`     | If true, audio will repeat indefinitely until it is stopped.
 fadeDuration |   `double`     | Duration, in seconds, over which to fade the alarm volume. Set to 0 by default, which means no fade.
 notificationTitle |   `String`     | The title of the notification triggered when alarm rings if app is on background.
 notificationBody | `String` | The body of the notification.

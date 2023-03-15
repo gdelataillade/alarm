@@ -1,8 +1,14 @@
+## 0.2.0
+
+* **Breaking changes**: Add multiple alarm management. Now, you have to provide a unique `id` to `AlarmSettings`.
+* Update example application.
+* [Android] Fix potential delay between notification and alarm sound.
+
 ## 0.1.5
 * Schedule notification with precision to the given second.
 
 ## 0.1.4
-* [Android] Fix notification permission for Android 13
+* [Android] Fix notification permission for Android 13.
 
 ## 0.1.3
 * Add an optional `fadeDuration` parameter, which is the duration, in seconds, over which to fade the alarm volume.
@@ -32,17 +38,17 @@ To disable this feature, you can call the method `Alarm.toggleNotificationOnAppK
 
 ## 0.0.4
 
-* [Android] Fix notification parameters
+* [Android] Fix notification parameters.
 
 ## 0.0.3
 
-* Add more documentation
-* Add package description in pubspec.yaml
-* Refactor some Swift code
+* Add more documentation.
+* Add package description in pubspec.yaml.
+* Refactor some Swift code.
 
 ## 0.0.2
 
-* Update links in the README.md
+* Update links in the README.md.
 
 ## 0.0.1
 
