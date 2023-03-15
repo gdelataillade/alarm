@@ -24,6 +24,7 @@ class ExampleAlarmRingScreen extends StatelessWidget {
               children: [
                 RawMaterialButton(
                   onPressed: () {
+                    Alarm.stop(alarmSettings.id);
                     Alarm.set(
                       alarmSettings: alarmSettings.copyWith(
                           dateTime: alarmSettings.dateTime

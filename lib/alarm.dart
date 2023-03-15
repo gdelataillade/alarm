@@ -112,11 +112,9 @@ class Alarm {
   static Future<bool> stop(int id) async {
     await AlarmStorage.unsaveAlarm(id);
 
-    if (iOS) {
-      AlarmNotification.instance.cancel(id);
-      return await IOSAlarm.stopAlarm(id);
-    }
-    return await AndroidAlarm.stop(id);
+    AlarmNotification.instance.cancel(id);
+
+    return iOS ? await IOSAlarm.stopAlarm(id) : await AndroidAlarm.stop(id);
   }
 
   /// Whether the alarm is ringing.

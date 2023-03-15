@@ -54,10 +54,11 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
 
   AlarmSettings buildAlarmSettings() {
     final now = DateTime.now();
+    final id = creating
+        ? DateTime.now().millisecondsSinceEpoch % 100000
+        : widget.alarmSettings!.id;
     final alarmSettings = AlarmSettings(
-      id: creating
-          ? DateTime.now().millisecondsSinceEpoch % 100000
-          : widget.alarmSettings!.id,
+      id: id,
       dateTime: DateTime(
         now.year,
         now.month,
@@ -69,7 +70,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       ),
       loopAudio: loopAudio,
       notificationTitle: showNotification ? 'Alarm example' : null,
-      notificationBody: showNotification ? 'Your alarm is ringing' : null,
+      notificationBody: showNotification ? 'Your alarm ($id) is ringing' : null,
       assetAudioPath: assetAudio,
     );
     return alarmSettings;
