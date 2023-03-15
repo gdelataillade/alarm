@@ -139,5 +139,8 @@ class AlarmNotification {
 
   /// Cancels notification. Called when the alarm is cancelled or
   /// when an alarm is overriden.
-  Future<void> cancel(int id) => localNotif.cancel(id);
+  Future<void> cancel(int id) async {
+    await localNotif.cancel(id);
+    print('[Alarm] Notification with id $id canceled');
+  }
 }

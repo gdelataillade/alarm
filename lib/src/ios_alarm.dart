@@ -58,7 +58,8 @@ class IOSAlarm {
         ) ??
         false;
 
-    print('[Alarm] alarm with id $id set ${res ? 'successfully' : 'failed'}');
+    print(
+        '[Alarm] Alarm with id $id scheduled ${res ? 'successfully' : 'failed'} at $dateTime');
 
     if (res == false) return false;
 
@@ -93,10 +94,10 @@ class IOSAlarm {
           ) ??
           false;
 
-      print('[Alarm] alarm with id $id stopped with success');
+      print('[Alarm] Alarm with id $id stopped with success');
       return res;
     } catch (e) {
-      print('[Alarm] alarm with id $id stop error: $e');
+      print('[Alarm] Alarm with id $id stop error: $e');
       return false;
     }
   }
