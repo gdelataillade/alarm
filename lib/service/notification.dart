@@ -130,8 +130,7 @@ class AlarmNotification {
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
       );
-      print(
-          '[Alarm] Notification with id $id scheduled successfuly at ${zdt.toString()}');
+      print('[Alarm] Notification with id $id scheduled successfuly at $zdt');
     } catch (e) {
       print('[Alarm] Schedule notification with id $id error: $e');
     }
