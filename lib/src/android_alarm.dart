@@ -84,7 +84,7 @@ class AndroidAlarm {
         'loopAudio': loopAudio,
         'fadeDuration': fadeDuration,
       },
-    );
+    )
 
     if (res &&
         notificationTitle != null &&
