@@ -158,6 +158,13 @@ After running multiple tests, iOS and Android seem to have the same behaviour:
 | While playing other media| The alarm sound plays along with the media sound.
 | App killed    | Doesn't ring. Notification still shows.
 
+## FAQ
+
+### My alarm is not firing on a specific Android device
+
+Some Android manufacturers prefer battery life over proper functionality of your apps. Check out [dontkillmyapp.com](https://dontkillmyapp.com) to find out about more about optimizations done by different vendors, and potential workarounds.
+*Source: [https://pub.dev/packages/android_alarm_manager_plus#faq](https://pub.dev/packages/android_alarm_manager_plus#faq)*
+
 ## Feature request
 
 If you have a feature request, just open an issue explaining clearly what you want and if you convince me I will develop it for you.
