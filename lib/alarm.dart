@@ -29,55 +29,70 @@ class Alarm {
       AlarmNotification.instance.init(),
       AlarmStorage.init(),
     ]);
-    checkAlarm();
+    await checkAlarm();
   }
 
-  /// Checks if an alarm was set on another session.
-  /// If it's the case, reschedules it.
+  /// Checks if some alarms were set on previous session.
+  /// If it's the case then reschedules them.
   static Future<void> checkAlarm() async {
-    final alarm = AlarmStorage.getSavedAlarm();
-    if (alarm == null) return;
+    final alarms = AlarmStorage.getSavedAlarms();
 
-    final now = DateTime.now();
-    if (alarm.dateTime.isAfter(now)) {
-      set(settings: alarm);
-    } else {
-      await AlarmStorage.unsaveAlarm();
+    for (final alarm in alarms) {
+      final now = DateTime.now();
+      if (alarm.dateTime.isAfter(now)) {
+        await set(alarmSettings: alarm);
+      } else {
+        await AlarmStorage.unsaveAlarm(alarm.id);
+      }
     }
   }
 
-  /// Schedules an alarm with given [settings].
-  static Future<bool> set({required AlarmSettings settings}) async {
-    await AlarmStorage.saveAlarm(settings);
-    await AlarmNotification.instance.cancel();
+  /// Schedules an alarm with given [alarmSettings].
+  ///
+  /// If you set an alarm for the same [dateTime] as an existing one,
+  /// the new alarm will replace the existing one.
+  static Future<bool> set({required AlarmSettings alarmSettings}) async {
+    for (final alarm in Alarm.getAlarms()) {
+      if (alarm.id == alarmSettings.id ||
+          (alarm.dateTime.day == alarmSettings.dateTime.day &&
+              alarm.dateTime.hour == alarmSettings.dateTime.hour &&
+              alarm.dateTime.minute == alarmSettings.dateTime.minute)) {
+        await Alarm.stop(alarm.id);
+      }
+    }
 
-    if (settings.enableNotificationOnKill) {
+    await AlarmStorage.saveAlarm(alarmSettings);
+    await AlarmNotification.instance.cancel(alarmSettings.id);
+
+    if (alarmSettings.enableNotificationOnKill) {
       await AlarmNotification.instance.requestPermission();
     }
 
     if (iOS) {
-      final assetAudio = settings.assetAudioPath.split('/').last;
+      final assetAudio = alarmSettings.assetAudioPath.split('/').last;
       return IOSAlarm.setAlarm(
-        settings.dateTime,
-        () => ringStream.add(settings),
+        alarmSettings.id,
+        alarmSettings.dateTime,
+        () => ringStream.add(alarmSettings),
         assetAudio,
-        settings.loopAudio,
-        settings.fadeDuration,
-        settings.notificationTitle,
-        settings.notificationBody,
-        settings.enableNotificationOnKill,
+        alarmSettings.loopAudio,
+        alarmSettings.fadeDuration,
+        alarmSettings.notificationTitle,
+        alarmSettings.notificationBody,
+        alarmSettings.enableNotificationOnKill,
       );
     }
 
     return await AndroidAlarm.set(
-      settings.dateTime,
-      () => ringStream.add(settings),
-      settings.assetAudioPath,
-      settings.loopAudio,
-      settings.fadeDuration,
-      settings.notificationTitle,
-      settings.notificationBody,
-      settings.enableNotificationOnKill,
+      alarmSettings.id,
+      alarmSettings.dateTime,
+      () => ringStream.add(alarmSettings),
+      alarmSettings.assetAudioPath,
+      alarmSettings.loopAudio,
+      alarmSettings.fadeDuration,
+      alarmSettings.notificationTitle,
+      alarmSettings.notificationBody,
+      alarmSettings.enableNotificationOnKill,
     );
   }
 
@@ -96,19 +111,19 @@ class Alarm {
       AlarmStorage.setNotificationContentOnAppKill(title, body);
 
   /// Stops alarm.
-  static Future<bool> stop() async {
-    await AlarmStorage.unsaveAlarm();
+  static Future<bool> stop(int id) async {
+    await AlarmStorage.unsaveAlarm(id);
 
-    if (iOS) {
-      AlarmNotification.instance.cancel();
-      return await IOSAlarm.stopAlarm();
-    }
-    return await AndroidAlarm.stop();
+    AlarmNotification.instance.cancel(id);
+
+    return iOS ? await IOSAlarm.stopAlarm(id) : await AndroidAlarm.stop(id);
   }
 
   /// Whether the alarm is ringing.
-  static Future<bool> isRinging() => IOSAlarm.checkIfRinging();
+  static Future<bool> isRinging(int id) => IOSAlarm.checkIfRinging(id);
 
   /// Whether an alarm is set.
   static bool hasAlarm() => AlarmStorage.hasAlarm();
+
+  static List<AlarmSettings> getAlarms() => AlarmStorage.getSavedAlarms();
 }

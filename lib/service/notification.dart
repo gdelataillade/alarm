@@ -14,8 +14,6 @@ class AlarmNotification {
 
   static final instance = AlarmNotification._();
 
-  /// A unique identifier because it can be only one alarm.
-  static const alarmId = 888;
   final FlutterLocalNotificationsPlugin localNotif =
       FlutterLocalNotificationsPlugin();
 
@@ -81,6 +79,7 @@ class AlarmNotification {
 
   /// Schedules notification at the given time.
   Future<void> scheduleAlarmNotif({
+    required int id,
     required DateTime dateTime,
     required String title,
     required String body,
@@ -122,7 +121,7 @@ class AlarmNotification {
 
     try {
       await localNotif.zonedSchedule(
-        alarmId,
+        id,
         title,
         body,
         zdt,
@@ -131,13 +130,16 @@ class AlarmNotification {
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
       );
-      print('[Alarm] Notification scheduled successfuly at ${zdt.toString()}');
+      print('[Alarm] Notification with id $id scheduled successfuly at $zdt');
     } catch (e) {
-      print('[Alarm] Schedule notification error: $e');
+      print('[Alarm] Schedule notification with id $id error: $e');
     }
   }
 
   /// Cancels notification. Called when the alarm is cancelled or
   /// when an alarm is overriden.
-  Future<void> cancel() => localNotif.cancel(alarmId);
+  Future<void> cancel(int id) async {
+    await localNotif.cancel(id);
+    print('[Alarm] Notification with id $id canceled');
+  }
 }
