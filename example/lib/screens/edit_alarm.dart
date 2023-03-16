@@ -82,14 +82,14 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
     return alarmSettings;
   }
 
-  Future<void> saveAlarm() async {
-    Alarm.set(alarmSettings: buildAlarmSettings());
-    Navigator.pop(context, true);
+  void saveAlarm() {
+    Alarm.set(alarmSettings: buildAlarmSettings())
+        .then((_) => Navigator.pop(context, true));
   }
 
   Future<void> deleteAlarm() async {
-    Alarm.stop(widget.alarmSettings!.id);
-    Navigator.pop(context, true);
+    Alarm.stop(widget.alarmSettings!.id)
+        .then((_) => Navigator.pop(context, true));
   }
 
   @override

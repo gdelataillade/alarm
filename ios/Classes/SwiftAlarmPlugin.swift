@@ -53,9 +53,9 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     notificationTitleOnKill = args["notifTitleOnAppKill"] as! String
     notificationBodyOnKill = args["notifDescriptionOnAppKill"] as! String
 
-    NSLog("[DEV] ===> stop notif on kill service, observerAdded: \(observerAdded)");
     if notifOnKillEnabled && !observerAdded {
       observerAdded = true
+      NSLog("SwiftAlarmPlugin: Notification on kill: ON")
       NotificationCenter.default.addObserver(self, selector: #selector(applicationWillTerminate(_:)), name: UIApplication.willTerminateNotification, object: nil)
     }
 
@@ -121,6 +121,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
   private func stopNotificationOnKillService() {
     if audioPlayers.isEmpty && observerAdded {
+      NSLog("SwiftAlarmPlugin: Notification on kill: OFF")
       NotificationCenter.default.removeObserver(self, name: UIApplication.willTerminateNotification, object: nil)
       observerAdded = false
     }
@@ -135,9 +136,9 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
     UNUserNotificationCenter.current().add(request) { (error) in
       if let error = error {
-        NSLog("[DEV] ===> Failed to add notification on kill service with error: \(error.localizedDescription)")
+        NSLog("SwiftAlarmPlugin: Failed to show notification on kill service => error: \(error.localizedDescription)")
       } else {
-        NSLog("[DEV] ===> Added notification on kill service")
+        NSLog("SwiftAlarmPlugin: Show notification on kill now")
       }
     }
   }

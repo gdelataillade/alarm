@@ -28,8 +28,8 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
   }
 
   void loadAlarms() {
-    alarms = Alarm.getAlarms();
     setState(() {
+      alarms = Alarm.getAlarms();
       alarms.sort((a, b) => a.dateTime.isBefore(b.dateTime) ? 0 : 1);
     });
   }
@@ -85,10 +85,7 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
                     ).format(context),
                     onPressed: () => navigateToAlarmScreen(alarms[index]),
                     onDismissed: () {
-                      setState(() {
-                        Alarm.stop(alarms[index].id);
-                        setState(() => alarms.remove(alarms[index]));
-                      });
+                      Alarm.stop(alarms[index].id).then((_) => loadAlarms());
                     },
                   );
                 },

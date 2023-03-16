@@ -29,7 +29,7 @@ class Alarm {
       AlarmNotification.instance.init(),
       AlarmStorage.init(),
     ]);
-    checkAlarm();
+    await checkAlarm();
   }
 
   /// Checks if some alarms were set on previous session.
@@ -40,7 +40,7 @@ class Alarm {
     for (final alarm in alarms) {
       final now = DateTime.now();
       if (alarm.dateTime.isAfter(now)) {
-        set(alarmSettings: alarm);
+        await set(alarmSettings: alarm);
       } else {
         await AlarmStorage.unsaveAlarm(alarm.id);
       }
@@ -53,9 +53,11 @@ class Alarm {
   /// the new alarm will replace the existing one.
   static Future<bool> set({required AlarmSettings alarmSettings}) async {
     for (final alarm in Alarm.getAlarms()) {
-      if (alarm.dateTime.hour == alarmSettings.dateTime.hour &&
-          alarm.dateTime.minute == alarmSettings.dateTime.minute) {
-        Alarm.stop(alarm.id);
+      if (alarm.id == alarmSettings.id ||
+          (alarm.dateTime.day == alarmSettings.dateTime.day &&
+              alarm.dateTime.hour == alarmSettings.dateTime.hour &&
+              alarm.dateTime.minute == alarmSettings.dateTime.minute)) {
+        await Alarm.stop(alarm.id);
       }
     }
 
