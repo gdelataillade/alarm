@@ -19,6 +19,7 @@ Another issue we found is that when a user kills the app, all processes are term
 Therefore, we decided to write our own package to wrap everything and make it easy for everybody.
 
 ## Under the hood
+
 ### Android
 `oneShotAt` from the package `android_alarm_manager_plus`, with an two-way communication isolated callback in order to start/stop the alarm and call `onRing` callback.
 
@@ -149,7 +150,7 @@ To avoid unexpected behaviors, if you set an alarm for the same time as an exist
 
 After running multiple tests, iOS and Android seem to have the same behaviour:
 
-|               | iOS and Android (tested on OxygenOS)
+|               | Behaviour
 | ------------- | ----------- 
 | Locked screen | Still rings.
 | Silent / Mute | Still rings.
@@ -162,7 +163,7 @@ After running multiple tests, iOS and Android seem to have the same behaviour:
 
 ### My alarm is not firing on a specific Android device
 
-Some Android manufacturers prefer battery life over proper functionality of your apps. Check out [dontkillmyapp.com](https://dontkillmyapp.com) to find out about more about optimizations done by different vendors, and potential workarounds.
+Some Android manufacturers prefer battery life over proper functionality of your apps. Check out [dontkillmyapp.com](https://dontkillmyapp.com) to find out about more about optimizations done by different vendors, and potential workarounds. 
 *Source: [https://pub.dev/packages/android_alarm_manager_plus#faq](https://pub.dev/packages/android_alarm_manager_plus#faq)*
 
 ## Feature request
@@ -182,7 +183,6 @@ These are some features that I have in mind that could be useful:
 - Use `ffigen` and `jnigen` binding generators to call native code more efficiently instead of using method channels.
 - Optional vibrations when alarm rings
 - [Notification actions](https://pub.dev/packages/flutter_local_notifications#notification-actions): stop and snooze
-- Callback when alarm stops ringing
 - Add macOS, Windows, Linux and web support
 
 Thank you for considering contributing to this package. Your help is greatly appreciated!
