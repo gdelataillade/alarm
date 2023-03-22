@@ -16,6 +16,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
 
   late TimeOfDay selectedTime;
   late bool loopAudio;
+  late bool vibrate;
   late bool showNotification;
   late String assetAudio;
 
@@ -28,6 +29,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       final dt = DateTime.now().add(const Duration(minutes: 1));
       selectedTime = TimeOfDay(hour: dt.hour, minute: dt.minute);
       loopAudio = true;
+      vibrate = true;
       showNotification = true;
       assetAudio = 'assets/mozart.mp3';
     } else {
@@ -36,6 +38,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
         minute: widget.alarmSettings!.dateTime.minute,
       );
       loopAudio = widget.alarmSettings!.loopAudio;
+      vibrate = widget.alarmSettings!.vibrate;
       showNotification = widget.alarmSettings!.notificationTitle != null &&
           widget.alarmSettings!.notificationTitle!.isNotEmpty &&
           widget.alarmSettings!.notificationBody != null &&
@@ -148,6 +151,19 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
               Switch(
                 value: loopAudio,
                 onChanged: (value) => setState(() => loopAudio = value),
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Vibrate',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              Switch(
+                value: vibrate,
+                onChanged: (value) => setState(() => vibrate = value),
               ),
             ],
           ),

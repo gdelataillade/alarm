@@ -24,10 +24,18 @@ class ExampleAlarmRingScreen extends StatelessWidget {
               children: [
                 RawMaterialButton(
                   onPressed: () {
+                    final now = DateTime.now();
                     Alarm.set(
                       alarmSettings: alarmSettings.copyWith(
-                        dateTime: alarmSettings.dateTime
-                            .add(const Duration(minutes: 1)),
+                        dateTime: DateTime(
+                          now.year,
+                          now.month,
+                          now.day,
+                          now.hour,
+                          now.minute,
+                          0,
+                          0,
+                        ).add(const Duration(minutes: 1)),
                       ),
                     ).then((_) => Navigator.pop(context));
                   },
