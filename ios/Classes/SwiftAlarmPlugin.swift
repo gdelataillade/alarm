@@ -2,10 +2,57 @@ import Flutter
 import UIKit
 import AVFoundation
 
+// import Flutter
+// import UIKit
+// import AVFoundation
+// import AudioToolbox
+
+// @available(iOS 10.0, *)
+// public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
+//     private var vibrationChannel: FlutterMethodChannel?
+
+//     public static func register(with registrar: FlutterPluginRegistrar) {
+//         let channel = FlutterMethodChannel(name: "your_package_name/alarm", binaryMessenger: registrar.messenger())
+//         let instance = SwiftAlarmPlugin()
+//         instance.vibrationChannel = FlutterMethodChannel(name: "vibration", binaryMessenger: registrar.messenger()) // Create a method channel for the "vibration" plugin
+//         registrar.addMethodCallDelegate(instance, channel: channel)
+//     }
+
+//     // Your existing SwiftAlarmPlugin code
+
+//     // Update your setAlarm() function
+//     private func setAlarm(call: FlutterMethodCall, result: FlutterResult) {
+//         // Your existing setAlarm code
+
+//         if vibrate {
+//             DispatchQueue.main.asyncAfter(deadline: .now() + delayInSeconds) {
+//                 Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
+//                     self.vibrationChannel?.invokeMethod("vibrate", arguments: nil) // Use the method channel to trigger a vibration in the "vibration" plugin
+//                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+//                         self.vibrationChannel?.invokeMethod("vibrate", arguments: nil) // Use the method channel to trigger a vibration in the "vibration" plugin
+//                     }
+//                 }
+//             }
+//         }
+        
+//         // The rest of your setAlarm code
+//     }
+// }
+
 public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
+  #if targetEnvironment(simulator)
+    private let isDevice = false
+  #else
+    private let isDevice = true
+  #endif
+
+  private var vibrationChannel: FlutterMethodChannel?
+
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "com.gdelataillade/alarm", binaryMessenger: registrar.messenger())
     let instance = SwiftAlarmPlugin()
+
+    instance.vibrationChannel = FlutterMethodChannel(name: "vibration", binaryMessenger: registrar.messenger())
     registrar.addMethodCallDelegate(instance, channel: channel)
   }
 
@@ -16,6 +63,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
   private var notificationBodyOnKill: String!
 
   private var observerAdded = false;
+  private var vibrate = false;
 
   private func setUpAudio() {
     try! AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
@@ -64,6 +112,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     let delayInSeconds = args["delayInSeconds"] as! Double
     let loopAudio = args["loopAudio"] as! Bool
     let fadeDuration = args["fadeDuration"] as! Double
+    let vibrationsEnabled = args["vibrate"] as! Bool
 
     if let audioPath = Bundle.main.path(forResource: assetAudio, ofType: nil) {
       let audioUrl = URL(fileURLWithPath: audioPath)
@@ -91,22 +140,39 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
       self.audioPlayers[id]!.play(atTime: time)
       DispatchQueue.main.asyncAfter(deadline: .now() + delayInSeconds) {
         self.audioPlayers[id]!.setVolume(1, fadeDuration: fadeDuration)
+        self.vibrate = vibrationsEnabled
+        self.triggerVibrations()
       }
     } else {
       self.audioPlayers[id]!.play(atTime: time)
+      DispatchQueue.main.asyncAfter(deadline: .now() + delayInSeconds) {
+        self.vibrate = vibrationsEnabled
+        self.triggerVibrations()
+      }
     }
-
     result(true)
   }
 
   private func stopAlarm(id: Int, result: FlutterResult) {
+    vibrate = false
+
     if let audioPlayer = self.audioPlayers[id] {
       audioPlayer.stop()
+
       self.audioPlayers.removeValue(forKey: id)
       self.stopNotificationOnKillService();
       result(true)
     } else {
       result(FlutterError.init(code: "NATIVE_ERR", message: "[Alarm] Error: no alarm found with id \(id)", details: nil))
+    }
+  }
+
+  private func triggerVibrations() {
+    if vibrate && isDevice {
+      self.vibrationChannel?.invokeMethod("vibrate", arguments: nil)
+      DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+        self.triggerVibrations()
+      }
     }
   }
 
