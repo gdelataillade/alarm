@@ -1,35 +1,9 @@
 class AlarmSettings {
-  final int id;
-  final DateTime dateTime;
-  final String assetAudioPath;
-  final bool loopAudio;
-  final bool vibrate;
-  final double fadeDuration;
-  final String? notificationTitle;
-  final String? notificationBody;
-  final bool enableNotificationOnKill;
-
-  /// Model that contains all the settings to customize and set an alarm
-  /// with a given [id].
+  /// Model that contains all the settings to customize and set an alarm.
   ///
-  /// [onRing] will be called when alarm is triggered at [dateTime].
   ///
-  /// [assetAudio] is the audio asset you want to use as the alarm ringtone.
-  /// For iOS, you need to drag and drop your asset(s) to your `Runner` folder
-  /// in Xcode and make sure 'Copy items if needed' is checked.
-  /// Can also be an URL.
-  ///
-  /// If [loopAudio] is set to true, [assetAudio] will repeat indefinitely
-  /// until it is stopped. Default value is true.
-  ///
-  /// If [vibrate] is set to true, device will vibrate for 500ms,
-  /// pause for 500ms and repeat until alarm is stopped. Default value is true.
-  ///
-  /// [fadeDuration] is the duration, in seconds, over which to fade the volume.
-  /// Set to 0 by default, which means no fade.
-  ///
-  /// If you want to show a notification when alarm is triggered,
-  /// [notificationTitle] and [notificationBody] must not be null nor empty.
+  /// Note that if you want to show a notification when alarm is triggered,
+  /// both [notificationTitle] and [notificationBody] must not be null nor empty.
   AlarmSettings({
     required this.id,
     required this.dateTime,
@@ -41,6 +15,41 @@ class AlarmSettings {
     this.notificationBody,
     this.enableNotificationOnKill = true,
   });
+
+  /// Unique identifier assiocated with the alarm.
+  final int id;
+
+  /// Date and time when the alarm will be triggered.
+  final DateTime dateTime;
+
+  /// URL or path to audio asset to be used as the alarm ringtone.
+  /// For iOS, you need to drag and drop your asset(s) to your `Runner` folder
+  /// in Xcode and make sure 'Copy items if needed' is checked.
+  /// Check out README.md for more informations.
+  final String assetAudioPath;
+
+  /// If true, [assetAudioPath] will repeat indefinitely until alarm is stopped.
+  final bool loopAudio;
+
+  /// If true, device will vibrate for 500ms, pause for 500ms and repeat until
+  /// alarm is stopped.
+  final bool vibrate;
+
+  /// Duration, in seconds, over which to fade the alarm ringtone.
+  /// Set to 0.0 by default, which means no fade.
+  final double fadeDuration;
+
+  /// Title of the notification to be shown when alarm is triggered.
+  /// Must not be null nor empty to show a notification.
+  final String? notificationTitle;
+
+  /// Body of the notification to be shown when alarm is triggered.
+  /// Must not be null nor empty to show a notification.
+  final String? notificationBody;
+
+  /// Whether to show a notification when application is killed to warn
+  /// the user that the alarms won't ring anymore. Enabled by default.
+  final bool enableNotificationOnKill;
 
   /// Creates a copy of `AlarmSettings` but with the given fields replaced with
   /// the new values.
@@ -65,7 +74,7 @@ class AlarmSettings {
     );
   }
 
-  /// Converts json data to an `AlarmSettings`
+  /// Constructs an `AlarmSettings` instance from the given JSON data.
   factory AlarmSettings.fromJson(Map<String, dynamic> json) => AlarmSettings(
         id: json['id'] as int,
         dateTime: DateTime.fromMicrosecondsSinceEpoch(json['dateTime'] as int),
@@ -77,7 +86,7 @@ class AlarmSettings {
         notificationBody: json['notificationBody'] as String?,
       );
 
-  /// Converts an `AlarmSettings` to json data.
+  /// Converts this `AlarmSettings` instance to JSON data.
   Map<String, dynamic> toJson() => {
         'id': id,
         'dateTime': dateTime.microsecondsSinceEpoch,

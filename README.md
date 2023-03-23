@@ -21,10 +21,10 @@ Therefore, we decided to write our own plugin to wrap everything and make it eas
 ## Under the hood
 
 ### Android
-Uses `oneShotAt` from the `android_alarm_manager_plus` plugin with a two-way communication isolated callback to start/stop the alarm and call the `onRing` callback.
+Uses `oneShotAt` from the `android_alarm_manager_plus` plugin with a two-way communication isolated callback to start/stop the alarm.
 
 ### iOS
-Implements `invokeMethod` to play the alarm audio using `AVAudioPlayer`. Due to the suspension of asynchronous native code when the app is in the background, we listen for app state changes and check if the player is playing when the app returns to the foreground. If it's the case, it means the alarm is ringing, and it's time to trigger the `onRing` callback.
+Implements `invokeMethod` to play the alarm audio using `AVAudioPlayer`. Due to the suspension of asynchronous native code when the app is in the background, we listen for app state changes and check if the player is playing when the app returns to the foreground. If it's the case, it means the alarm is ringing, and it's time to trigger your `onRing` callback.
 
 ## Getting Started
 
@@ -155,7 +155,7 @@ To avoid unexpected behaviors, if you set an alarm for the same time as an exist
 | Do not disturb           |  ✅   | ✅       | Silenced
 | Sleep mode               |  ✅   | ✅       | Silenced
 | While playing other media|  ✅   | ✅       | ✅
-| App killed               | ❌    | ❌       | ✅
+| App killed               |  ❌   | ❌       | ✅
 
 *Silenced: Means that the notification is not shown directly on the top of the screen. You have to go to your notification center to see it.*
 
