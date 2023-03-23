@@ -64,7 +64,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
     if notifOnKillEnabled && !observerAdded {
       observerAdded = true
-      NSLog("SwiftAlarmPlugin: Notification on kill: ON")
       NotificationCenter.default.addObserver(self, selector: #selector(applicationWillTerminate(_:)), name: UIApplication.willTerminateNotification, object: nil)
     }
 
@@ -149,7 +148,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
   private func stopNotificationOnKillService() {
     if audioPlayers.isEmpty && observerAdded {
-      NSLog("SwiftAlarmPlugin: Notification on kill: OFF")
       NotificationCenter.default.removeObserver(self, name: UIApplication.willTerminateNotification, object: nil)
       observerAdded = false
     }
