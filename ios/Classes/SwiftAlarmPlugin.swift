@@ -1,11 +1,19 @@
 import Flutter
 import UIKit
 import AVFoundation
+import AudioToolbox
 
 public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
+  #if targetEnvironment(simulator)
+    private let isDevice = false
+  #else
+    private let isDevice = true
+  #endif
+
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "com.gdelataillade/alarm", binaryMessenger: registrar.messenger())
     let instance = SwiftAlarmPlugin()
+
     registrar.addMethodCallDelegate(instance, channel: channel)
   }
 
@@ -16,6 +24,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
   private var notificationBodyOnKill: String!
 
   private var observerAdded = false;
+  private var vibrate = false;
 
   private func setUpAudio() {
     try! AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
@@ -64,6 +73,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     let delayInSeconds = args["delayInSeconds"] as! Double
     let loopAudio = args["loopAudio"] as! Bool
     let fadeDuration = args["fadeDuration"] as! Double
+    let vibrationsEnabled = args["vibrate"] as! Bool
 
     if let audioPath = Bundle.main.path(forResource: assetAudio, ofType: nil) {
       let audioUrl = URL(fileURLWithPath: audioPath)
@@ -91,22 +101,40 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
       self.audioPlayers[id]!.play(atTime: time)
       DispatchQueue.main.asyncAfter(deadline: .now() + delayInSeconds) {
         self.audioPlayers[id]!.setVolume(1, fadeDuration: fadeDuration)
+        self.vibrate = vibrationsEnabled
+        self.triggerVibrations()
       }
     } else {
       self.audioPlayers[id]!.play(atTime: time)
+      DispatchQueue.main.asyncAfter(deadline: .now() + delayInSeconds) {
+        self.vibrate = vibrationsEnabled
+        self.triggerVibrations()
+      }
     }
-
     result(true)
   }
 
   private func stopAlarm(id: Int, result: FlutterResult) {
+    vibrate = false
+
     if let audioPlayer = self.audioPlayers[id] {
       audioPlayer.stop()
+
       self.audioPlayers.removeValue(forKey: id)
       self.stopNotificationOnKillService();
       result(true)
     } else {
       result(FlutterError.init(code: "NATIVE_ERR", message: "[Alarm] Error: no alarm found with id \(id)", details: nil))
+    }
+  }
+
+  private func triggerVibrations() {
+    if vibrate && isDevice {
+      AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+          AudioServicesDisposeSystemSoundID(kSystemSoundID_Vibrate)
+          self.triggerVibrations()
+        }
     }
   }
 

@@ -99,6 +99,7 @@ final alarmSettings = AlarmSettings(
   dateTime: dateTime,
   assetAudioPath: 'assets/alarm.mp3',
   loopAudio: true,
+  vibrate: true,
   fadeDuration: 3.0,
   notificationTitle: 'This is the title',
   notificationBody: 'This is the body',
@@ -116,7 +117,8 @@ Property |   Type     | Description
 id |   `int`     | Unique identifier of the alarm.
 alarmDateTime |   `DateTime`     | The date and time you want your alarm to ring.
 assetAudio |   `String`     | The path to you audio asset you want to use as ringtone. Can be local asset or network URL.
-loopAudio |   `bool`     | If true, audio will repeat indefinitely until it is stopped.
+loopAudio |   `bool`     | If true, audio will repeat indefinitely until alarm is stopped.
+vibrate |   `bool`     | If true, device will vibrate indefinitely until alarm is stopped.
 fadeDuration |   `double`     | Duration, in seconds, over which to fade the alarm volume. Set to 0 by default, which means no fade.
 notificationTitle |   `String`     | The title of the notification triggered when alarm rings if app is on background.
 notificationBody | `String` | The body of the notification.
@@ -148,16 +150,16 @@ To avoid unexpected behaviors, if you set an alarm for the same time as an exist
 
 ## Alarm behaviour
 
-After running multiple tests, iOS and Android seem to have the same behaviour:
+|                          | Sound | Vibrate | Notification
+| ------------------------ | ----- | ------- | -------
+| Locked screen            |  ✅   | ✅       | ✅
+| Silent / Mute            |  ✅   | ✅       | ✅
+| Do not disturb           |  ✅   | ✅       | Silenced
+| Sleep mode               |  ✅   | ✅       | Silenced
+| While playing other media|  ✅   | ✅       | ✅
+| App killed               | ❌    | ❌       | ✅
 
-|               | Behaviour
-| ------------- | ----------- 
-| Locked screen | Still rings.
-| Silent / Mute | Still rings.
-| Do not disturb| Still rings but notification is silenced.
-| Sleep mode    | Still rings but notification is silenced.
-| While playing other media| The alarm sound plays along with the media sound.
-| App killed    | Doesn't ring. Notification still shows.
+*Silenced: Means that the notification is not shown directly on the top of the screen. You have to go to your notification center to see it.*
 
 ## FAQ
 
@@ -181,7 +183,6 @@ We welcome contributions to this package! If you would like to make a change or 
 
 These are some features that I have in mind that could be useful:
 - Use `ffigen` and `jnigen` binding generators to call native code more efficiently instead of using method channels.
-- Optional vibrations when alarm rings
 - [Notification actions](https://pub.dev/packages/flutter_local_notifications#notification-actions): stop and snooze
 - Add macOS, Windows, Linux and web support
 

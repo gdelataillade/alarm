@@ -1,5 +1,7 @@
-## 0.2.0
+## 0.2.1
+* Add optional `vibrate` parameter, to toggle vibrations when alarm rings.
 
+## 0.2.0
 * **Breaking changes**: Add multiple alarm management. Now, you have to provide a unique `id` to `AlarmSettings`.
 * Update example application.
 * [Android] Fix potential delay between notification and alarm sound.
@@ -11,7 +13,7 @@
 * [Android] Fix notification permission for Android 13.
 
 ## 0.1.3
-* Add an optional `fadeDuration` parameter, which is the duration, in seconds, over which to fade the alarm volume.
+* Add optional `fadeDuration` parameter, which is the duration, in seconds, over which to fade the alarm volume.
 
 ## 0.1.2
 * Add more Android installation steps in the README.
@@ -33,23 +35,18 @@ To disable this feature, you can call the method `Alarm.toggleNotificationOnAppK
 * Add some minor fixes and improvements.
 
 ## 0.0.5
-
 * Add [a Gist](https://gist.github.com/gdelataillade/68834caacdd6727f1418e46788f70b53) in the README.md to explain how to import assets on Xcode without adding weight to your app.
 
 ## 0.0.4
-
 * [Android] Fix notification parameters.
 
 ## 0.0.3
-
 * Add more documentation.
 * Add package description in pubspec.yaml.
 * Refactor some Swift code.
 
 ## 0.0.2
-
 * Update links in the README.md.
 
 ## 0.0.1
-
 * Initial development release.

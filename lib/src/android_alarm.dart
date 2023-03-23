@@ -9,12 +9,15 @@ import 'package:alarm/service/storage.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:vibration/vibration.dart';
 
 /// For Android support, AndroidAlarmManager is used to set an alarm
 /// and trigger a callback when the given time is reached.
 class AndroidAlarm {
   static String ringPort = 'alarm-ring';
   static String stopPort = 'alarm-stop';
+
+  static bool vibrationsActive = false;
 
   /// Initializes AndroidAlarmManager dependency
   static Future<void> init() => AndroidAlarmManager.initialize();
@@ -31,6 +34,7 @@ class AndroidAlarm {
     void Function()? onRing,
     String assetAudioPath,
     bool loopAudio,
+    bool vibrate,
     double fadeDuration,
     String? notificationTitle,
     String? notificationBody,
@@ -49,7 +53,10 @@ class AndroidAlarm {
       }
       port.listen((message) {
         print('[Alarm] $message');
-        if (message == 'ring') onRing?.call();
+        if (message == 'ring') {
+          triggerVibrations();
+          onRing?.call();
+        }
       });
     } catch (e) {
       print('[Alarm] ReceivePort error: $e');
@@ -180,9 +187,24 @@ class AndroidAlarm {
     }
   }
 
+  static Future<void> triggerVibrations() async {
+    final hasVibrator = await Vibration.hasVibrator() ?? false;
+
+    if (!hasVibrator) return;
+
+    vibrationsActive = true;
+
+    while (vibrationsActive) {
+      Vibration.vibrate();
+      await Future.delayed(const Duration(milliseconds: 1000));
+    }
+  }
+
   /// Sends the message 'stop' to the isolate so the audio player
   /// can stop playing and dispose.
   static Future<bool> stop(int id) async {
+    vibrationsActive = false;
+
     try {
       final SendPort send = IsolateNameServer.lookupPortByName(stopPort)!;
       send.send('stop');

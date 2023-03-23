@@ -3,6 +3,7 @@ class AlarmSettings {
   final DateTime dateTime;
   final String assetAudioPath;
   final bool loopAudio;
+  final bool vibrate;
   final double fadeDuration;
   final String? notificationTitle;
   final String? notificationBody;
@@ -19,7 +20,10 @@ class AlarmSettings {
   /// Can also be an URL.
   ///
   /// If [loopAudio] is set to true, [assetAudio] will repeat indefinitely
-  /// until it is stopped. Default value is false.
+  /// until it is stopped. Default value is true.
+  ///
+  /// If [vibrate] is set to true, device will vibrate for 500ms,
+  /// pause for 500ms and repeat until alarm is stopped. Default value is true.
   ///
   /// [fadeDuration] is the duration, in seconds, over which to fade the volume.
   /// Set to 0 by default, which means no fade.
@@ -31,6 +35,7 @@ class AlarmSettings {
     required this.dateTime,
     required this.assetAudioPath,
     this.loopAudio = true,
+    this.vibrate = true,
     this.fadeDuration = 0.0,
     this.notificationTitle,
     this.notificationBody,
@@ -43,6 +48,7 @@ class AlarmSettings {
     DateTime? dateTime,
     String? assetAudioPath,
     bool? loopAudio,
+    bool? vibrate,
     double? fadeDuration,
     String? notificationTitle,
     String? notificationBody,
@@ -52,6 +58,7 @@ class AlarmSettings {
       dateTime: dateTime ?? this.dateTime,
       assetAudioPath: assetAudioPath ?? this.assetAudioPath,
       loopAudio: loopAudio ?? this.loopAudio,
+      vibrate: vibrate ?? this.vibrate,
       fadeDuration: fadeDuration ?? this.fadeDuration,
       notificationTitle: notificationTitle ?? this.notificationTitle,
       notificationBody: notificationBody ?? this.notificationBody,
@@ -64,6 +71,7 @@ class AlarmSettings {
         dateTime: DateTime.fromMicrosecondsSinceEpoch(json['dateTime'] as int),
         assetAudioPath: json['assetAudioPath'] as String,
         loopAudio: json['loopAudio'] as bool,
+        vibrate: json['vibrate'] as bool,
         fadeDuration: json['fadeDuration'] as double,
         notificationTitle: json['notificationTitle'] as String?,
         notificationBody: json['notificationBody'] as String?,
@@ -75,6 +83,7 @@ class AlarmSettings {
         'dateTime': dateTime.microsecondsSinceEpoch,
         'assetAudioPath': assetAudioPath,
         'loopAudio': loopAudio,
+        'vibrate': vibrate,
         'fadeDuration': fadeDuration,
         'notificationTitle': notificationTitle,
         'notificationBody': notificationBody,
