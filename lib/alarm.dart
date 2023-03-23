@@ -21,8 +21,8 @@ class Alarm {
 
   /// Initializes Alarm services.
   ///
-  /// Also calls `checkAlarm` that will reschedule the alarm is app was killed
-  /// while an alarm was set.
+  /// Also calls [checkAlarm] that will reschedule alarms that were set before
+  /// app termination.
   static Future<void> init() async {
     await Future.wait([
       if (android) AndroidAlarm.init(),
@@ -51,6 +51,9 @@ class Alarm {
   ///
   /// If you set an alarm for the same [dateTime] as an existing one,
   /// the new alarm will replace the existing one.
+  ///
+  /// Also, schedules notification if [notificationTitle] and [notificationBody]
+  /// are not null nor empty.
   static Future<bool> set({required AlarmSettings alarmSettings}) async {
     for (final alarm in Alarm.getAlarms()) {
       if (alarm.id == alarmSettings.id ||
@@ -63,6 +66,19 @@ class Alarm {
 
     await AlarmStorage.saveAlarm(alarmSettings);
     await AlarmNotification.instance.cancel(alarmSettings.id);
+
+    if (alarmSettings.notificationTitle != null &&
+        alarmSettings.notificationBody != null) {
+      if (alarmSettings.notificationTitle!.isNotEmpty &&
+          alarmSettings.notificationBody!.isNotEmpty) {
+        await AlarmNotification.instance.scheduleAlarmNotif(
+          id: alarmSettings.id,
+          dateTime: alarmSettings.dateTime,
+          title: alarmSettings.notificationTitle!,
+          body: alarmSettings.notificationBody!,
+        );
+      }
+    }
 
     if (alarmSettings.enableNotificationOnKill) {
       await AlarmNotification.instance.requestPermission();
@@ -127,5 +143,6 @@ class Alarm {
   /// Whether an alarm is set.
   static bool hasAlarm() => AlarmStorage.hasAlarm();
 
+  /// Returns all the alarms.
   static List<AlarmSettings> getAlarms() => AlarmStorage.getSavedAlarms();
 }

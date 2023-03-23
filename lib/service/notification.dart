@@ -77,7 +77,7 @@ class AlarmNotification {
     return scheduledDate;
   }
 
-  /// Schedules notification at the given time.
+  /// Schedules notification at the given [dateTime].
   Future<void> scheduleAlarmNotif({
     required int id,
     required DateTime dateTime,

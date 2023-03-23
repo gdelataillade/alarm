@@ -4,30 +4,29 @@ import 'dart:async';
 import 'dart:isolate';
 import 'dart:ui';
 
-import 'package:alarm/service/notification.dart';
 import 'package:alarm/service/storage.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:vibration/vibration.dart';
 
-/// For Android support, AndroidAlarmManager is used to set an alarm
+/// For Android support, [AndroidAlarmManager] is used to set an alarm
 /// and trigger a callback when the given time is reached.
 class AndroidAlarm {
   static String ringPort = 'alarm-ring';
   static String stopPort = 'alarm-stop';
 
-  static bool vibrationsActive = false;
-
-  /// Initializes AndroidAlarmManager dependency
+  /// Initializes AndroidAlarmManager dependency.
   static Future<void> init() => AndroidAlarmManager.initialize();
 
   static const platform =
       MethodChannel('com.gdelataillade.alarm/notifOnAppKill');
 
+  static bool vibrationsActive = false;
+
   static bool get hasAnotherAlarm => AlarmStorage.getSavedAlarms().length > 1;
 
-  /// Creates isolate receive port and set alarm at given [dateTime]
+  /// Creates isolate communication channel and set alarm at given [dateTime].
   static Future<bool> set(
     int id,
     DateTime dateTime,
@@ -92,26 +91,13 @@ class AndroidAlarm {
         'fadeDuration': fadeDuration,
       },
     );
-
-    if (res &&
-        notificationTitle != null &&
-        notificationTitle.isNotEmpty &&
-        notificationBody != null &&
-        notificationBody.isNotEmpty) {
-      await AlarmNotification.instance.scheduleAlarmNotif(
-        id: id,
-        dateTime: dateTime,
-        title: notificationTitle,
-        body: notificationBody,
-      );
-    }
     return res;
   }
 
   /// Callback triggered when alarmDateTime is reached.
-  /// The message 'ring' is sent to the main thread in order to
+  /// The message `ring` is sent to the main thread in order to
   /// tell the device that the alarm is starting to ring.
-  /// Alarm is played with AudioPlayer and stopped when the message 'stop'
+  /// Alarm is played with AudioPlayer and stopped when the message `stop`
   /// is received from the main thread.
   @pragma('vm:entry-point')
   static Future<void> playAlarm(int id, Map<String, dynamic> data) async {
@@ -187,6 +173,7 @@ class AndroidAlarm {
     }
   }
 
+  /// Triggers vibrations when alarm is ringing if [vibrationsActive] is true.
   static Future<void> triggerVibrations() async {
     final hasVibrator = await Vibration.hasVibrator() ?? false;
 
@@ -200,7 +187,7 @@ class AndroidAlarm {
     }
   }
 
-  /// Sends the message 'stop' to the isolate so the audio player
+  /// Sends the message `stop` to the isolate so the audio player.
   /// can stop playing and dispose.
   static Future<bool> stop(int id) async {
     vibrationsActive = false;

@@ -26,7 +26,7 @@ class AlarmStorage {
   /// Removes alarm from local storage.
   static Future<void> unsaveAlarm(int id) => prefs.remove("$prefix$id");
 
-  /// Wether at least one alarm is set.
+  /// Whether at least one alarm is set.
   static bool hasAlarm() {
     final keys = prefs.getKeys();
 
@@ -51,7 +51,7 @@ class AlarmStorage {
     return alarms;
   }
 
-  /// Saves on app kill notification custom title and body.
+  /// Saves on app kill notification custom [title] and [body].
   static Future<void> setNotificationContentOnAppKill(
     String title,
     String body,
@@ -61,11 +61,11 @@ class AlarmStorage {
         prefs.setString(notificationOnAppKillBody, body),
       ]);
 
-  /// Returns notification on app kill title.
+  /// Returns notification on app kill [title].
   static String getNotificationOnAppKillTitle() =>
       prefs.getString(notificationOnAppKillTitle) ?? 'Your alarms may not ring';
 
-  /// Returns notification on app kill body.
+  /// Returns notification on app kill [body].
   static String getNotificationOnAppKillBody() =>
       prefs.getString(notificationOnAppKillBody) ??
       'You killed the app. Please reopen so your alarms can be rescheduled.';

@@ -2,7 +2,6 @@
 
 import 'dart:async';
 
-import 'package:alarm/service/notification.dart';
 import 'package:alarm/service/storage.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
@@ -15,8 +14,10 @@ class IOSAlarm {
   static Map<int, Timer?> timers = {};
   static Map<int, StreamSubscription<FGBGType>?> fgbgSubscriptions = {};
 
-  /// Schedules an iOS notification for the moment the alarm starts ringing.
-  /// Then calls the native function `setAlarm` and listens to alarm ring state.
+  /// Calls the native function `setAlarm` and listens to alarm ring state.
+  ///
+  /// Also set periodic timer and listens for app state changes to trigger
+  /// the alarm ring callback at the right time.
   static Future<bool> setAlarm(
     int id,
     DateTime dateTime,
@@ -30,18 +31,6 @@ class IOSAlarm {
     bool enableNotificationOnKill,
   ) async {
     final delay = dateTime.difference(DateTime.now());
-
-    if (notificationTitle != null &&
-        notificationTitle.isNotEmpty &&
-        notificationBody != null &&
-        notificationBody.isNotEmpty) {
-      AlarmNotification.instance.scheduleAlarmNotif(
-        id: id,
-        dateTime: dateTime,
-        title: notificationTitle,
-        body: notificationBody,
-      );
-    }
 
     final res = await methodChannel.invokeMethod<bool?>(
           'setAlarm',
@@ -89,7 +78,7 @@ class IOSAlarm {
   }
 
   /// Disposes timer and FGBG subscription
-  /// and calls the native stopAlarm function.
+  /// and calls the native `stopAlarm` function.
   static Future<bool> stopAlarm(int id) async {
     disposeAlarm(id);
 
@@ -110,7 +99,7 @@ class IOSAlarm {
 
   /// Checks whether alarm is ringing by getting the native audio player's
   /// current time at two different moments. If the two values are different,
-  /// it means the alarm is ringing.
+  /// it means the alarm is ringing and then returns `true`.
   static Future<bool> checkIfRinging(int id) async {
     final pos1 = await methodChannel
             .invokeMethod<double?>('audioCurrentTime', {'id': id}) ??
