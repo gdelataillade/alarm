@@ -150,14 +150,14 @@ To avoid unexpected behaviors, if you set an alarm for the same time as an exist
 
 ## Alarm behaviour
 
-|                          | Sound | Notification | Vibrate
-| ------------------------ | ----- | ------------ | -------
-| Locked screen            |  ✅   | ✅           | ✅
-| Silent / Mute            |  ✅   | ✅           | ✅
-| Do not disturb           |  ✅   | Silenced     | ✅
-| Sleep mode               |  ✅   | Silenced     | ✅
-| While playing other media| ✅    | ✅           | ✅
-| App killed               | ❌    | ✅           | ❌
+|                          | Sound | Vibrate | Notification
+| ------------------------ | ----- | ------- | -------
+| Locked screen            |  ✅   | ✅       | ✅
+| Silent / Mute            |  ✅   | ✅       | ✅
+| Do not disturb           |  ✅   | ✅       | Silenced
+| Sleep mode               |  ✅   | ✅       | Silenced
+| While playing other media|  ✅   | ✅       | ✅
+| App killed               | ❌    | ❌       | ✅
 
 *Silenced: Means that the notification is not shown directly on the top of the screen. You have to go to your notification center to see it.*
 
