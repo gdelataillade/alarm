@@ -21,12 +21,10 @@ Therefore, we decided to write our own package to wrap everything and make it ea
 ## Under the hood
 
 ### Android
-`oneShotAt` from the package `android_alarm_manager_plus`, with an two-way communication isolated callback in order to start/stop the alarm and call `onRing` callback.
+Uses `oneShotAt` from the `android_alarm_manager_plus` package with a two-way communication isolated callback to start/stop the alarm and call the `onRing` callback.
 
 ### iOS
-`invokeMethod` that plays the alarm audio using `AVAudioPlayer`.
-
-The issue is that asynchronous native code is suspended when app goes on background for a while. The workaround found is to listen to the app state (when app goes background/foreground), and every time app goes foreground, we check natively if the player is playing. If so, it means alarm is ringing so it's time to trigger the `onRing` callback.
+Implements `invokeMethod` to play the alarm audio using `AVAudioPlayer`. Due to the suspension of asynchronous native code when the app is in the background, we listen for app state changes and check if the player is playing when the app returns to the foreground. If it's the case, it means the alarm is ringing, and it's time to trigger the `onRing` callback.
 
 ## Getting Started
 
