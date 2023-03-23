@@ -89,7 +89,6 @@ class AndroidAlarm {
       params: {
         'assetAudioPath': assetAudioPath,
         'loopAudio': loopAudio,
-        'vibrate': vibrate,
         'fadeDuration': fadeDuration,
       },
     );
@@ -135,7 +134,6 @@ class AndroidAlarm {
 
       send.send('Alarm fadeDuration: ${data.toString()}');
 
-      final vibrate = data['vibrate'];
       final fadeDuration = (data['fadeDuration'] as int).toDouble();
 
       if (fadeDuration > 0.0) {
@@ -144,9 +142,7 @@ class AndroidAlarm {
         audioPlayer.setVolume(0.1);
         audioPlayer.play();
 
-        send.send(
-          'Alarm playing with vibration ${vibrate ? 'ON' : 'OFF'} and fadeDuration ${fadeDuration}s',
-        );
+        send.send('Alarm playing with fadeDuration ${fadeDuration}s');
 
         Timer.periodic(
           Duration(milliseconds: fadeDuration * 1000 ~/ 10),

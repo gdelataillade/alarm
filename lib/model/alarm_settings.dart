@@ -20,7 +20,10 @@ class AlarmSettings {
   /// Can also be an URL.
   ///
   /// If [loopAudio] is set to true, [assetAudio] will repeat indefinitely
-  /// until it is stopped. Default value is false.
+  /// until it is stopped. Default value is true.
+  ///
+  /// If [vibrate] is set to true, device will vibrate for 500ms,
+  /// pause for 500ms and repeat until alarm is stopped. Default value is true.
   ///
   /// [fadeDuration] is the duration, in seconds, over which to fade the volume.
   /// Set to 0 by default, which means no fade.
