@@ -42,7 +42,7 @@ To disable this feature, you can call the method `Alarm.toggleNotificationOnAppK
 
 ## 0.0.3
 * Add more documentation.
-* Add package description in pubspec.yaml.
+* Add plugin description in pubspec.yaml.
 * Refactor some Swift code.
 
 ## 0.0.2

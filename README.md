@@ -1,27 +1,27 @@
-# Alarm package for iOS and Android
+# Alarm plugin for iOS and Android
 
-This Flutter package provides a simple and easy-to-use interface for setting and canceling alarms on iOS and Android devices. It utilizes the `android_alarm_manager_plus` package for Android and the native iOS `AVAudioPlayer` class.
+This Flutter plugin provides a simple and easy-to-use interface for setting and canceling alarms on iOS and Android devices. It utilizes the `android_alarm_manager_plus` plugin for Android and the native iOS `AVAudioPlayer` class.
 
 *Please note that this project is still in beta. Feel free to send us your issues, questions and suggestions to help us in the project development.*
 
-## Why this package ?
+## Why this plugin ?
 
 As a Flutter developer at [Evolum](https://evolum.co), my CTO and I needed to develop an alarm feature for the new version of our app.
 
 An alarm feature is a great way to increase users engagement.
 
-For the Android part, we used `android_alarm_manager_plus` package, but to be honest it was not very intuitive and incomplete.
+For the Android part, we used `android_alarm_manager_plus` plugin, but to be honest it was not very intuitive and incomplete.
 
-Then, for the iOS part, we couldn't find any package or tutorial to add this feature.
+Then, for the iOS part, we couldn't find any plugin or tutorial to add this feature.
 
 Another issue we found is that when a user kills the app, all processes are terminated so the alarm may not ring. The workaround we thought about was to show a notification when the user kills the app to warn him that the alarm may not ring. Then, he just has to reopen the app to reschedule the alarm.
 
-Therefore, we decided to write our own package to wrap everything and make it easy for everybody.
+Therefore, we decided to write our own plugin to wrap everything and make it easy for everybody.
 
 ## Under the hood
 
 ### Android
-Uses `oneShotAt` from the `android_alarm_manager_plus` package with a two-way communication isolated callback to start/stop the alarm and call the `onRing` callback.
+Uses `oneShotAt` from the `android_alarm_manager_plus` plugin with a two-way communication isolated callback to start/stop the alarm and call the `onRing` callback.
 
 ### iOS
 Implements `invokeMethod` to play the alarm audio using `AVAudioPlayer`. Due to the suspension of asynchronous native code when the app is in the background, we listen for app state changes and check if the player is playing when the app returns to the foreground. If it's the case, it means the alarm is ringing, and it's time to trigger the `onRing` callback.
@@ -172,7 +172,7 @@ If you have a feature request, just open an issue explaining clearly what you wa
 
 ## Contributing
 
-We welcome contributions to this package! If you would like to make a change or add a new feature, please follow these steps:
+We welcome contributions to this plugin! If you would like to make a change or add a new feature, please follow these steps:
 
 1.  Fork the repository and create a new branch for your changes.
 2.  Make your changes
@@ -184,6 +184,6 @@ These are some features that I have in mind that could be useful:
 - [Notification actions](https://pub.dev/packages/flutter_local_notifications#notification-actions): stop and snooze
 - Add macOS, Windows, Linux and web support
 
-Thank you for considering contributing to this package. Your help is greatly appreciated!
+Thank you for considering contributing to this plugin. Your help is greatly appreciated!
 
-❤️ Let me know if you like the package by liking it on [pub.dev](https://pub.dev/packages/alarm) and starring the repo on [Github](https://github.com/gdelataillade/alarm) 🙂
+❤️ Let me know if you like the plugin by liking it on [pub.dev](https://pub.dev/packages/alarm) and starring the repo on [Github](https://github.com/gdelataillade/alarm) 🙂

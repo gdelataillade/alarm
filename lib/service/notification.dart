@@ -92,8 +92,8 @@ class AlarmNotification {
 
     const androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'alarm',
-      'alarm_package',
-      channelDescription: 'Alarm package',
+      'alarm_plugin',
+      channelDescription: 'Alarm plugin',
       importance: Importance.max,
       priority: Priority.max,
       enableLights: true,
