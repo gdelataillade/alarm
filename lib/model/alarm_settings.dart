@@ -32,7 +32,7 @@ class AlarmSettings {
     required this.dateTime,
     required this.assetAudioPath,
     this.loopAudio = true,
-    this.vibrate = false,
+    this.vibrate = true,
     this.fadeDuration = 0.0,
     this.notificationTitle,
     this.notificationBody,

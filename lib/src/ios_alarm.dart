@@ -51,7 +51,7 @@ class IOSAlarm {
             'delayInSeconds': delay.inSeconds.abs().toDouble(),
             'loopAudio': loopAudio,
             'fadeDuration': fadeDuration >= 0 ? fadeDuration : 0,
-            'vibrate': true,
+            'vibrate': vibrate,
             'notifOnKillEnabled': enableNotificationOnKill,
             'notifTitleOnAppKill': AlarmStorage.getNotificationOnAppKillTitle(),
             'notifDescriptionOnAppKill':

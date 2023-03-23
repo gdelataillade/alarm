@@ -199,11 +199,8 @@ class AndroidAlarm {
     vibrationsActive = true;
 
     while (vibrationsActive) {
-      await Future.delayed(
-        const Duration(milliseconds: 500),
-        () => Vibration.vibrate(),
-      );
-      print("[DEV] Vibrate");
+      Vibration.vibrate();
+      await Future.delayed(const Duration(milliseconds: 1000));
     }
   }
 

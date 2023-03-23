@@ -10,15 +10,11 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     private let isDevice = true
   #endif
 
-  private var vibrationChannel: FlutterMethodChannel?
-
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "com.gdelataillade/alarm", binaryMessenger: registrar.messenger())
     let instance = SwiftAlarmPlugin()
 
-    instance.vibrationChannel = FlutterMethodChannel(name: "vibration", binaryMessenger: registrar.messenger())
     registrar.addMethodCallDelegate(instance, channel: channel)
-    registrar.addMethodCallDelegate(instance, channel: instance.vibrationChannel!)
   }
 
   private var audioPlayers: [Int: AVAudioPlayer] = [:]
