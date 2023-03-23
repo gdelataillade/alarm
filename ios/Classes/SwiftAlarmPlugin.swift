@@ -1,43 +1,7 @@
 import Flutter
 import UIKit
 import AVFoundation
-
-// import Flutter
-// import UIKit
-// import AVFoundation
-// import AudioToolbox
-
-// @available(iOS 10.0, *)
-// public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
-//     private var vibrationChannel: FlutterMethodChannel?
-
-//     public static func register(with registrar: FlutterPluginRegistrar) {
-//         let channel = FlutterMethodChannel(name: "your_package_name/alarm", binaryMessenger: registrar.messenger())
-//         let instance = SwiftAlarmPlugin()
-//         instance.vibrationChannel = FlutterMethodChannel(name: "vibration", binaryMessenger: registrar.messenger()) // Create a method channel for the "vibration" plugin
-//         registrar.addMethodCallDelegate(instance, channel: channel)
-//     }
-
-//     // Your existing SwiftAlarmPlugin code
-
-//     // Update your setAlarm() function
-//     private func setAlarm(call: FlutterMethodCall, result: FlutterResult) {
-//         // Your existing setAlarm code
-
-//         if vibrate {
-//             DispatchQueue.main.asyncAfter(deadline: .now() + delayInSeconds) {
-//                 Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
-//                     self.vibrationChannel?.invokeMethod("vibrate", arguments: nil) // Use the method channel to trigger a vibration in the "vibration" plugin
-//                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-//                         self.vibrationChannel?.invokeMethod("vibrate", arguments: nil) // Use the method channel to trigger a vibration in the "vibration" plugin
-//                     }
-//                 }
-//             }
-//         }
-        
-//         // The rest of your setAlarm code
-//     }
-// }
+import AudioToolbox
 
 public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
   #if targetEnvironment(simulator)
@@ -54,6 +18,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
     instance.vibrationChannel = FlutterMethodChannel(name: "vibration", binaryMessenger: registrar.messenger())
     registrar.addMethodCallDelegate(instance, channel: channel)
+    registrar.addMethodCallDelegate(instance, channel: instance.vibrationChannel!)
   }
 
   private var audioPlayers: [Int: AVAudioPlayer] = [:]
@@ -169,10 +134,11 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
   private func triggerVibrations() {
     if vibrate && isDevice {
-      self.vibrationChannel?.invokeMethod("vibrate", arguments: nil)
-      DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-        self.triggerVibrations()
-      }
+      AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+          AudioServicesDisposeSystemSoundID(kSystemSoundID_Vibrate)
+          self.triggerVibrations()
+        }
     }
   }
 
