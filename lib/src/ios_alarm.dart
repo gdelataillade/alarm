@@ -1,8 +1,7 @@
-// ignore_for_file: avoid_print
-
 import 'dart:async';
 
 import 'package:alarm/service/storage.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 
@@ -49,8 +48,8 @@ class IOSAlarm {
         ) ??
         false;
 
-    print(
-        '[Alarm] Alarm with id $id scheduled ${res ? 'successfully' : 'failed'} at $dateTime');
+    debugPrint(
+        ' Alarm with id $id scheduled ${res ? 'successfully' : 'failed'} at $dateTime');
 
     if (res == false) return false;
 
@@ -89,10 +88,10 @@ class IOSAlarm {
           ) ??
           false;
 
-      print('[Alarm] Alarm with id $id stopped with success');
+      debugPrint('Alarm with id $id stopped with success');
       return res;
     } catch (e) {
-      print('[Alarm] Alarm with id $id stop error: $e');
+      debugPrint('Alarm with id $id stop error: $e');
       return false;
     }
   }

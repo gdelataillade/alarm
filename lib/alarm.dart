@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 export 'package:alarm/model/alarm_settings.dart';
 
 import 'dart:async';
@@ -8,6 +10,7 @@ import 'package:alarm/src/ios_alarm.dart';
 import 'package:alarm/src/android_alarm.dart';
 import 'package:alarm/service/notification.dart';
 import 'package:alarm/service/storage.dart';
+import 'package:flutter/foundation.dart';
 
 class Alarm {
   /// Whether it's iOS device.
@@ -23,7 +26,15 @@ class Alarm {
   ///
   /// Also calls [checkAlarm] that will reschedule alarms that were set before
   /// app termination.
-  static Future<void> init() async {
+  ///
+  /// Set [showDebugLogs] to `false` to hide all the logs from the plugin.
+  static Future<void> init([bool showDebugLogs = true]) async {
+    debugPrint = (String? message, {int? wrapWidth}) {
+      if (kDebugMode && showDebugLogs) {
+        print("[Alarm] $message");
+      }
+    };
+
     await Future.wait([
       if (android) AndroidAlarm.init(),
       AlarmNotification.instance.init(),

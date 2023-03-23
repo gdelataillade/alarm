@@ -1,11 +1,10 @@
-// ignore_for_file: avoid_print
-
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:alarm/service/storage.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:vibration/vibration.dart';
@@ -51,14 +50,14 @@ class AndroidAlarm {
         IsolateNameServer.registerPortWithName(port.sendPort, "$ringPort-$id");
       }
       port.listen((message) {
-        print('[Alarm] $message');
+        debugPrint('$message');
         if (message == 'ring') {
           triggerVibrations();
           onRing?.call();
         }
       });
     } catch (e) {
-      print('[Alarm] ReceivePort error: $e');
+      debugPrint('ReceivePort error: $e');
       return false;
     }
 
@@ -71,9 +70,9 @@ class AndroidAlarm {
             'description': AlarmStorage.getNotificationOnAppKillBody(),
           },
         );
-        print('[Alarm] NotificationOnKillService set with success');
+        debugPrint('NotificationOnKillService set with success');
       } catch (e) {
-        print('[Alarm] NotificationOnKillService error: $e');
+        debugPrint('NotificationOnKillService error: $e');
       }
     }
 
@@ -196,7 +195,7 @@ class AndroidAlarm {
       final SendPort send = IsolateNameServer.lookupPortByName(stopPort)!;
       send.send('stop');
     } catch (e) {
-      print('[Alarm] (main) SendPort error: $e');
+      debugPrint('(main) SendPort error: $e');
     }
 
     if (!hasAnotherAlarm) stopNotificationOnKillService();
@@ -209,9 +208,9 @@ class AndroidAlarm {
   static Future<void> stopNotificationOnKillService() async {
     try {
       await platform.invokeMethod('stopNotificationOnKillService');
-      print('[Alarm] NotificationOnKillService stopped with success');
+      debugPrint('NotificationOnKillService stopped with success');
     } catch (e) {
-      print('[Alarm] NotificationOnKillService error: $e');
+      debugPrint('NotificationOnKillService error: $e');
     }
   }
 }
