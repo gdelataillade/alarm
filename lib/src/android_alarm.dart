@@ -192,8 +192,8 @@ class AndroidAlarm {
     vibrationsActive = false;
 
     try {
-      final SendPort send = IsolateNameServer.lookupPortByName(stopPort)!;
-      send.send('stop');
+      final SendPort? send = IsolateNameServer.lookupPortByName(stopPort);
+      send?.send('stop');
     } catch (e) {
       debugPrint('(main) SendPort error: $e');
     }
