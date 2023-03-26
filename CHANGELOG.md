@@ -1,3 +1,6 @@
+## 0.2.3
+* [Android] Fix [NotificationOnKillService] for API 31+
+
 ## 0.2.2
 * Improve documentation.
 * Add [showDebugLogs] optional parameter to [Alarm.init] method.
