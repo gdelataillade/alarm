@@ -57,23 +57,22 @@ class AlarmNotification {
   }
 
   tz.TZDateTime nextInstanceOfTime(Time time) {
-    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+    final DateTime now = DateTime.now();
 
-    tz.TZDateTime scheduledDate = tz.TZDateTime.from(
-      DateTime(
-        now.year,
-        now.month,
-        now.day,
-        time.hour,
-        time.minute,
-        time.second,
-      ),
-      tz.local,
+    DateTime scheduledDate = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      time.hour,
+      time.minute,
+      time.second,
     );
+
     if (scheduledDate.isBefore(now)) {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
-    return scheduledDate;
+
+    return tz.TZDateTime.from(scheduledDate, tz.local);
   }
 
   /// Schedules notification at the given [dateTime].
@@ -123,7 +122,7 @@ class AlarmNotification {
         id,
         title,
         body,
-        zdt,
+        tz.TZDateTime.from(zdt.toUtc(), tz.UTC),
         platformChannelSpecifics,
         androidAllowWhileIdle: true,
         uiLocalNotificationDateInterpretation:

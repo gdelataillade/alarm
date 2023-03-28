@@ -1,3 +1,6 @@
+## 0.2.4
+* Fix zoned notification schedule date shift
+
 ## 0.2.3
 * [Android] Fix [NotificationOnKillService] for API 31+
 
