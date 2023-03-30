@@ -85,9 +85,11 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         self.audioPlayers[id] = audioPlayer
       } catch {
         result(FlutterError.init(code: "NATIVE_ERR", message: "[Alarm] Error loading AVAudioPlayer with given asset path or url", details: nil))
+        return
       }
     } else {
       result(FlutterError.init(code: "NATIVE_ERR", message: "[Alarm] Error with audio file: path is \(assetAudio)", details: nil))
+      return
     }
 
     let currentTime = self.audioPlayers[id]!.deviceCurrentTime
