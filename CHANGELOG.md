@@ -1,3 +1,6 @@
+## 0.2.6
+* [Android] Fix vibrations which were triggered even when disabled.
+
 ## 0.2.5
 * [iOS] Fix vibrations: cancel callback if alarm is stopped.
 

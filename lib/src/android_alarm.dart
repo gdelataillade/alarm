@@ -52,7 +52,7 @@ class AndroidAlarm {
       port.listen((message) {
         debugPrint('$message');
         if (message == 'ring') {
-          triggerVibrations();
+          if (vibrate) triggerVibrations();
           onRing?.call();
         }
       });
@@ -176,7 +176,10 @@ class AndroidAlarm {
   static Future<void> triggerVibrations() async {
     final hasVibrator = await Vibration.hasVibrator() ?? false;
 
-    if (!hasVibrator) return;
+    if (!hasVibrator) {
+      debugPrint('Vibrations are not available on this device.');
+      return;
+    }
 
     vibrationsActive = true;
 
