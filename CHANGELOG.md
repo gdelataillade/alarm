@@ -1,3 +1,6 @@
+## 0.2.5
+* [iOS] Fix vibrations: cancel callback if alarm is stopped.
+
 ## 0.2.4
 * Fix zoned notification schedule date shift
 
