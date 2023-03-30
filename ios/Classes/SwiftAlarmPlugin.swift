@@ -10,6 +10,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     private let isDevice = true
   #endif
 
+  // MARK: - FlutterPlugin Methods
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "com.gdelataillade/alarm", binaryMessenger: registrar.messenger())
     let instance = SwiftAlarmPlugin()
@@ -18,6 +19,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
   }
 
   private var audioPlayers: [Int: AVAudioPlayer] = [:]
+  private var triggerTimes: [Int: Date] = [:]
 
   private var notifOnKillEnabled: Bool!
   private var notificationTitleOnKill: String!
@@ -31,6 +33,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     try! AVAudioSession.sharedInstance().setActive(true)
   }
 
+  // MARK: - handle
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     DispatchQueue.global(qos: .default).async {
       if call.method == "setAlarm" {
@@ -53,6 +56,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
   }
 
+  // MARK: - setAlarm
   private func setAlarm(call: FlutterMethodCall, result: FlutterResult) {
     self.setUpAudio()
 
@@ -89,6 +93,9 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     let currentTime = self.audioPlayers[id]!.deviceCurrentTime
     let time = currentTime + delayInSeconds
 
+    let dateTime = Date().addingTimeInterval(delayInSeconds)
+    self.triggerTimes[id] = dateTime
+
     if loopAudio {
       self.audioPlayers[id]!.numberOfLoops = -1
     }
@@ -97,29 +104,36 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
     if fadeDuration > 0.0 {
       self.audioPlayers[id]!.volume = 0.1
-      self.audioPlayers[id]!.play(atTime: time)
-      DispatchQueue.main.asyncAfter(deadline: .now() + delayInSeconds) {
-        self.audioPlayers[id]!.setVolume(1, fadeDuration: fadeDuration)
-        self.vibrate = vibrationsEnabled
-        self.triggerVibrations()
-      }
-    } else {
-      self.audioPlayers[id]!.play(atTime: time)
-      DispatchQueue.main.asyncAfter(deadline: .now() + delayInSeconds) {
-        self.vibrate = vibrationsEnabled
-        self.triggerVibrations()
-      }
     }
+
+    self.audioPlayers[id]!.play(atTime: time)
+
+    DispatchQueue.main.asyncAfter(deadline: .now() + delayInSeconds) {
+        self.handleAlarmAfterDelay(id: id, triggerTime: dateTime, fadeDuration: fadeDuration, vibrationsEnabled: vibrationsEnabled)
+    }
+
     result(true)
   }
 
+  // MARK: - handleAlarmAfterDelay
+  private func handleAlarmAfterDelay(id: Int, triggerTime: Date, fadeDuration: Double, vibrationsEnabled: Bool) {
+    if let audioPlayer = self.audioPlayers[id], let storedTriggerTime = triggerTimes[id], triggerTime == storedTriggerTime {
+      if fadeDuration > 0.0 {
+          audioPlayer.setVolume(1, fadeDuration: fadeDuration)
+      }
+      self.vibrate = vibrationsEnabled
+      self.triggerVibrations()
+    }
+  }
+
+  // MARK: - stopAlarm
   private func stopAlarm(id: Int, result: FlutterResult) {
     vibrate = false
 
     if let audioPlayer = self.audioPlayers[id] {
       audioPlayer.stop()
-
       self.audioPlayers.removeValue(forKey: id)
+      self.triggerTimes.removeValue(forKey: id)
       self.stopNotificationOnKillService();
       result(true)
     } else {
@@ -127,6 +141,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
   }
 
+  // MARK: - triggerVibrations
   private func triggerVibrations() {
     if vibrate && isDevice {
       AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
@@ -137,6 +152,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
   }
 
+  // MARK: - audioCurrentTime
   private func audioCurrentTime(id: Int, result: FlutterResult) {
     if let audioPlayer = self.audioPlayers[id] {
       let time = Double(audioPlayer.currentTime)
@@ -146,6 +162,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
   }
 
+  // MARK: - stopNotificationOnKillService
   private func stopNotificationOnKillService() {
     if audioPlayers.isEmpty && observerAdded {
       NotificationCenter.default.removeObserver(self, name: UIApplication.willTerminateNotification, object: nil)
@@ -153,6 +170,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
   }
 
+  // MARK: - applicationWillTerminate
   @objc func applicationWillTerminate(_ notification: Notification) {
     let content = UNMutableNotificationContent()
     content.title = notificationTitleOnKill

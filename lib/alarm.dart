@@ -76,7 +76,6 @@ class Alarm {
     }
 
     await AlarmStorage.saveAlarm(alarmSettings);
-    await AlarmNotification.instance.cancel(alarmSettings.id);
 
     if (alarmSettings.notificationTitle != null &&
         alarmSettings.notificationBody != null) {

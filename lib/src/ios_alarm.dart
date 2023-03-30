@@ -49,7 +49,7 @@ class IOSAlarm {
         false;
 
     debugPrint(
-        ' Alarm with id $id scheduled ${res ? 'successfully' : 'failed'} at $dateTime');
+        'Alarm with id $id scheduled ${res ? 'successfully' : 'failed'} at $dateTime');
 
     if (res == false) return false;
 

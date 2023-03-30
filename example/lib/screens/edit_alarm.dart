@@ -78,6 +78,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       id: id,
       dateTime: dateTime,
       loopAudio: loopAudio,
+      vibrate: vibrate,
       notificationTitle: showNotification ? 'Alarm example' : null,
       notificationBody: showNotification ? 'Your alarm ($id) is ringing' : null,
       assetAudioPath: assetAudio,
