@@ -33,6 +33,8 @@ class AlarmSettings {
 
   /// If true, device will vibrate for 500ms, pause for 500ms and repeat until
   /// alarm is stopped.
+  ///
+  /// If [loopAudio] is set to false, vibrations will stop when audio ends.
   final bool vibrate;
 
   /// Duration, in seconds, over which to fade the alarm ringtone.

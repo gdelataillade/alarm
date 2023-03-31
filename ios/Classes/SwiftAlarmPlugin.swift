@@ -111,22 +111,35 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     self.audioPlayers[id]!.play(atTime: time)
 
     DispatchQueue.main.asyncAfter(deadline: .now() + delayInSeconds) {
-        self.handleAlarmAfterDelay(id: id, triggerTime: dateTime, fadeDuration: fadeDuration, vibrationsEnabled: vibrationsEnabled)
+        self.handleAlarmAfterDelay(
+          id: id,
+          triggerTime: dateTime,
+          fadeDuration: fadeDuration,
+          vibrationsEnabled: vibrationsEnabled,
+          audioLoop: loopAudio
+        )
     }
-
     result(true)
   }
 
   // MARK: - handleAlarmAfterDelay
-  private func handleAlarmAfterDelay(id: Int, triggerTime: Date, fadeDuration: Double, vibrationsEnabled: Bool) {
+  private func handleAlarmAfterDelay(id: Int, triggerTime: Date, fadeDuration: Double, vibrationsEnabled: Bool, audioLoop: Bool) {
     if let audioPlayer = self.audioPlayers[id], let storedTriggerTime = triggerTimes[id], triggerTime == storedTriggerTime {
       if fadeDuration > 0.0 {
-          audioPlayer.setVolume(1, fadeDuration: fadeDuration)
+        audioPlayer.setVolume(1, fadeDuration: fadeDuration)
       }
       self.vibrate = vibrationsEnabled
       self.triggerVibrations()
+
+      if !audioLoop {
+        let audioDuration = audioPlayer.duration
+        DispatchQueue.main.asyncAfter(deadline: .now() + audioDuration) {
+          self.vibrate = false
+        }
+      }
     }
   }
+
 
   // MARK: - stopAlarm
   private func stopAlarm(id: Int, result: FlutterResult) {

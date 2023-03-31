@@ -52,8 +52,16 @@ class AndroidAlarm {
       port.listen((message) {
         debugPrint('$message');
         if (message == 'ring') {
-          if (vibrate) triggerVibrations();
           onRing?.call();
+        } else {
+          if (vibrate && message is String && message.startsWith('vibrate')) {
+            final audioDuration = message.split('-').last;
+
+            if (int.tryParse(audioDuration) != null) {
+              final duration = Duration(seconds: int.parse(audioDuration));
+              triggerVibrations(duration: loopAudio ? null : duration);
+            }
+          }
         }
       });
     } catch (e) {
@@ -107,12 +115,15 @@ class AndroidAlarm {
 
     try {
       final assetAudioPath = data['assetAudioPath'] as String;
+      Duration? audioDuration;
 
       if (assetAudioPath.startsWith('http')) {
-        await audioPlayer.setUrl(assetAudioPath);
+        audioDuration = await audioPlayer.setUrl(assetAudioPath);
       } else {
-        await audioPlayer.setAsset(assetAudioPath);
+        audioDuration = await audioPlayer.setAsset(assetAudioPath);
       }
+
+      send.send('vibrate-${audioDuration?.inSeconds}');
 
       final loopAudio = data['loopAudio'];
       if (loopAudio) audioPlayer.setLoopMode(LoopMode.all);
@@ -173,7 +184,10 @@ class AndroidAlarm {
   }
 
   /// Triggers vibrations when alarm is ringing if [vibrationsActive] is true.
-  static Future<void> triggerVibrations() async {
+  ///
+  /// If [loopAudio] is false, vibrations are triggered repeatedly during
+  /// [duration] which is the duration of the audio.
+  static Future<void> triggerVibrations({Duration? duration}) async {
     final hasVibrator = await Vibration.hasVibrator() ?? false;
 
     if (!hasVibrator) {
@@ -183,9 +197,17 @@ class AndroidAlarm {
 
     vibrationsActive = true;
 
-    while (vibrationsActive) {
-      Vibration.vibrate();
-      await Future.delayed(const Duration(milliseconds: 1000));
+    if (duration == null) {
+      while (vibrationsActive) {
+        Vibration.vibrate();
+        await Future.delayed(const Duration(milliseconds: 1000));
+      }
+    } else {
+      final endTime = DateTime.now().add(duration);
+      while (vibrationsActive && DateTime.now().isBefore(endTime)) {
+        Vibration.vibrate();
+        await Future.delayed(const Duration(milliseconds: 1000));
+      }
     }
   }
 

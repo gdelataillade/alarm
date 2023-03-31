@@ -1,3 +1,7 @@
+## 0.2.7
+* If [loopAudio] is set to false, stop vibrations when audio ends.
+* [iOS] Avoid crash if provided audio url is wrong.
+
 ## 0.2.6
 * [Android] Fix vibrations which were triggered even when disabled.
 
