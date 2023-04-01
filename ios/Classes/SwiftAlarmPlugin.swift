@@ -19,6 +19,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
   }
 
   private var audioPlayers: [Int: AVAudioPlayer] = [:]
+  private var tasksQueue: [Int: DispatchWorkItem] = [:]
   private var triggerTimes: [Int: Date] = [:]
 
   private var notifOnKillEnabled: Bool!
@@ -108,17 +109,19 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
       self.audioPlayers[id]!.volume = 0.1
     }
 
-    self.audioPlayers[id]!.play(atTime: time)
+    self.tasksQueue[id] = DispatchWorkItem(block: {
+      self.audioPlayers[id]!.play()
+      self.handleAlarmAfterDelay(
+        id: id,
+        triggerTime: dateTime,
+        fadeDuration: fadeDuration,
+        vibrationsEnabled: vibrationsEnabled,
+        audioLoop: loopAudio
+       )
+    })
 
-    DispatchQueue.main.asyncAfter(deadline: .now() + delayInSeconds) {
-        self.handleAlarmAfterDelay(
-          id: id,
-          triggerTime: dateTime,
-          fadeDuration: fadeDuration,
-          vibrationsEnabled: vibrationsEnabled,
-          audioLoop: loopAudio
-        )
-    }
+    DispatchQueue.main.asyncAfter(deadline: .now() + delayInSeconds, execute: self.tasksQueue[id]!)
+
     result(true)
   }
 
@@ -149,6 +152,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
       audioPlayer.stop()
       self.audioPlayers.removeValue(forKey: id)
       self.triggerTimes.removeValue(forKey: id)
+      self.tasksQueue[id]?.cancel()
+      self.tasksQueue.removeValue(forKey: id)
       self.stopNotificationOnKillService();
       result(true)
     } else {
