@@ -1,3 +1,6 @@
+## 0.2.8
+* [iOS] Prevent unnecessary callbacks when alarm is stopped.
+
 ## 0.2.7
 * If [loopAudio] is set to false, stop vibrations when audio ends.
 * [iOS] Avoid crash if provided audio url is wrong.
