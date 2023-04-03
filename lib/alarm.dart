@@ -12,6 +12,9 @@ import 'package:alarm/service/notification.dart';
 import 'package:alarm/service/storage.dart';
 import 'package:flutter/foundation.dart';
 
+/// Custom print function designed for Alarm plugin.
+DebugPrintCallback alarmPrint = debugPrintThrottled;
+
 class Alarm {
   /// Whether it's iOS device.
   static bool get iOS => Platform.isIOS;
@@ -29,7 +32,7 @@ class Alarm {
   ///
   /// Set [showDebugLogs] to `false` to hide all the logs from the plugin.
   static Future<void> init({bool showDebugLogs = true}) async {
-    debugPrint = (String? message, {int? wrapWidth}) {
+    alarmPrint = (String? message, {int? wrapWidth}) {
       if (kDebugMode && showDebugLogs) {
         print("[Alarm] $message");
       }

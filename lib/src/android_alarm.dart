@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:isolate';
 import 'dart:ui';
 
+import 'package:alarm/alarm.dart';
 import 'package:alarm/service/storage.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:vibration/vibration.dart';
@@ -50,7 +50,7 @@ class AndroidAlarm {
         IsolateNameServer.registerPortWithName(port.sendPort, "$ringPort-$id");
       }
       port.listen((message) {
-        debugPrint('$message');
+        alarmPrint('$message');
         if (message == 'ring') {
           onRing?.call();
         } else {
@@ -65,7 +65,7 @@ class AndroidAlarm {
         }
       });
     } catch (e) {
-      debugPrint('ReceivePort error: $e');
+      alarmPrint('ReceivePort error: $e');
       return false;
     }
 
@@ -78,9 +78,9 @@ class AndroidAlarm {
             'description': AlarmStorage.getNotificationOnAppKillBody(),
           },
         );
-        debugPrint('NotificationOnKillService set with success');
+        alarmPrint('NotificationOnKillService set with success');
       } catch (e) {
-        debugPrint('NotificationOnKillService error: $e');
+        alarmPrint('NotificationOnKillService error: $e');
       }
     }
 
@@ -191,7 +191,7 @@ class AndroidAlarm {
     final hasVibrator = await Vibration.hasVibrator() ?? false;
 
     if (!hasVibrator) {
-      debugPrint('Vibrations are not available on this device.');
+      alarmPrint('Vibrations are not available on this device.');
       return;
     }
 
@@ -220,7 +220,7 @@ class AndroidAlarm {
       final SendPort? send = IsolateNameServer.lookupPortByName(stopPort);
       send?.send('stop');
     } catch (e) {
-      debugPrint('(main) SendPort error: $e');
+      alarmPrint('(main) SendPort error: $e');
     }
 
     if (!hasAnotherAlarm) stopNotificationOnKillService();
@@ -233,9 +233,9 @@ class AndroidAlarm {
   static Future<void> stopNotificationOnKillService() async {
     try {
       await platform.invokeMethod('stopNotificationOnKillService');
-      debugPrint('NotificationOnKillService stopped with success');
+      alarmPrint('NotificationOnKillService stopped with success');
     } catch (e) {
-      debugPrint('NotificationOnKillService error: $e');
+      alarmPrint('NotificationOnKillService error: $e');
     }
   }
 }

@@ -1,3 +1,6 @@
+## 0.2.9
+* Add custom debug print method.
+
 ## 0.2.8
 * [iOS] Prevent unnecessary callbacks when alarm is stopped.
 
