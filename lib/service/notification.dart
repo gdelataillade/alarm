@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:alarm/alarm.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -38,7 +37,7 @@ class AlarmNotification {
   Future<bool> requestPermission() async {
     late bool? result;
 
-    if (Platform.isAndroid) {
+    if (defaultTargetPlatform == TargetPlatform.android) {
       result = await localNotif
           .resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>()

@@ -1,9 +1,7 @@
 // ignore_for_file: avoid_print
 
 export 'package:alarm/model/alarm_settings.dart';
-
 import 'dart:async';
-import 'dart:io';
 
 import 'package:alarm/model/alarm_settings.dart';
 import 'package:alarm/src/ios_alarm.dart';
@@ -17,10 +15,10 @@ DebugPrintCallback alarmPrint = debugPrintThrottled;
 
 class Alarm {
   /// Whether it's iOS device.
-  static bool get iOS => Platform.isIOS;
+  static bool get iOS => defaultTargetPlatform == TargetPlatform.iOS;
 
   /// Whether it's Android device.
-  static bool get android => Platform.isAndroid;
+  static bool get android => defaultTargetPlatform == TargetPlatform.android;
 
   /// Stream of the ringing status.
   static final ringStream = StreamController<AlarmSettings>();
@@ -118,19 +116,21 @@ class Alarm {
         alarmSettings.enableNotificationOnKill,
       );
     }
-
-    return await AndroidAlarm.set(
-      alarmSettings.id,
-      alarmSettings.dateTime,
-      () => ringStream.add(alarmSettings),
-      alarmSettings.assetAudioPath,
-      alarmSettings.loopAudio,
-      alarmSettings.vibrate,
-      alarmSettings.fadeDuration,
-      alarmSettings.notificationTitle,
-      alarmSettings.notificationBody,
-      alarmSettings.enableNotificationOnKill,
-    );
+    if (android) {
+      return await AndroidAlarm.set(
+        alarmSettings.id,
+        alarmSettings.dateTime,
+        () => ringStream.add(alarmSettings),
+        alarmSettings.assetAudioPath,
+        alarmSettings.loopAudio,
+        alarmSettings.vibrate,
+        alarmSettings.fadeDuration,
+        alarmSettings.notificationTitle,
+        alarmSettings.notificationBody,
+        alarmSettings.enableNotificationOnKill,
+      );
+    }
+    return false;
   }
 
   /// When the app is killed, all the processes are terminated
