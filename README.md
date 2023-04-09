@@ -1,3 +1,11 @@
+![Pub Version](https://img.shields.io/pub/v/alarm)
+![Pub Likes](https://img.shields.io/pub/likes/alarm)
+![Pub Points](https://img.shields.io/pub/points/alarm)
+![Pub Popularity](https://img.shields.io/pub/popularity/alarm)
+
+[![alarm](https://github.com/gdelataillade/alarm/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/gdelataillade/alarm/actions/workflows/main.yml)
+
+
 # Alarm plugin for iOS and Android
 
 This Flutter plugin provides a simple and easy-to-use interface for setting and canceling alarms on iOS and Android devices. It utilizes the `android_alarm_manager_plus` plugin for Android and the native iOS `AVAudioPlayer` class.
