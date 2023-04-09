@@ -97,6 +97,12 @@ class Alarm {
       await AlarmNotification.instance.requestPermission();
     }
 
+    if (!alarmSettings.assetAudioPath.contains('.')) {
+      alarmPrint(
+        'Error: provided asset audio file do not have extension: $alarmSettings.assetAudioPath',
+      );
+    }
+
     if (iOS) {
       final assetAudio = alarmSettings.assetAudioPath.split('/').last;
       return IOSAlarm.setAlarm(

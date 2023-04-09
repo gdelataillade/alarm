@@ -8,7 +8,7 @@ assignees: gdelataillade
 ---
 
 **Alarm plugin version**
-*ex: 0.2.9*
+*ex: 0.2.9 (please update to the latest version before submitting the issue)*
 
 **Describe the bug**
 *...*
