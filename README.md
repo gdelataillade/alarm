@@ -10,8 +10,6 @@
 
 This Flutter plugin provides a simple and easy-to-use interface for setting and canceling alarms on iOS and Android devices. It utilizes the `android_alarm_manager_plus` plugin for Android and the native iOS `AVAudioPlayer` class.
 
-*Please note that this project is still in beta. Feel free to send us your issues, questions and suggestions to help us in the project development.*
-
 ## Why this plugin ?
 
 As a Flutter developer at [Evolum](https://evolum.co), my CTO and I needed to develop an alarm feature for the new version of our app.
@@ -139,7 +137,7 @@ await Alarm.setNotificationOnAppKillContent(title, body)
 
 This is how to stop/cancel your alarm:
 ```Dart
-await Alarm.stop()
+await Alarm.stop(id)
 ```
 
 This is how to run some code when alarm starts ringing. We implemented it as a stream so even if your app was previously killed, your custom callback can still be triggered.
@@ -191,8 +189,9 @@ We welcome contributions to this plugin! If you would like to make a change or a
 
 These are some features that I have in mind that could be useful:
 - Use `ffigen` and `jnigen` binding generators to call native code more efficiently instead of using method channels.
-- [Notification actions](https://pub.dev/packages/flutter_local_notifications#notification-actions): stop and snooze
-- Add macOS, Windows, Linux and web support
+- [Notification actions](https://pub.dev/packages/flutter_local_notifications#notification-actions): stop and snooze.
+- Stop alarm sound when notification is dismissed.
+- Add macOS, Windows, Linux and web support.
 
 Thank you for considering contributing to this plugin. Your help is greatly appreciated!
 
