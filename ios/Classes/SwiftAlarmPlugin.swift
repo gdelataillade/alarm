@@ -108,9 +108,10 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     if fadeDuration > 0.0 {
       self.audioPlayers[id]!.volume = 0.1
     }
-
+      
+    self.audioPlayers[id]!.play(atTime: time)
+    
     self.tasksQueue[id] = DispatchWorkItem(block: {
-      self.audioPlayers[id]!.play()
       self.handleAlarmAfterDelay(
         id: id,
         triggerTime: dateTime,
