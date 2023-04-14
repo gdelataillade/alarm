@@ -16,20 +16,33 @@ class AlarmNotification {
       FlutterLocalNotificationsPlugin();
 
   /// Adds configuration for local notifications and initialize service.
-  Future<void> init() async {
-    const initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-    const initializationSettingsIOS = DarwinInitializationSettings(
+  Future<void> init(
+    void Function(NotificationResponse)? onSelectNotification,
+  ) async {
+    const initializationSettingsAndroid = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
+    final initializationSettingsIOS = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
       requestSoundPermission: false,
+      onDidReceiveLocalNotification: (
+        int? id,
+        String? title,
+        String? body,
+        String? payload,
+      ) async {},
     );
-    const initializationSettings = InitializationSettings(
+    final initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsIOS,
     );
 
-    await localNotif.initialize(initializationSettings);
+    await localNotif.initialize(
+      initializationSettings,
+      onDidReceiveBackgroundNotificationResponse: onSelectNotification,
+      onDidReceiveNotificationResponse: onSelectNotification,
+    );
     tz.initializeTimeZones();
   }
 
