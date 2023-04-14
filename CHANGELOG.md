@@ -1,3 +1,6 @@
+## 1.0.1
+* [iOS] Fix alarm sound from background mode.
+
 ## 1.0.0
 * Alarm plugin is now ready for production. Breaking changes will be released in major version releases from now.
 * Add some minor improvements.
