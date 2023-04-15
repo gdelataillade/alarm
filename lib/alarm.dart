@@ -9,7 +9,6 @@ import 'package:alarm/src/android_alarm.dart';
 import 'package:alarm/service/notification.dart';
 import 'package:alarm/service/storage.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 /// Custom print function designed for Alarm plugin.
 DebugPrintCallback alarmPrint = debugPrintThrottled;
@@ -39,21 +38,10 @@ class Alarm {
 
     await Future.wait([
       if (android) AndroidAlarm.init(),
-      AlarmNotification.instance.init(
-        onSelectNotification,
-      ),
+      AlarmNotification.instance.init(),
       AlarmStorage.init(),
     ]);
     await checkAlarm();
-  }
-
-  // Stop the alarm when the notification is opened.
-  static onSelectNotification(NotificationResponse notificationResponse) async {
-    if (notificationResponse.id != null) {
-      await Alarm.stop(
-        notificationResponse.id!,
-      );
-    }
   }
 
   /// Checks if some alarms were set on previous session.

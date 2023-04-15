@@ -16,9 +16,7 @@ class AlarmNotification {
       FlutterLocalNotificationsPlugin();
 
   /// Adds configuration for local notifications and initialize service.
-  Future<void> init(
-    void Function(NotificationResponse)? onSelectNotification,
-  ) async {
+  Future<void> init() async {
     const initializationSettingsAndroid = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
     );
@@ -44,6 +42,15 @@ class AlarmNotification {
       onDidReceiveNotificationResponse: onSelectNotification,
     );
     tz.initializeTimeZones();
+  }
+
+  // Stop the alarm when the notification is opened.
+  static onSelectNotification(NotificationResponse notificationResponse) async {
+    if (notificationResponse.id != null) {
+      await Alarm.stop(
+        notificationResponse.id!,
+      );
+    }
   }
 
   /// Shows notification permission request.
