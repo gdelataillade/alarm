@@ -162,6 +162,17 @@ class Alarm {
   /// Whether an alarm is set.
   static bool hasAlarm() => AlarmStorage.hasAlarm();
 
+  /// Returns alarm by given id. Returns null if not found.
+  static AlarmSettings? getAlarm(int id) {
+    List<AlarmSettings> alarms = AlarmStorage.getSavedAlarms();
+
+    for (final alarm in alarms) {
+      if (alarm.id == id) return alarm;
+    }
+    alarmPrint('Alarm with id $id not found.');
+    return null;
+  }
+
   /// Returns all the alarms.
   static List<AlarmSettings> getAlarms() => AlarmStorage.getSavedAlarms();
 }
