@@ -1,3 +1,7 @@
+## 1.0.2
+* Add `getAlarm(id)` method.
+* [Android] Fix isolate unfound port error.
+
 ## 1.0.1
 * [iOS] Fix alarm sound from background mode.
 

@@ -109,7 +109,9 @@ class AndroidAlarm {
   @pragma('vm:entry-point')
   static Future<void> playAlarm(int id, Map<String, dynamic> data) async {
     final audioPlayer = AudioPlayer();
-    SendPort send = IsolateNameServer.lookupPortByName("$ringPort-$id")!;
+    SendPort? send = IsolateNameServer.lookupPortByName("$ringPort-$id");
+
+    if (send == null) return;
 
     send.send('ring');
 
