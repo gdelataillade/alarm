@@ -20,25 +20,13 @@ class AlarmNotification {
     const initializationSettingsAndroid = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
     );
-    final initializationSettingsIOS = DarwinInitializationSettings(
+    const initializationSettingsIOS = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
       requestSoundPermission: false,
-      onDidReceiveLocalNotification: (
-        int? id,
-        String? title,
-        String? body,
-        String? payload,
-      ) async {
-        await onSelectNotificationOldIOS(
-          id,
-          title,
-          body,
-          payload,
-        );
-      },
+      onDidReceiveLocalNotification: onSelectNotificationOldIOS,
     );
-    final initializationSettings = InitializationSettings(
+    const initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsIOS,
     );
@@ -51,9 +39,14 @@ class AlarmNotification {
     tz.initializeTimeZones();
   }
 
+  static isAlarmStopOnReceivedNotification(int id) {
+    return Alarm.getAlarm(id)?.stopAlarmOnReceivedNotification;
+  }
+
   // Stop the alarm when the notification is opened.
   static onSelectNotification(NotificationResponse notificationResponse) async {
-    if (notificationResponse.id != null) {
+    if (notificationResponse.id != null &&
+        isAlarmStopOnReceivedNotification(notificationResponse.id!)) {
       await Alarm.stop(
         notificationResponse.id!,
       );
@@ -67,7 +60,7 @@ class AlarmNotification {
     String? body,
     String? payload,
   ) async {
-    if (id != null) {
+    if (id != null && isAlarmStopOnReceivedNotification(id)) {
       await Alarm.stop(
         id,
       );
