@@ -39,14 +39,9 @@ class AlarmNotification {
     tz.initializeTimeZones();
   }
 
-  static isAlarmStopOnReceivedNotification(int id) {
-    return Alarm.getAlarm(id)?.stopAlarmOnReceivedNotification;
-  }
-
   // Stop the alarm when the notification is opened.
   static onSelectNotification(NotificationResponse notificationResponse) async {
-    if (notificationResponse.id != null &&
-        isAlarmStopOnReceivedNotification(notificationResponse.id!)) {
+    if (notificationResponse.id != null) {
       await Alarm.stop(
         notificationResponse.id!,
       );
@@ -60,7 +55,7 @@ class AlarmNotification {
     String? body,
     String? payload,
   ) async {
-    if (id != null && isAlarmStopOnReceivedNotification(id)) {
+    if (id != null) {
       await Alarm.stop(
         id,
       );
