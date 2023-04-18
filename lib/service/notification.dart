@@ -29,7 +29,14 @@ class AlarmNotification {
         String? title,
         String? body,
         String? payload,
-      ) async {},
+      ) async {
+        await onSelectNotificationOldIOS(
+          id,
+          title,
+          body,
+          payload,
+        );
+      },
     );
     final initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
@@ -49,6 +56,20 @@ class AlarmNotification {
     if (notificationResponse.id != null) {
       await Alarm.stop(
         notificationResponse.id!,
+      );
+    }
+  }
+
+  // Stop the alarm when the notification is opened for iOS versions older than 10.
+  static onSelectNotificationOldIOS(
+    int? id,
+    String? title,
+    String? body,
+    String? payload,
+  ) async {
+    if (id != null) {
+      await Alarm.stop(
+        id,
       );
     }
   }
