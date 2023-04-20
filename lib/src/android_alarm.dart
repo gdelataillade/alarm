@@ -32,6 +32,7 @@ class AndroidAlarm {
     void Function()? onRing,
     String assetAudioPath,
     bool loopAudio,
+    bool maxVolume,
     bool vibrate,
     double fadeDuration,
     String? notificationTitle,
@@ -95,6 +96,7 @@ class AndroidAlarm {
       params: {
         'assetAudioPath': assetAudioPath,
         'loopAudio': loopAudio,
+        'maxVolume': maxVolume,
         'fadeDuration': fadeDuration,
       },
     );
@@ -151,6 +153,10 @@ class AndroidAlarm {
           },
         );
       } else {
+        final maxVolume = data['maxVolume'];
+
+        if (maxVolume) audioPlayer.setVolume(1.0);
+
         audioPlayer.play();
         send.send('Alarm with id $id starts playing.');
       }

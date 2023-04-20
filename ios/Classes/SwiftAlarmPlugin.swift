@@ -76,6 +76,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     let assetAudio = args["assetAudio"] as! String
     let delayInSeconds = args["delayInSeconds"] as! Double
     let loopAudio = args["loopAudio"] as! Bool
+    let maxVolume = args["maxVolume"] as! Bool
     let fadeDuration = args["fadeDuration"] as! Double
     let vibrationsEnabled = args["vibrate"] as! Bool
 
@@ -107,8 +108,10 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
     if fadeDuration > 0.0 {
       self.audioPlayers[id]!.volume = 0.1
+    } else if maxVolume {
+      self.audioPlayers[id]!.volume = 1.0
     }
-      
+
     self.audioPlayers[id]!.play(atTime: time)
     
     self.tasksQueue[id] = DispatchWorkItem(block: {

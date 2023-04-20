@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 export 'package:alarm/model/alarm_settings.dart';
 import 'dart:async';
 
@@ -32,6 +30,7 @@ class Alarm {
   static Future<void> init({bool showDebugLogs = true}) async {
     alarmPrint = (String? message, {int? wrapWidth}) {
       if (kDebugMode && showDebugLogs) {
+        // ignore: avoid_print
         print("[Alarm] $message");
       }
     };
@@ -109,6 +108,7 @@ class Alarm {
         () => ringStream.add(alarmSettings),
         assetAudio,
         alarmSettings.loopAudio,
+        alarmSettings.maxVolume,
         alarmSettings.vibrate,
         alarmSettings.fadeDuration,
         alarmSettings.notificationTitle,
@@ -123,6 +123,7 @@ class Alarm {
         () => ringStream.add(alarmSettings),
         alarmSettings.assetAudioPath,
         alarmSettings.loopAudio,
+        alarmSettings.maxVolume,
         alarmSettings.vibrate,
         alarmSettings.fadeDuration,
         alarmSettings.notificationTitle,
