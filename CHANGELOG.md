@@ -1,3 +1,6 @@
+## 1.0.3
+* Add optional [stopOnNotificationOpen] parameter to stop alarm when notification is opened.
+
 ## 1.0.2
 * Add `getAlarm(id)` method.
 * [Android] Fix isolate unfound port error.

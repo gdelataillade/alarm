@@ -54,7 +54,7 @@ class AlarmSettings {
   /// the user that the alarms won't ring anymore. Enabled by default.
   final bool enableNotificationOnKill;
 
-  // Stop the alarm on received notification.
+  /// Stops the alarm on opened notification.
   final bool stopOnNotificationOpen;
 
   /// Creates a copy of `AlarmSettings` but with the given fields replaced with
