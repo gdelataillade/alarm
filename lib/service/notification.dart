@@ -17,20 +17,52 @@ class AlarmNotification {
 
   /// Adds configuration for local notifications and initialize service.
   Future<void> init() async {
-    const initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const initializationSettingsAndroid = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const initializationSettingsIOS = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
       requestSoundPermission: false,
+      onDidReceiveLocalNotification: onSelectNotificationOldIOS,
     );
     const initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsIOS,
     );
 
-    await localNotif.initialize(initializationSettings);
+    await localNotif.initialize(
+      initializationSettings,
+      onDidReceiveBackgroundNotificationResponse: onSelectNotification,
+      onDidReceiveNotificationResponse: onSelectNotification,
+    );
     tz.initializeTimeZones();
+  }
+
+  // Callback to stop the alarm when the notification is opened.
+  static onSelectNotification(NotificationResponse notificationResponse) async {
+    await stopAlarm(notificationResponse.id);
+  }
+
+  // Callback to stop the alarm when the notification is opened for iOS versions older than 10.
+  static onSelectNotificationOldIOS(
+    int? id,
+    String? title,
+    String? body,
+    String? payload,
+  ) async {
+    await stopAlarm(id);
+  }
+
+  // Stop the alarm
+  static Future<void> stopAlarm(int? id) async {
+    if (id != null &&
+        Alarm.getAlarm(id)?.stopOnNotificationOpen != null &&
+        Alarm.getAlarm(id)!.stopOnNotificationOpen) {
+      await Alarm.stop(
+        id,
+      );
+    }
   }
 
   /// Shows notification permission request.
