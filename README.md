@@ -127,6 +127,7 @@ fadeDuration |   `double`     | Duration, in seconds, over which to fade the ala
 notificationTitle |   `String`     | The title of the notification triggered when alarm rings if app is on background.
 notificationBody | `String` | The body of the notification.
 enableNotificationOnKill |   `bool`     | Whether to show a notification when application is killed to warn the user that the alarm he set may not ring. Enabled by default.
+stopOnNotificationOpen |   `bool`     | Whether to stop the alarm when opening the received notification. Enabled by default.
 
 The notification shown on alarm ring can be disabled simply by ignoring the parameters `notificationTitle` and `notificationBody`. However, if you want a notification to be triggered, you will have to provide **both of them**.
 

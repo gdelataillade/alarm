@@ -14,6 +14,7 @@ class AlarmSettings {
     this.notificationTitle,
     this.notificationBody,
     this.enableNotificationOnKill = true,
+    this.stopOnNotificationOpen = true,
   });
 
   /// Unique identifier assiocated with the alarm.
@@ -53,6 +54,9 @@ class AlarmSettings {
   /// the user that the alarms won't ring anymore. Enabled by default.
   final bool enableNotificationOnKill;
 
+  // Stop the alarm on received notification.
+  final bool stopOnNotificationOpen;
+
   /// Creates a copy of `AlarmSettings` but with the given fields replaced with
   /// the new values.
   AlarmSettings copyWith({
@@ -64,6 +68,7 @@ class AlarmSettings {
     String? notificationTitle,
     String? notificationBody,
     bool? enableNotificationOnKill,
+    bool? stopOnNotificationOpen,
   }) {
     return AlarmSettings(
       id: id,
@@ -76,6 +81,8 @@ class AlarmSettings {
       notificationBody: notificationBody ?? this.notificationBody,
       enableNotificationOnKill:
           enableNotificationOnKill ?? this.enableNotificationOnKill,
+      stopOnNotificationOpen:
+          stopOnNotificationOpen ?? this.stopOnNotificationOpen,
     );
   }
 
@@ -90,6 +97,7 @@ class AlarmSettings {
         notificationTitle: json['notificationTitle'] as String?,
         notificationBody: json['notificationBody'] as String?,
         enableNotificationOnKill: json['enableNotificationOnKill'] as bool,
+        stopOnNotificationOpen: json['stopOnNotificationOpen'] as bool,
       );
 
   /// Converts this `AlarmSettings` instance to JSON data.
@@ -103,6 +111,7 @@ class AlarmSettings {
         'notificationTitle': notificationTitle,
         'notificationBody': notificationBody,
         'enableNotificationOnKill': enableNotificationOnKill,
+        'stopOnNotificationOpen': stopOnNotificationOpen,
       };
 
   /// Returns all the properties of `AlarmSettings` for debug purposes.

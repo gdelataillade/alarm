@@ -39,23 +39,26 @@ class AlarmNotification {
     tz.initializeTimeZones();
   }
 
-  // Stop the alarm when the notification is opened.
+  // Callback to stop the alarm when the notification is opened.
   static onSelectNotification(NotificationResponse notificationResponse) async {
-    if (notificationResponse.id != null) {
-      await Alarm.stop(
-        notificationResponse.id!,
-      );
-    }
+    await stopAlarm(notificationResponse.id);
   }
 
-  // Stop the alarm when the notification is opened for iOS versions older than 10.
+  // Callback to stop the alarm when the notification is opened for iOS versions older than 10.
   static onSelectNotificationOldIOS(
     int? id,
     String? title,
     String? body,
     String? payload,
   ) async {
-    if (id != null) {
+    await stopAlarm(id);
+  }
+
+  // Stop the alarm
+  static Future<void> stopAlarm(int? id) async {
+    if (id != null &&
+        Alarm.getAlarm(id)?.stopOnNotificationOpen != null &&
+        Alarm.getAlarm(id)!.stopOnNotificationOpen) {
       await Alarm.stop(
         id,
       );
