@@ -63,6 +63,7 @@ class AlarmSettings {
     double? fadeDuration,
     String? notificationTitle,
     String? notificationBody,
+    bool? enableNotificationOnKill,
   }) {
     return AlarmSettings(
       id: id,
@@ -73,6 +74,8 @@ class AlarmSettings {
       fadeDuration: fadeDuration ?? this.fadeDuration,
       notificationTitle: notificationTitle ?? this.notificationTitle,
       notificationBody: notificationBody ?? this.notificationBody,
+      enableNotificationOnKill:
+          enableNotificationOnKill ?? this.enableNotificationOnKill,
     );
   }
 
@@ -86,6 +89,7 @@ class AlarmSettings {
         fadeDuration: json['fadeDuration'] as double,
         notificationTitle: json['notificationTitle'] as String?,
         notificationBody: json['notificationBody'] as String?,
+        enableNotificationOnKill: json['enableNotificationOnKill'] as bool,
       );
 
   /// Converts this `AlarmSettings` instance to JSON data.
@@ -98,6 +102,7 @@ class AlarmSettings {
         'fadeDuration': fadeDuration,
         'notificationTitle': notificationTitle,
         'notificationBody': notificationBody,
+        'enableNotificationOnKill': enableNotificationOnKill,
       };
 
   /// Returns all the properties of `AlarmSettings` for debug purposes.
