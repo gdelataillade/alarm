@@ -124,6 +124,7 @@ assetAudio |   `String`     | The path to you audio asset you want to use as rin
 loopAudio |   `bool`     | If true, audio will repeat indefinitely until alarm is stopped.
 vibrate |   `bool`     | If true, device will vibrate indefinitely until alarm is stopped. If [loopAudio] is set to false, vibrations will stop when audio ends.
 fadeDuration |   `double`     | Duration, in seconds, over which to fade the alarm volume. Set to 0 by default, which means no fade.
+notificationTimeZonId |   `String`     | The time zone id of the notification triggered when alarm rings if app is on background. If not set, the time zone ID of UTC will be used.
 notificationTitle |   `String`     | The title of the notification triggered when alarm rings if app is on background.
 notificationBody | `String` | The body of the notification.
 enableNotificationOnKill |   `bool`     | Whether to show a notification when application is killed to warn the user that the alarm he set may not ring. Enabled by default.
