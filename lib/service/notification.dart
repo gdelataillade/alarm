@@ -107,7 +107,7 @@ class AlarmNotification {
   Future<void> scheduleAlarmNotif({
     required int id,
     required DateTime dateTime,
-    String locationName = 'UTC',
+    required String locationName,
     required String title,
     required String body,
   }) async {
