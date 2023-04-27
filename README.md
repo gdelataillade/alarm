@@ -175,6 +175,10 @@ Don't hesitate to check out the example's code, and take a look at the app:
 Some Android manufacturers prefer battery life over proper functionality of your apps. Check out [dontkillmyapp.com](https://dontkillmyapp.com) to find out about more about optimizations done by different vendors, and potential workarounds. 
 *Source: [https://pub.dev/packages/android_alarm_manager_plus#faq](https://pub.dev/packages/android_alarm_manager_plus#faq)*
 
+### Why isn't my alarm ringing when the device volume is off?
+
+iOS prevents third-party apps from modifying volumes. If media volume is off, then the alarm is muted. To ensure the alarm rings, users should turn on media volume before setting the alarm. For consistency, we don't add volume checks for Android, maintaining a uniform user experience on both platforms. Feel free to add one in your app is desired.
+
 ## Feature request
 
 If you have a feature request, just open an issue explaining clearly what you want and if you convince me I will develop it for you.
