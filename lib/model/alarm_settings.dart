@@ -11,6 +11,7 @@ class AlarmSettings {
     this.loopAudio = true,
     this.vibrate = true,
     this.fadeDuration = 0.0,
+    this.notificationTimeZoneId = 'UTC',
     this.notificationTitle,
     this.notificationBody,
     this.enableNotificationOnKill = true,
@@ -42,6 +43,10 @@ class AlarmSettings {
   /// Set to 0.0 by default, which means no fade.
   final double fadeDuration;
 
+  /// Time zone identifier to be used for the notification.
+  /// The default value is `UTC`.
+  final String notificationTimeZoneId;
+
   /// Title of the notification to be shown when alarm is triggered.
   /// Must not be null nor empty to show a notification.
   final String? notificationTitle;
@@ -65,6 +70,7 @@ class AlarmSettings {
     bool? loopAudio,
     bool? vibrate,
     double? fadeDuration,
+    String? notificationTimeZoneId,
     String? notificationTitle,
     String? notificationBody,
     bool? enableNotificationOnKill,
@@ -77,12 +83,11 @@ class AlarmSettings {
       loopAudio: loopAudio ?? this.loopAudio,
       vibrate: vibrate ?? this.vibrate,
       fadeDuration: fadeDuration ?? this.fadeDuration,
+      notificationTimeZoneId: notificationTimeZoneId ?? this.notificationTimeZoneId,
       notificationTitle: notificationTitle ?? this.notificationTitle,
       notificationBody: notificationBody ?? this.notificationBody,
-      enableNotificationOnKill:
-          enableNotificationOnKill ?? this.enableNotificationOnKill,
-      stopOnNotificationOpen:
-          stopOnNotificationOpen ?? this.stopOnNotificationOpen,
+      enableNotificationOnKill: enableNotificationOnKill ?? this.enableNotificationOnKill,
+      stopOnNotificationOpen: stopOnNotificationOpen ?? this.stopOnNotificationOpen,
     );
   }
 
@@ -94,6 +99,7 @@ class AlarmSettings {
         loopAudio: json['loopAudio'] as bool,
         vibrate: json['vibrate'] as bool,
         fadeDuration: json['fadeDuration'] as double,
+        notificationTimeZoneId: json['notificationTimeZoneId'] as String,
         notificationTitle: json['notificationTitle'] as String?,
         notificationBody: json['notificationBody'] as String?,
         enableNotificationOnKill: json['enableNotificationOnKill'] as bool,
@@ -108,6 +114,7 @@ class AlarmSettings {
         'loopAudio': loopAudio,
         'vibrate': vibrate,
         'fadeDuration': fadeDuration,
+        'notificationTimeZoneId': notificationTimeZoneId,
         'notificationTitle': notificationTitle,
         'notificationBody': notificationBody,
         'enableNotificationOnKill': enableNotificationOnKill,
