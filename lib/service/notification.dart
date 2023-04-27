@@ -12,8 +12,7 @@ class AlarmNotification {
 
   static final instance = AlarmNotification._();
 
-  final FlutterLocalNotificationsPlugin localNotif =
-      FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin localNotif = FlutterLocalNotificationsPlugin();
 
   /// Adds configuration for local notifications and initialize service.
   Future<void> init() async {
@@ -71,13 +70,11 @@ class AlarmNotification {
 
     if (defaultTargetPlatform == TargetPlatform.android) {
       result = await localNotif
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
           ?.requestPermission();
     } else {
       result = await localNotif
-          .resolvePlatformSpecificImplementation<
-              IOSFlutterLocalNotificationsPlugin>()
+          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
           ?.requestPermissions(
             alert: true,
             badge: true,
@@ -87,7 +84,7 @@ class AlarmNotification {
     return result ?? false;
   }
 
-  tz.TZDateTime nextInstanceOfTime(Time time) {
+  tz.TZDateTime nextInstanceOfTime(Time time, tz.Location location) {
     final DateTime now = DateTime.now();
 
     DateTime scheduledDate = DateTime(
@@ -103,13 +100,14 @@ class AlarmNotification {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
 
-    return tz.TZDateTime.from(scheduledDate, tz.local);
+    return tz.TZDateTime.from(scheduledDate, location);
   }
 
   /// Schedules notification at the given [dateTime].
   Future<void> scheduleAlarmNotif({
     required int id,
     required DateTime dateTime,
+    String locationName = 'UTC',
     required String title,
     required String body,
   }) async {
@@ -140,6 +138,7 @@ class AlarmNotification {
         dateTime.minute,
         dateTime.second,
       ),
+      tz.getLocation(locationName),
     );
 
     final hasPermission = await requestPermission();
@@ -153,11 +152,10 @@ class AlarmNotification {
         id,
         title,
         body,
-        tz.TZDateTime.from(zdt.toUtc(), tz.UTC),
+        zdt,
         platformChannelSpecifics,
         androidAllowWhileIdle: true,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
+        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       );
       alarmPrint('Notification with id $id scheduled successfuly at $zdt');
     } catch (e) {
