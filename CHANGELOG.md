@@ -1,3 +1,6 @@
+## 1.0.4
+* Add a FAQ item in README
+
 ## 1.0.3
 * Add optional [stopOnNotificationOpen] parameter to stop alarm when notification is opened.
 
