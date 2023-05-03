@@ -1,3 +1,6 @@
+## 1.0.5
+* Update plugin's dependencies.
+
 ## 1.0.4
 * Add a FAQ item in README
 
