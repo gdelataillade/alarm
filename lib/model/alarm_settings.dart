@@ -23,7 +23,12 @@ class AlarmSettings {
   /// Date and time when the alarm will be triggered.
   final DateTime dateTime;
 
-  /// URL or path to audio asset to be used as the alarm ringtone.
+  /// Path to audio asset to be used as the alarm ringtone. Accepted formats:
+  ///
+  /// * Project asset: `assets/your_audio.mp3`.
+  ///
+  /// * Local asset: `/path/to/your/audio.mp3`, which is your `File.path`.
+  ///
   /// For iOS, you need to drag and drop your asset(s) to your `Runner` folder
   /// in Xcode and make sure 'Copy items if needed' is checked.
   /// Check out README.md for more informations.

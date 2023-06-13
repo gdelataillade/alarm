@@ -73,24 +73,42 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
 
     let id = args["id"] as! Int
-    let assetAudio = args["assetAudio"] as! String
     let delayInSeconds = args["delayInSeconds"] as! Double
     let loopAudio = args["loopAudio"] as! Bool
     let fadeDuration = args["fadeDuration"] as! Double
     let vibrationsEnabled = args["vibrate"] as! Bool
 
-    if let audioPath = Bundle.main.path(forResource: assetAudio, ofType: nil) {
-      let audioUrl = URL(fileURLWithPath: audioPath)
-      do {
-        let audioPlayer = try AVAudioPlayer(contentsOf: audioUrl)
-        self.audioPlayers[id] = audioPlayer
-      } catch {
-        result(FlutterError.init(code: "NATIVE_ERR", message: "[Alarm] Error loading AVAudioPlayer with given asset path or url", details: nil))
+    var assetAudio = args["assetAudio"] as! String
+
+    if assetAudio.hasPrefix("assets/") {
+      let filename = String(assetAudio.split(separator: "/").last ?? "")
+
+      if let audioPath = Bundle.main.path(forResource: filename, ofType: nil) {
+        let audioUrl = URL(fileURLWithPath: audioPath)
+        do {
+          let audioPlayer = try AVAudioPlayer(contentsOf: audioUrl)
+          self.audioPlayers[id] = audioPlayer
+        } catch {
+          result(FlutterError.init(code: "NATIVE_ERR", message: "[Alarm] Error loading AVAudioPlayer with given Flutter asset path: \(assetAudio)", details: nil))
+          return
+        }
+      } else {
+        result(FlutterError.init(code: "NATIVE_ERR", message: "[Alarm] Error finding audio file: \(assetAudio)", details: nil))
         return
       }
     } else {
-      result(FlutterError.init(code: "NATIVE_ERR", message: "[Alarm] Error with audio file: path is \(assetAudio)", details: nil))
-      return
+
+      do {
+        let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let filename = String(assetAudio.split(separator: "/").last ?? "")
+        let assetAudioURL = documentsDirectory.appendingPathComponent(filename)
+
+        let audioPlayer = try AVAudioPlayer(contentsOf: assetAudioURL)
+        self.audioPlayers[id] = audioPlayer
+      } catch {
+        result(FlutterError.init(code: "NATIVE_ERR", message: "[Alarm] Error loading given local asset path: \(assetAudio)", details: nil))
+        return
+      }
     }
 
     let currentTime = self.audioPlayers[id]!.deviceCurrentTime

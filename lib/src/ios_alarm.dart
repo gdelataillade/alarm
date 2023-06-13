@@ -126,7 +126,7 @@ class IOSAlarm {
 
   /// Checks periodically if alarm is ringing, as long as app is in foreground.
   static Timer periodicTimer(void Function()? onRing, DateTime dt, int id) {
-    return Timer.periodic(const Duration(milliseconds: 500), (_) {
+    return Timer.periodic(const Duration(milliseconds: 200), (_) {
       if (DateTime.now().isAfter(dt)) {
         disposeAlarm(id);
         onRing?.call();

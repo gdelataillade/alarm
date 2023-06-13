@@ -65,23 +65,7 @@ class AndroidAlarm {
         }
       });
     } catch (e) {
-      alarmPrint('ReceivePort error: $e');
-      return false;
-    }
-
-    if (enableNotificationOnKill && !hasAnotherAlarm) {
-      try {
-        await platform.invokeMethod(
-          'setNotificationOnKillService',
-          {
-            'title': AlarmStorage.getNotificationOnAppKillTitle(),
-            'description': AlarmStorage.getNotificationOnAppKillBody(),
-          },
-        );
-        alarmPrint('NotificationOnKillService set with success');
-      } catch (e) {
-        alarmPrint('NotificationOnKillService error: $e');
-      }
+      throw AlarmException('Isolate error: $e');
     }
 
     final res = await AndroidAlarmManager.oneShotAt(
@@ -98,6 +82,25 @@ class AndroidAlarm {
         'fadeDuration': fadeDuration,
       },
     );
+
+    alarmPrint(
+        'Alarm with id $id scheduled ${res ? 'successfully' : 'failed'} at $dateTime');
+
+    if (enableNotificationOnKill && !hasAnotherAlarm) {
+      try {
+        await platform.invokeMethod(
+          'setNotificationOnKillService',
+          {
+            'title': AlarmStorage.getNotificationOnAppKillTitle(),
+            'description': AlarmStorage.getNotificationOnAppKillBody(),
+          },
+        );
+        alarmPrint('NotificationOnKillService set with success');
+      } catch (e) {
+        throw AlarmException('NotificationOnKillService error: $e');
+      }
+    }
+
     return res;
   }
 
@@ -109,10 +112,11 @@ class AndroidAlarm {
   @pragma('vm:entry-point')
   static Future<void> playAlarm(int id, Map<String, dynamic> data) async {
     final audioPlayer = AudioPlayer();
-    SendPort? send = IsolateNameServer.lookupPortByName("$ringPort-$id");
 
-    if (send == null) return;
+    final res = IsolateNameServer.lookupPortByName("$ringPort-$id");
+    if (res == null) throw AlarmException('Isolate port not found');
 
+    final SendPort send = res;
     send.send('ring');
 
     try {
@@ -120,9 +124,14 @@ class AndroidAlarm {
       Duration? audioDuration;
 
       if (assetAudioPath.startsWith('http')) {
-        audioDuration = await audioPlayer.setUrl(assetAudioPath);
-      } else {
+        send.send('Network URL not supported. Please provide local asset.');
+        return;
+      }
+
+      if (assetAudioPath.startsWith('assets/')) {
         audioDuration = await audioPlayer.setAsset(assetAudioPath);
+      } else {
+        audioDuration = await audioPlayer.setFilePath(assetAudioPath);
       }
 
       send.send('vibrate-${audioDuration?.inSeconds}');
@@ -155,9 +164,10 @@ class AndroidAlarm {
         send.send('Alarm with id $id starts playing.');
       }
     } catch (e) {
-      send.send('AudioPlayer with id $id error: ${e.toString()}');
       await AudioPlayer.clearAssetCache();
       send.send('Asset cache reset. Please try again.');
+      throw AlarmException(
+          "Alarm with id $id and asset path '${data['assetAudioPath']}' error: $e");
     }
 
     try {
@@ -181,7 +191,7 @@ class AndroidAlarm {
         },
       );
     } catch (e) {
-      send.send('(isolate) ReceivePort error: $e');
+      throw AlarmException('Isolate error: $e');
     }
   }
 
@@ -219,10 +229,10 @@ class AndroidAlarm {
     vibrationsActive = false;
 
     try {
-      final SendPort? send = IsolateNameServer.lookupPortByName(stopPort);
-      send?.send('stop');
+      final send = IsolateNameServer.lookupPortByName(stopPort);
+      send!.send('stop');
     } catch (e) {
-      alarmPrint('(main) SendPort error: $e');
+      throw AlarmException('Stop alarm error: $e');
     }
 
     if (!hasAnotherAlarm) stopNotificationOnKillService();
@@ -237,7 +247,7 @@ class AndroidAlarm {
       await platform.invokeMethod('stopNotificationOnKillService');
       alarmPrint('NotificationOnKillService stopped with success');
     } catch (e) {
-      alarmPrint('NotificationOnKillService error: $e');
+      throw AlarmException('NotificationOnKillService error: $e');
     }
   }
 }

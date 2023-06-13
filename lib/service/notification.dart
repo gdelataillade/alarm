@@ -59,9 +59,7 @@ class AlarmNotification {
     if (id != null &&
         Alarm.getAlarm(id)?.stopOnNotificationOpen != null &&
         Alarm.getAlarm(id)!.stopOnNotificationOpen) {
-      await Alarm.stop(
-        id,
-      );
+      await Alarm.stop(id);
     }
   }
 
@@ -161,7 +159,7 @@ class AlarmNotification {
       );
       alarmPrint('Notification with id $id scheduled successfuly at $zdt');
     } catch (e) {
-      alarmPrint('Schedule notification with id $id error: $e');
+      throw AlarmException('Schedule notification with id $id error: $e');
     }
   }
 

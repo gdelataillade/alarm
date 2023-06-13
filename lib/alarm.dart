@@ -96,18 +96,17 @@ class Alarm {
     }
 
     if (!alarmSettings.assetAudioPath.contains('.')) {
-      alarmPrint(
-        'Error: provided asset audio file do not have extension: $alarmSettings.assetAudioPath',
+      throw AlarmException(
+        'Provided asset audio file does not have extension: ${alarmSettings.assetAudioPath}',
       );
     }
 
     if (iOS) {
-      final assetAudio = alarmSettings.assetAudioPath.split('/').last;
       return IOSAlarm.setAlarm(
         alarmSettings.id,
         alarmSettings.dateTime,
         () => ringStream.add(alarmSettings),
-        assetAudio,
+        alarmSettings.assetAudioPath,
         alarmSettings.loopAudio,
         alarmSettings.vibrate,
         alarmSettings.fadeDuration,
@@ -175,4 +174,13 @@ class Alarm {
 
   /// Returns all the alarms.
   static List<AlarmSettings> getAlarms() => AlarmStorage.getSavedAlarms();
+}
+
+class AlarmException implements Exception {
+  final String message;
+
+  AlarmException(this.message);
+
+  @override
+  String toString() => message;
 }
