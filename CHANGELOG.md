@@ -1,3 +1,7 @@
+## 1.1.0
+* Add support for downloaded audio local files.
+* Remove support for network audio files, which was unstable.
+
 ## 1.0.5
 * Update plugin's dependencies.
 

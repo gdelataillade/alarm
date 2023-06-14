@@ -120,7 +120,7 @@ Property |   Type     | Description
 -------- |------------| ---------------
 id |   `int`     | Unique identifier of the alarm.
 alarmDateTime |   `DateTime`     | The date and time you want your alarm to ring.
-assetAudio |   `String`     | The path to you audio asset you want to use as ringtone. Can be project asset or downloaded local file path.
+assetAudio |   `String`     | The path to you audio asset you want to use as ringtone. Can be a path in your assets folder or a downloaded local file path.
 loopAudio |   `bool`     | If true, audio will repeat indefinitely until alarm is stopped.
 vibrate |   `bool`     | If true, device will vibrate indefinitely until alarm is stopped. If [loopAudio] is set to false, vibrations will stop when audio ends.
 fadeDuration |   `double`     | Duration, in seconds, over which to fade the alarm volume. Set to 0 by default, which means no fade.
