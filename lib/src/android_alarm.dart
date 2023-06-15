@@ -231,6 +231,7 @@ class AndroidAlarm {
     try {
       final send = IsolateNameServer.lookupPortByName(stopPort);
       send!.send('stop');
+      alarmPrint('Alarm with id $id stopped.');
     } catch (e) {
       throw AlarmException('Stop alarm error: $e');
     }

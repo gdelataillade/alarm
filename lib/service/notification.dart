@@ -85,23 +85,14 @@ class AlarmNotification {
     return result ?? false;
   }
 
-  tz.TZDateTime nextInstanceOfTime(Time time) {
+  tz.TZDateTime nextInstanceOfTime(DateTime dateTime) {
     final DateTime now = DateTime.now();
 
-    DateTime scheduledDate = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      time.hour,
-      time.minute,
-      time.second,
-    );
-
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    if (dateTime.isBefore(now)) {
+      dateTime = dateTime.add(const Duration(days: 1));
     }
 
-    return tz.TZDateTime.from(scheduledDate, tz.local);
+    return tz.TZDateTime.from(dateTime, tz.local);
   }
 
   /// Schedules notification at the given [dateTime].
@@ -132,13 +123,7 @@ class AlarmNotification {
       android: androidPlatformChannelSpecifics,
     );
 
-    final zdt = nextInstanceOfTime(
-      Time(
-        dateTime.hour,
-        dateTime.minute,
-        dateTime.second,
-      ),
-    );
+    final zdt = nextInstanceOfTime(dateTime);
 
     final hasPermission = await requestPermission();
     if (!hasPermission) {
