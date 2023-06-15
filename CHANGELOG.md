@@ -1,3 +1,6 @@
+## 1.1.2
+* Fix notification schedule date.
+
 ## 1.1.1
 * Update plugin's dependencies.
 * Increment Android minimum version to API 19 (4.4).
