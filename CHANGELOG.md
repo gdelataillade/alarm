@@ -1,3 +1,7 @@
+## 1.1.1
+* Update plugin's dependencies.
+* Increment Android minimum version to API 19 (4.4).
+
 ## 1.1.0
 * Add support for downloaded audio local files.
 * Remove support for network audio files, which was unstable.
