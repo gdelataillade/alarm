@@ -36,8 +36,7 @@ Implements `invokeMethod` to play the alarm audio using `AVAudioPlayer`. Due to 
 
 ### iOS installation steps
 
-To import your alarm audio(s), you will need to drag and drop your asset(s) to your `Runner` folder in Xcode. 
-I published a Gist to show you the steps to follow, and also give you a tip to save your app some weight using symbolic links. It's [right here](https://gist.github.com/gdelataillade/68834caacdd6727f1418e46788f70b53).
+In order to play audio in background, open your project in Xcode, select your Runner and select the Capabilities tab. Under the Capabilities tab, set the Background Modes switch to ON and select the “Audio, AirPlay, and Picture in Picture” option under the list of available modes.
 
 ### Android installation steps
 
