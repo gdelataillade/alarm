@@ -107,7 +107,7 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
                 final alarmSettings = AlarmSettings(
                   id: 42,
                   dateTime: DateTime.now(),
-                  assetAudioPath: 'assets/mozart.mp3',
+                  assetAudioPath: 'assets/marimba.mp3',
                 );
                 Alarm.set(alarmSettings: alarmSettings);
               },

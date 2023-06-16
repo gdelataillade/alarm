@@ -10,11 +10,14 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     private let isDevice = true
   #endif
 
+  private var registrar: FlutterPluginRegistrar!
+
   // MARK: - FlutterPlugin Methods
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "com.gdelataillade/alarm", binaryMessenger: registrar.messenger())
     let instance = SwiftAlarmPlugin()
 
+    instance.registrar = registrar
     registrar.addMethodCallDelegate(instance, channel: channel)
   }
 
@@ -81,7 +84,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     var assetAudio = args["assetAudio"] as! String
 
     if assetAudio.hasPrefix("assets/") {
-      let filename = String(assetAudio.split(separator: "/").last ?? "")
+      let filename = registrar.lookupKey(forAsset: assetAudio)
 
       if let audioPath = Bundle.main.path(forResource: filename, ofType: nil) {
         let audioUrl = URL(fileURLWithPath: audioPath)

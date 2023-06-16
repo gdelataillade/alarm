@@ -59,6 +59,7 @@ flutter:
     - assets/nokia.mp3
     - assets/one_piece.mp3
     - assets/star_wars.mp3
+    - assets/marimba.mp3
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
