@@ -188,7 +188,7 @@ We welcome contributions to this plugin! If you would like to make a change or a
 
 1.  Fork the repository and create a new branch for your changes.
 2.  Make your changes
-3.  Run `flutter format` and `flutter test` to ensure that your code is correctly formatted and passes all tests.
+3.  Run `flutter format` to ensure that your code is correctly formatted.
 4.  Submit a pull request with a detailed description of your changes.
 
 These are some features that I have in mind that could be useful:
