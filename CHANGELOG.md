@@ -1,3 +1,6 @@
+## 1.1.3
+* Remove unecessary exception on init.
+
 ## 1.1.2
 * Fix notification schedule date.
 

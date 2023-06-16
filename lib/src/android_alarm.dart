@@ -223,18 +223,14 @@ class AndroidAlarm {
     }
   }
 
-  /// Sends the message `stop` to the isolate so the audio player.
+  /// Sends the message `stop` to the isolate so the audio player
   /// can stop playing and dispose.
   static Future<bool> stop(int id) async {
     vibrationsActive = false;
 
-    try {
-      final send = IsolateNameServer.lookupPortByName(stopPort);
-      send!.send('stop');
-      alarmPrint('Alarm with id $id stopped.');
-    } catch (e) {
-      throw AlarmException('Stop alarm error: $e');
-    }
+    final send = IsolateNameServer.lookupPortByName(stopPort);
+    send!.send('stop');
+    alarmPrint('Alarm with id $id stopped');
 
     if (!hasAnotherAlarm) stopNotificationOnKillService();
 

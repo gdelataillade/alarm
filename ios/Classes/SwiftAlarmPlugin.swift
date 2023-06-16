@@ -176,7 +176,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
       self.stopNotificationOnKillService();
       result(true)
     } else {
-      result(FlutterError.init(code: "NATIVE_ERR", message: "[Alarm] Error: no alarm found with id \(id)", details: nil))
+      result(false)
     }
   }
 

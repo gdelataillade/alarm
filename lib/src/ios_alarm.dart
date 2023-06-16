@@ -81,19 +81,14 @@ class IOSAlarm {
   static Future<bool> stopAlarm(int id) async {
     disposeAlarm(id);
 
-    try {
-      final res = await methodChannel.invokeMethod<bool?>(
-            'stopAlarm',
-            {'id': id},
-          ) ??
-          false;
+    final res = await methodChannel.invokeMethod<bool?>(
+          'stopAlarm',
+          {'id': id},
+        ) ??
+        false;
 
-      alarmPrint('Alarm with id $id stopped with success');
-      return res;
-    } catch (e) {
-      alarmPrint('Alarm with id $id stop error: $e');
-      return false;
-    }
+    if (res) alarmPrint('Alarm with id $id stopped with success');
+    return res;
   }
 
   /// Checks whether alarm is ringing by getting the native audio player's
