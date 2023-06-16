@@ -1,3 +1,6 @@
+## 1.1.4
+* Add Flutter audio asset import from Swift. It's no longer needed to import your assets in Xcode too.
+
 ## 1.1.3
 * Remove unecessary exception on init.
 
