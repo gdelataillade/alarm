@@ -23,7 +23,7 @@ class AndroidAlarm {
 
   static bool vibrationsActive = false;
 
-  static bool get hasAnotherAlarm => AlarmStorage.getSavedAlarms().length > 1;
+  static bool get hasOtherAlarms => AlarmStorage.getSavedAlarms().length > 1;
 
   /// Creates isolate communication channel and set alarm at given [dateTime].
   static Future<bool> set(
@@ -86,7 +86,7 @@ class AndroidAlarm {
     alarmPrint(
         'Alarm with id $id scheduled ${res ? 'successfully' : 'failed'} at $dateTime');
 
-    if (enableNotificationOnKill && !hasAnotherAlarm) {
+    if (enableNotificationOnKill && !hasOtherAlarms) {
       try {
         await platform.invokeMethod(
           'setNotificationOnKillService',
@@ -229,10 +229,13 @@ class AndroidAlarm {
     vibrationsActive = false;
 
     final send = IsolateNameServer.lookupPortByName(stopPort);
-    send!.send('stop');
-    alarmPrint('Alarm with id $id stopped');
 
-    if (!hasAnotherAlarm) stopNotificationOnKillService();
+    if (send != null) {
+      send.send('stop');
+      alarmPrint('Alarm with id $id stopped');
+    }
+
+    if (!hasOtherAlarms) stopNotificationOnKillService();
 
     final res = await AndroidAlarmManager.cancel(id);
 

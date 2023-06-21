@@ -1,3 +1,6 @@
+## 1.1.5
+* [Android] Fix null isolate SendPort error on stop.
+
 ## 1.1.4
 * Add Flutter audio asset import from Swift. It's no longer needed to import your assets in Xcode too.
 
