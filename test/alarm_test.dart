@@ -1,16 +1,23 @@
+import 'dart:io';
+
 import 'package:alarm/alarm.dart';
+import 'package:alarm/service/storage.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  group('Alarm', () {
-    late AlarmSettings alarmSettings;
 
+  group('Alarm', () {
     setUp(() async {
-      const MethodChannel('dexterous.com/flutter/local_notifications')
-          .setMockMethodCallHandler((MethodCall methodCall) async {
-        if (methodCall.method == 'initialize') {
+      const channel =
+          MethodChannel('dexterous.com/flutter/local_notifications');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+        if (call.method == 'initialize') {
+          return true;
+        }
+        if (call.method == 'zonedSchedule') {
           return true;
         }
         return null;
@@ -53,18 +60,29 @@ void main() {
       });
 
       await Alarm.init();
+    });
 
-      alarmSettings = AlarmSettings(
+    test('basic alarm flow', () async {
+      final alarmSettings = AlarmSettings(
         id: 42,
         dateTime: DateTime.now().add(const Duration(seconds: 5)),
         assetAudioPath: 'example/assets/alarm.mp3',
         enableNotificationOnKill: false,
       );
-    });
 
-    test('set simple alarm', () async {
       final res = await Alarm.set(alarmSettings: alarmSettings);
       expect(res, isTrue);
+
+      final alarms = AlarmStorage.getSavedAlarms();
+
+      final alarm = alarms.firstWhere(
+        (alarm) => alarm.id == alarmSettings.id,
+        orElse: () => fail('Alarm not found'),
+      );
+
+      expect(alarm == alarmSettings, true);
+
+      // TODO: Stop alarm
     });
   });
 }
