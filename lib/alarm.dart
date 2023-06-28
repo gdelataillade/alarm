@@ -155,6 +155,15 @@ class Alarm {
     return iOS ? await IOSAlarm.stopAlarm(id) : await AndroidAlarm.stop(id);
   }
 
+  /// Stops all the alarms.
+  static Future<void> stopAll() async {
+    final alarms = AlarmStorage.getSavedAlarms();
+
+    for (final alarm in alarms) {
+      await stop(alarm.id);
+    }
+  }
+
   /// Whether the alarm is ringing.
   static Future<bool> isRinging(int id) => IOSAlarm.checkIfRinging(id);
 
