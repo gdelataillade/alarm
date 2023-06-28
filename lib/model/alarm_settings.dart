@@ -1,22 +1,4 @@
 class AlarmSettings {
-  /// Model that contains all the settings to customize and set an alarm.
-  ///
-  ///
-  /// Note that if you want to show a notification when alarm is triggered,
-  /// both [notificationTitle] and [notificationBody] must not be null nor empty.
-  AlarmSettings({
-    required this.id,
-    required this.dateTime,
-    required this.assetAudioPath,
-    this.loopAudio = true,
-    this.vibrate = true,
-    this.fadeDuration = 0.0,
-    this.notificationTitle,
-    this.notificationBody,
-    this.enableNotificationOnKill = true,
-    this.stopOnNotificationOpen = true,
-  });
-
   /// Unique identifier assiocated with the alarm.
   final int id;
 
@@ -62,34 +44,43 @@ class AlarmSettings {
   /// Stops the alarm on opened notification.
   final bool stopOnNotificationOpen;
 
-  /// Creates a copy of `AlarmSettings` but with the given fields replaced with
-  /// the new values.
-  AlarmSettings copyWith({
-    DateTime? dateTime,
-    String? assetAudioPath,
-    bool? loopAudio,
-    bool? vibrate,
-    double? fadeDuration,
-    String? notificationTitle,
-    String? notificationBody,
-    bool? enableNotificationOnKill,
-    bool? stopOnNotificationOpen,
-  }) {
-    return AlarmSettings(
-      id: id,
-      dateTime: dateTime ?? this.dateTime,
-      assetAudioPath: assetAudioPath ?? this.assetAudioPath,
-      loopAudio: loopAudio ?? this.loopAudio,
-      vibrate: vibrate ?? this.vibrate,
-      fadeDuration: fadeDuration ?? this.fadeDuration,
-      notificationTitle: notificationTitle ?? this.notificationTitle,
-      notificationBody: notificationBody ?? this.notificationBody,
-      enableNotificationOnKill:
-          enableNotificationOnKill ?? this.enableNotificationOnKill,
-      stopOnNotificationOpen:
-          stopOnNotificationOpen ?? this.stopOnNotificationOpen,
-    );
+  /// Returns a hash code for this `AlarmSettings` instance using Jenkins hash function.
+  @override
+  int get hashCode {
+    var hash = 0;
+
+    hash = hash ^ id.hashCode;
+    hash = hash ^ dateTime.hashCode;
+    hash = hash ^ assetAudioPath.hashCode;
+    hash = hash ^ loopAudio.hashCode;
+    hash = hash ^ vibrate.hashCode;
+    hash = hash ^ fadeDuration.hashCode;
+    hash = hash ^ (notificationTitle?.hashCode ?? 0);
+    hash = hash ^ (notificationBody?.hashCode ?? 0);
+    hash = hash ^ enableNotificationOnKill.hashCode;
+    hash = hash ^ stopOnNotificationOpen.hashCode;
+    hash = hash & 0x3fffffff;
+
+    return hash;
   }
+
+  /// Model that contains all the settings to customize and set an alarm.
+  ///
+  ///
+  /// Note that if you want to show a notification when alarm is triggered,
+  /// both [notificationTitle] and [notificationBody] must not be null nor empty.
+  const AlarmSettings({
+    required this.id,
+    required this.dateTime,
+    required this.assetAudioPath,
+    this.loopAudio = true,
+    this.vibrate = true,
+    this.fadeDuration = 0.0,
+    this.notificationTitle,
+    this.notificationBody,
+    this.enableNotificationOnKill = true,
+    this.stopOnNotificationOpen = true,
+  });
 
   /// Constructs an `AlarmSettings` instance from the given JSON data.
   factory AlarmSettings.fromJson(Map<String, dynamic> json) => AlarmSettings(
@@ -104,6 +95,36 @@ class AlarmSettings {
         enableNotificationOnKill: json['enableNotificationOnKill'] as bool,
         stopOnNotificationOpen: json['stopOnNotificationOpen'] as bool,
       );
+
+  /// Creates a copy of `AlarmSettings` but with the given fields replaced with
+  /// the new values.
+  AlarmSettings copyWith({
+    int? id,
+    DateTime? dateTime,
+    String? assetAudioPath,
+    bool? loopAudio,
+    bool? vibrate,
+    double? fadeDuration,
+    String? notificationTitle,
+    String? notificationBody,
+    bool? enableNotificationOnKill,
+    bool? stopOnNotificationOpen,
+  }) {
+    return AlarmSettings(
+      id: id ?? this.id,
+      dateTime: dateTime ?? this.dateTime,
+      assetAudioPath: assetAudioPath ?? this.assetAudioPath,
+      loopAudio: loopAudio ?? this.loopAudio,
+      vibrate: vibrate ?? this.vibrate,
+      fadeDuration: fadeDuration ?? this.fadeDuration,
+      notificationTitle: notificationTitle ?? this.notificationTitle,
+      notificationBody: notificationBody ?? this.notificationBody,
+      enableNotificationOnKill:
+          enableNotificationOnKill ?? this.enableNotificationOnKill,
+      stopOnNotificationOpen:
+          stopOnNotificationOpen ?? this.stopOnNotificationOpen,
+    );
+  }
 
   /// Converts this `AlarmSettings` instance to JSON data.
   Map<String, dynamic> toJson() => {
@@ -124,6 +145,24 @@ class AlarmSettings {
   String toString() {
     Map<String, dynamic> json = toJson();
     json['dateTime'] = DateTime.fromMicrosecondsSinceEpoch(json['dateTime']);
+
     return "AlarmSettings: ${json.toString()}";
   }
+
+  /// Compares two AlarmSettings.
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AlarmSettings &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          dateTime == other.dateTime &&
+          assetAudioPath == other.assetAudioPath &&
+          loopAudio == other.loopAudio &&
+          vibrate == other.vibrate &&
+          fadeDuration == other.fadeDuration &&
+          notificationTitle == other.notificationTitle &&
+          notificationBody == other.notificationBody &&
+          enableNotificationOnKill == other.enableNotificationOnKill &&
+          stopOnNotificationOpen == other.stopOnNotificationOpen;
 }
