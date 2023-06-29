@@ -8,12 +8,11 @@ import 'package:timezone/timezone.dart' as tz;
 /// when the alarm rings so the user can understand where the audio
 /// comes from. He also can tap the notification to open directly the app.
 class AlarmNotification {
-  AlarmNotification._();
-
   static final instance = AlarmNotification._();
 
-  final FlutterLocalNotificationsPlugin localNotif =
-      FlutterLocalNotificationsPlugin();
+  final localNotif = FlutterLocalNotificationsPlugin();
+
+  AlarmNotification._();
 
   /// Adds configuration for local notifications and initialize service.
   Future<void> init() async {
@@ -22,8 +21,8 @@ class AlarmNotification {
     );
     const initializationSettingsIOS = DarwinInitializationSettings(
       requestAlertPermission: false,
-      requestBadgePermission: false,
       requestSoundPermission: false,
+      requestBadgePermission: false,
       onDidReceiveLocalNotification: onSelectNotificationOldIOS,
     );
     const initializationSettings = InitializationSettings(
@@ -47,14 +46,13 @@ class AlarmNotification {
   // Callback to stop the alarm when the notification is opened for iOS versions older than 10.
   static onSelectNotificationOldIOS(
     int? id,
-    String? title,
-    String? body,
-    String? payload,
-  ) async {
-    await stopAlarm(id);
-  }
+    String? _,
+    String? __,
+    String? ___,
+  ) async =>
+      await stopAlarm(id);
 
-  /// Stops the alarm
+  /// Stops the alarm.
   static Future<void> stopAlarm(int? id) async {
     if (id != null &&
         Alarm.getAlarm(id)?.stopOnNotificationOpen != null &&
@@ -65,28 +63,23 @@ class AlarmNotification {
 
   /// Shows notification permission request.
   Future<bool> requestPermission() async {
-    late bool? result;
+    bool? result;
 
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      result = await localNotif
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
-          ?.requestPermission();
-    } else {
-      result = await localNotif
-          .resolvePlatformSpecificImplementation<
-              IOSFlutterLocalNotificationsPlugin>()
-          ?.requestPermissions(
-            alert: true,
-            badge: true,
-            sound: true,
-          );
-    }
+    result = defaultTargetPlatform == TargetPlatform.android
+        ? await localNotif
+            .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin>()
+            ?.requestPermission()
+        : await localNotif
+            .resolvePlatformSpecificImplementation<
+                IOSFlutterLocalNotificationsPlugin>()
+            ?.requestPermissions(alert: true, badge: true, sound: true);
+
     return result ?? false;
   }
 
   tz.TZDateTime nextInstanceOfTime(DateTime dateTime) {
-    final DateTime now = DateTime.now();
+    final now = DateTime.now();
 
     if (dateTime.isBefore(now)) {
       dateTime = dateTime.add(const Duration(days: 1));
@@ -103,9 +96,9 @@ class AlarmNotification {
     required String body,
   }) async {
     const iOSPlatformChannelSpecifics = DarwinNotificationDetails(
-      presentSound: false,
       presentAlert: false,
       presentBadge: false,
+      presentSound: false,
     );
 
     const androidPlatformChannelSpecifics = AndroidNotificationDetails(
@@ -114,13 +107,13 @@ class AlarmNotification {
       channelDescription: 'Alarm plugin',
       importance: Importance.max,
       priority: Priority.max,
-      enableLights: true,
       playSound: false,
+      enableLights: true,
     );
 
     const platformChannelSpecifics = NotificationDetails(
-      iOS: iOSPlatformChannelSpecifics,
       android: androidPlatformChannelSpecifics,
+      iOS: iOSPlatformChannelSpecifics,
     );
 
     final zdt = nextInstanceOfTime(dateTime);

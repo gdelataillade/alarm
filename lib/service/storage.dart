@@ -4,12 +4,12 @@ import 'package:alarm/alarm.dart';
 import 'package:alarm/model/alarm_settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const prefix = '__alarm_id__';
-const notificationOnAppKill = 'notificationOnAppKill';
-const notificationOnAppKillTitle = 'notificationOnAppKillTitle';
-const notificationOnAppKillBody = 'notificationOnAppKillBody';
-
 class AlarmStorage {
+  static const prefix = '__alarm_id__';
+  static const notificationOnAppKill = 'notificationOnAppKill';
+  static const notificationOnAppKillTitle = 'notificationOnAppKillTitle';
+  static const notificationOnAppKillBody = 'notificationOnAppKillBody';
+
   static late SharedPreferences prefs;
 
   static Future<void> init() async {
@@ -33,6 +33,7 @@ class AlarmStorage {
     for (final key in keys) {
       if (key.startsWith(prefix)) return true;
     }
+
     return false;
   }
 
@@ -48,6 +49,7 @@ class AlarmStorage {
         alarms.add(AlarmSettings.fromJson(json.decode(res!)));
       }
     }
+
     return alarms;
   }
 
