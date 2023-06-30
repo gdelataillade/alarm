@@ -7,11 +7,10 @@ import 'package:flutter_fgbg/flutter_fgbg.dart';
 
 /// Uses method channel to interact with the native platform.
 class IOSAlarm {
-  static MethodChannel methodChannel =
-      const MethodChannel('com.gdelataillade/alarm');
+  static const methodChannel = MethodChannel('com.gdelataillade/alarm');
 
-  static Map<int, Timer?> timers = {};
-  static Map<int, StreamSubscription<FGBGType>?> fgbgSubscriptions = {};
+  static const timers = <int, Timer?>{};
+  static const fgbgSubscriptions = <int, StreamSubscription<FGBGType>?>{};
 
   /// Calls the native function `setAlarm` and listens to alarm ring state.
   ///
@@ -25,8 +24,6 @@ class IOSAlarm {
     bool loopAudio,
     bool vibrate,
     double fadeDuration,
-    String? notificationTitle,
-    String? notificationBody,
     bool enableNotificationOnKill,
   ) async {
     final delay = dateTime.difference(DateTime.now());
@@ -49,9 +46,10 @@ class IOSAlarm {
         false;
 
     alarmPrint(
-        'Alarm with id $id scheduled ${res ? 'successfully' : 'failed'} at $dateTime');
+      'Alarm with id $id scheduled ${res ? 'successfully' : 'failed'} at $dateTime',
+    );
 
-    if (res == false) return false;
+    if (!res) return false;
 
     if (timers[id] != null && timers[id]!.isActive) timers[id]!.cancel();
     timers[id] = periodicTimer(onRing, dateTime, id);
@@ -73,6 +71,7 @@ class IOSAlarm {
         }
       },
     );
+
     return true;
   }
 
@@ -88,6 +87,7 @@ class IOSAlarm {
         false;
 
     if (res) alarmPrint('Alarm with id $id stopped with success');
+
     return res;
   }
 
@@ -102,8 +102,8 @@ class IOSAlarm {
     final pos2 = await methodChannel
             .invokeMethod<double?>('audioCurrentTime', {'id': id}) ??
         0.0;
-    final isRinging = pos2 > pos1;
-    return isRinging;
+
+    return pos2 > pos1;
   }
 
   /// Listens when app goes foreground so we can check if alarm is ringing.
@@ -112,7 +112,7 @@ class IOSAlarm {
     required int id,
     required void Function() onForeground,
     required void Function() onBackground,
-  }) async {
+  }) {
     fgbgSubscriptions[id] = FGBGEvents.stream.listen((event) {
       if (event == FGBGType.foreground) onForeground();
       if (event == FGBGType.background) onBackground();
@@ -122,10 +122,9 @@ class IOSAlarm {
   /// Checks periodically if alarm is ringing, as long as app is in foreground.
   static Timer periodicTimer(void Function()? onRing, DateTime dt, int id) {
     return Timer.periodic(const Duration(milliseconds: 200), (_) {
-      if (DateTime.now().isAfter(dt)) {
-        disposeAlarm(id);
-        onRing?.call();
-      }
+      if (DateTime.now().isBefore(dt)) return;
+      disposeAlarm(id);
+      onRing?.call();
     });
   }
 

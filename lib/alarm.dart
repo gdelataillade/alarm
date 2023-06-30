@@ -110,12 +110,9 @@ class Alarm {
         alarmSettings.loopAudio,
         alarmSettings.vibrate,
         alarmSettings.fadeDuration,
-        alarmSettings.notificationTitle,
-        alarmSettings.notificationBody,
         alarmSettings.enableNotificationOnKill,
       );
-    }
-    if (android) {
+    } else if (android) {
       return await AndroidAlarm.set(
         alarmSettings.id,
         alarmSettings.dateTime,
@@ -124,11 +121,10 @@ class Alarm {
         alarmSettings.loopAudio,
         alarmSettings.vibrate,
         alarmSettings.fadeDuration,
-        alarmSettings.notificationTitle,
-        alarmSettings.notificationBody,
         alarmSettings.enableNotificationOnKill,
       );
     }
+
     return false;
   }
 
@@ -178,6 +174,7 @@ class Alarm {
       if (alarm.id == id) return alarm;
     }
     alarmPrint('Alarm with id $id not found.');
+
     return null;
   }
 
@@ -188,7 +185,7 @@ class Alarm {
 class AlarmException implements Exception {
   final String message;
 
-  AlarmException(this.message);
+  const AlarmException(this.message);
 
   @override
   String toString() => message;
