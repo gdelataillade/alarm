@@ -12,13 +12,29 @@ class ExampleAlarmEditScreen extends StatefulWidget {
 }
 
 class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
-  late bool creating;
+  bool loading = false;
 
+  late bool creating;
   late TimeOfDay selectedTime;
   late bool loopAudio;
   late bool vibrate;
   late bool showNotification;
   late String assetAudio;
+
+  bool isToday() {
+    final now = DateTime.now();
+    final dateTime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      selectedTime.hour,
+      selectedTime.minute,
+      0,
+      0,
+    );
+
+    return now.isBefore(dateTime);
+  }
 
   @override
   void initState() {
@@ -88,9 +104,11 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
   }
 
   void saveAlarm() {
+    setState(() => loading = true);
     Alarm.set(alarmSettings: buildAlarmSettings()).then((res) {
       if (res) Navigator.pop(context, true);
     });
+    setState(() => loading = false);
   }
 
   void deleteAlarm() {
@@ -121,15 +139,24 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
               ),
               TextButton(
                 onPressed: saveAlarm,
-                child: Text(
-                  "Save",
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge!
-                      .copyWith(color: Colors.blueAccent),
-                ),
+                child: loading
+                    ? const CircularProgressIndicator()
+                    : Text(
+                        "Save",
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleLarge!
+                            .copyWith(color: Colors.blueAccent),
+                      ),
               ),
             ],
+          ),
+          Text(
+            '${isToday() ? 'Today' : 'Tomorrow'} at',
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium!
+                .copyWith(color: Colors.blueAccent.withOpacity(0.8)),
           ),
           RawMaterialButton(
             onPressed: pickTime,

@@ -67,6 +67,12 @@ class Alarm {
   /// Also, schedules notification if [notificationTitle] and [notificationBody]
   /// are not null nor empty.
   static Future<bool> set({required AlarmSettings alarmSettings}) async {
+    if (!alarmSettings.assetAudioPath.contains('.')) {
+      throw AlarmException(
+        'Provided asset audio file does not have extension: ${alarmSettings.assetAudioPath}',
+      );
+    }
+
     for (final alarm in Alarm.getAlarms()) {
       if (alarm.id == alarmSettings.id ||
           (alarm.dateTime.day == alarmSettings.dateTime.day &&
@@ -93,12 +99,6 @@ class Alarm {
 
     if (alarmSettings.enableNotificationOnKill) {
       await AlarmNotification.instance.requestPermission();
-    }
-
-    if (!alarmSettings.assetAudioPath.contains('.')) {
-      throw AlarmException(
-        'Provided asset audio file does not have extension: ${alarmSettings.assetAudioPath}',
-      );
     }
 
     if (iOS) {

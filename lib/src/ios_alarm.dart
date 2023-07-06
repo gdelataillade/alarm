@@ -26,30 +26,36 @@ class IOSAlarm {
     double fadeDuration,
     bool enableNotificationOnKill,
   ) async {
-    final delay = dateTime.difference(DateTime.now());
+    try {
+      final delay = dateTime.difference(DateTime.now());
 
-    final res = await methodChannel.invokeMethod<bool?>(
-          'setAlarm',
-          {
-            'id': id,
-            'assetAudio': assetAudio,
-            'delayInSeconds': delay.inSeconds.abs().toDouble(),
-            'loopAudio': loopAudio,
-            'fadeDuration': fadeDuration >= 0 ? fadeDuration : 0,
-            'vibrate': vibrate,
-            'notifOnKillEnabled': enableNotificationOnKill,
-            'notifTitleOnAppKill': AlarmStorage.getNotificationOnAppKillTitle(),
-            'notifDescriptionOnAppKill':
-                AlarmStorage.getNotificationOnAppKillBody(),
-          },
-        ) ??
-        false;
+      final res = await methodChannel.invokeMethod<bool?>(
+            'setAlarm',
+            {
+              'id': id,
+              'assetAudio': assetAudio,
+              'delayInSeconds': delay.inSeconds.abs().toDouble(),
+              'loopAudio': loopAudio,
+              'fadeDuration': fadeDuration >= 0 ? fadeDuration : 0,
+              'vibrate': vibrate,
+              'notifOnKillEnabled': enableNotificationOnKill,
+              'notifTitleOnAppKill':
+                  AlarmStorage.getNotificationOnAppKillTitle(),
+              'notifDescriptionOnAppKill':
+                  AlarmStorage.getNotificationOnAppKillBody(),
+            },
+          ) ??
+          false;
 
-    alarmPrint(
-      'Alarm with id $id scheduled ${res ? 'successfully' : 'failed'} at $dateTime',
-    );
+      alarmPrint(
+        'Alarm with id $id scheduled ${res ? 'successfully' : 'failed'} at $dateTime',
+      );
 
-    if (!res) return false;
+      if (!res) return false;
+    } catch (e) {
+      Alarm.stop(id);
+      throw AlarmException(e.toString());
+    }
 
     if (timers[id] != null && timers[id]!.isActive) timers[id]!.cancel();
     timers[id] = periodicTimer(onRing, dateTime, id);

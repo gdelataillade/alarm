@@ -75,7 +75,7 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
         child: alarms.isNotEmpty
             ? ListView.separated(
                 itemCount: alarms.length,
-                separatorBuilder: (context, index) => const Divider(),
+                separatorBuilder: (context, index) => const Divider(height: 1),
                 itemBuilder: (context, index) {
                   return ExampleAlarmTile(
                     key: Key(alarms[index].id.toString()),

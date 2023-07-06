@@ -9,8 +9,9 @@ import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:vibration/vibration.dart';
 
-/// For Android support, [AndroidAlarmManager] is used to set an alarm
-/// and trigger a callback when the given time is reached.
+/// For Android support, [AndroidAlarmManager] is used to trigger a callback
+/// when the given time is reached. The callback will run in an isolate if app
+/// is in background.
 class AndroidAlarm {
   static const ringPort = 'alarm-ring';
   static const stopPort = 'alarm-stop';
