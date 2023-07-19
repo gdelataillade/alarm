@@ -5,6 +5,7 @@
 
 [![alarm](https://github.com/gdelataillade/alarm/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/gdelataillade/alarm/actions/workflows/main.yml)
 
+Support our mission to improve this plugin. [Vote for it on OnePub](https://onepub.dev/packages/alarm/).
 
 # Alarm plugin for iOS and Android
 
