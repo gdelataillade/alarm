@@ -9,8 +9,8 @@ import 'package:flutter_fgbg/flutter_fgbg.dart';
 class IOSAlarm {
   static const methodChannel = MethodChannel('com.gdelataillade/alarm');
 
-  static const timers = <int, Timer?>{};
-  static const fgbgSubscriptions = <int, StreamSubscription<FGBGType>?>{};
+  static Map<int, Timer?> timers = {};
+  static Map<int, StreamSubscription<FGBGType>?> fgbgSubscriptions = {};
 
   /// Calls the native function `setAlarm` and listens to alarm ring state.
   ///
