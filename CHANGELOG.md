@@ -1,3 +1,6 @@
+## 1.1.6
+* Improve error handling and coding style.
+
 ## 1.1.5
 * [Android] Fix null isolate SendPort error on stop.
 
