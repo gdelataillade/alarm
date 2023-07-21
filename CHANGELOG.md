@@ -1,3 +1,6 @@
+## 1.1.7
+* [iOS] Fix alarm stop.
+
 ## 1.1.6
 * Improve error handling and coding style.
 
