@@ -108,6 +108,7 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
                   id: 42,
                   dateTime: DateTime.now(),
                   assetAudioPath: 'assets/marimba.mp3',
+                  volumeMax: true,
                 );
                 Alarm.set(alarmSettings: alarmSettings);
               },

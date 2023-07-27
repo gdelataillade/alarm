@@ -8,6 +8,7 @@ import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:vibration/vibration.dart';
+import 'package:volume_controller/volume_controller.dart';
 
 /// For Android support, [AndroidAlarmManager] is used to trigger a callback
 /// when the given time is reached. The callback will run in an isolate if app
@@ -34,6 +35,7 @@ class AndroidAlarm {
     String assetAudioPath,
     bool loopAudio,
     bool vibrate,
+    bool volumeMax,
     double fadeDuration,
     bool enableNotificationOnKill,
   ) async {
@@ -51,6 +53,7 @@ class AndroidAlarm {
       port.listen((message) {
         alarmPrint('$message');
         if (message == 'ring') {
+          if (volumeMax) setMaximumVolume();
           onRing?.call();
         } else {
           if (vibrate && message is String && message.startsWith('vibrate')) {
@@ -219,6 +222,10 @@ class AndroidAlarm {
       }
     }
   }
+
+  /// Sets the device volume to the maximum.
+  static void setMaximumVolume() =>
+      VolumeController().setVolume(1.0, showSystemUI: true);
 
   /// Sends the message `stop` to the isolate so the audio player
   /// can stop playing and dispose.
