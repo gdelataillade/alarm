@@ -18,6 +18,8 @@ PODS:
     - FlutterMacOS
   - vibration (1.7.5):
     - Flutter
+  - volume_controller (0.0.1):
+    - Flutter
 
 DEPENDENCIES:
   - alarm (from `.symlinks/plugins/alarm/ios`)
@@ -29,6 +31,7 @@ DEPENDENCIES:
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - vibration (from `.symlinks/plugins/vibration/ios`)
+  - volume_controller (from `.symlinks/plugins/volume_controller/ios`)
 
 EXTERNAL SOURCES:
   alarm:
@@ -49,6 +52,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
   vibration:
     :path: ".symlinks/plugins/vibration/ios"
+  volume_controller:
+    :path: ".symlinks/plugins/volume_controller/ios"
 
 SPEC CHECKSUMS:
   alarm: 6c1f6a9688f94cd6bf8f104c67cc26e78c9d8d13
@@ -60,6 +65,7 @@ SPEC CHECKSUMS:
   path_provider_foundation: 37748e03f12783f9de2cb2c4eadfaa25fe6d4852
   shared_preferences_foundation: 986fc17f3d3251412d18b0265f9c64113a8c2472
   vibration: 7d883d141656a1c1a6d8d238616b2042a51a1241
+  volume_controller: 531ddf792994285c9b17f9d8a7e4dcdd29b3eae9
 
 PODFILE CHECKSUM: ef19549a9bc3046e7bb7d2fab4d021637c0c58a3
 
