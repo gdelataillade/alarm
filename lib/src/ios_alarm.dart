@@ -23,6 +23,7 @@ class IOSAlarm {
     String assetAudio,
     bool loopAudio,
     bool vibrate,
+    bool volumeMax,
     double fadeDuration,
     bool enableNotificationOnKill,
   ) async {
@@ -38,6 +39,7 @@ class IOSAlarm {
               'loopAudio': loopAudio,
               'fadeDuration': fadeDuration >= 0 ? fadeDuration : 0,
               'vibrate': vibrate,
+              'volumeMax': volumeMax,
               'notifOnKillEnabled': enableNotificationOnKill,
               'notifTitleOnAppKill':
                   AlarmStorage.getNotificationOnAppKillTitle(),
