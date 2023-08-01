@@ -1,3 +1,7 @@
+## 1.2.0
+* Add [volumeMax] parameter.
+* [iOS] Keep app active in background by playing silent sound in a loop.
+
 ## 1.1.8
 * [Android] Add missing isRinging method.
 
