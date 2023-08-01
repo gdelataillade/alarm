@@ -22,6 +22,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
   }
 
   private var audioPlayers: [Int: AVAudioPlayer] = [:]
+  private var silentAudioPlayer: AVAudioPlayer?
+  private var silentAudioTimer: Timer?
   private var tasksQueue: [Int: DispatchWorkItem] = [:]
   private var triggerTimes: [Int: Date] = [:]
 
@@ -29,12 +31,18 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
   private var notificationTitleOnKill: String!
   private var notificationBodyOnKill: String!
 
-  private var observerAdded = false;
-  private var vibrate = false;
+  private var observerAdded = false
+  private var vibrate = false
+  private var playSilent = false
 
-  private func setUpAudio() {
-    try! AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
-    try! AVAudioSession.sharedInstance().setActive(true)
+  // MARK: - setUpAudioSession
+  private func setUpAudioSession() {
+    do {
+      try AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
+      try AVAudioSession.sharedInstance().setActive(true)
+    } catch {
+      NSLog("SwiftAlarmPlugin: Error setting up audio session: \(error.localizedDescription)")
+    }
   }
 
   // MARK: - handle
@@ -62,7 +70,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
   // MARK: - setAlarm
   private func setAlarm(call: FlutterMethodCall, result: FlutterResult) {
-    self.setUpAudio()
+    self.setUpAudioSession()
 
     let args = call.arguments as! Dictionary<String, Any>
 
@@ -100,7 +108,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         return
       }
     } else {
-
       do {
         let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let filename = String(assetAudio.split(separator: "/").last ?? "")
@@ -129,10 +136,15 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     if fadeDuration > 0.0 {
       self.audioPlayers[id]!.volume = 0.1
     }
-      
+
+    if !playSilent {
+      self.startSilentSound()
+    }
+
     self.audioPlayers[id]!.play(atTime: time)
-    
+
     self.tasksQueue[id] = DispatchWorkItem(block: {
+      self.stopSilentSound()
       self.handleAlarmAfterDelay(
         id: id,
         triggerTime: dateTime,
@@ -145,6 +157,40 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     DispatchQueue.main.asyncAfter(deadline: .now() + delayInSeconds, execute: self.tasksQueue[id]!)
 
     result(true)
+  }
+
+  // MARK: - startSilentSound
+  private func startSilentSound() {
+      let filename = registrar.lookupKey(forAsset: "assets/blank.mp3", fromPackage: "alarm")
+      if let audioPath = Bundle.main.path(forResource: filename, ofType: nil) {
+        let audioUrl = URL(fileURLWithPath: audioPath)
+        do {
+          self.silentAudioPlayer = try AVAudioPlayer(contentsOf: audioUrl)
+          self.silentAudioPlayer?.numberOfLoops = -1
+          self.silentAudioPlayer?.prepareToPlay()
+          self.playSilent = true
+          self.loopSilentSound()
+        } catch {
+          NSLog("SwiftAlarmPlugin: Error: Could not create audio player: \(error)")
+        }
+      } else {
+        NSLog("SwiftAlarmPlugin: Error: Could not find audio file")
+      }
+  }
+
+  // MARK: - loopSilentSound
+  private func loopSilentSound() {
+    silentAudioPlayer?.play()
+    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+      if self.playSilent {
+        self.silentAudioPlayer?.pause()
+      }
+      DispatchQueue.main.asyncAfter(deadline: .now() + 9) {
+        if self.playSilent {
+          self.loopSilentSound()
+        }
+      }
+    }
   }
 
   // MARK: - handleAlarmAfterDelay
@@ -165,7 +211,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
   }
 
-
   // MARK: - stopAlarm
   private func stopAlarm(id: Int, result: FlutterResult) {
     vibrate = false
@@ -176,10 +221,21 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
       self.triggerTimes.removeValue(forKey: id)
       self.tasksQueue[id]?.cancel()
       self.tasksQueue.removeValue(forKey: id)
-      self.stopNotificationOnKillService();
+      self.stopSilentSound()
+      self.stopNotificationOnKillService()
       result(true)
     } else {
       result(false)
+    }
+  }
+
+  private func stopSilentSound() {
+    if self.audioPlayers.isEmpty {
+      NSLog("SwiftAlarmPlugin: stop playing silent because audioPlayers is empty")
+      self.playSilent = false
+      self.silentAudioPlayer?.stop()
+    } else {
+      NSLog("SwiftAlarmPlugin: continue playing silent because audioPlayers is not empty: \(self.audioPlayers.count)")
     }
   }
 
