@@ -2,6 +2,7 @@ import Flutter
 import UIKit
 import AVFoundation
 import AudioToolbox
+import MediaPlayer
 
 public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
   #if targetEnvironment(simulator)
@@ -88,6 +89,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     let loopAudio = args["loopAudio"] as! Bool
     let fadeDuration = args["fadeDuration"] as! Double
     let vibrationsEnabled = args["vibrate"] as! Bool
+    let volumeMax = args["volumeMax"] as! Bool
 
     var assetAudio = args["assetAudio"] as! String
 
@@ -150,7 +152,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         triggerTime: dateTime,
         fadeDuration: fadeDuration,
         vibrationsEnabled: vibrationsEnabled,
-        audioLoop: loopAudio
+        audioLoop: loopAudio,
+        volumeMax: volumeMax
        )
     })
 
@@ -194,19 +197,30 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
   }
 
   // MARK: - handleAlarmAfterDelay
-  private func handleAlarmAfterDelay(id: Int, triggerTime: Date, fadeDuration: Double, vibrationsEnabled: Bool, audioLoop: Bool) {
-    if let audioPlayer = self.audioPlayers[id], let storedTriggerTime = triggerTimes[id], triggerTime == storedTriggerTime {
-      if fadeDuration > 0.0 {
+  private func handleAlarmAfterDelay(id: Int, triggerTime: Date, fadeDuration: Double, vibrationsEnabled: Bool, audioLoop: Bool, volumeMax: Bool) {
+    guard let audioPlayer = self.audioPlayers[id], let storedTriggerTime = triggerTimes[id], triggerTime == storedTriggerTime else {
+      return
+    }
+
+    if fadeDuration > 0.0 {
+      if (volumeMax) {
+        self.setVolume(volume: 0.5, showSystemUI: true)
+      } else {
         audioPlayer.setVolume(1, fadeDuration: fadeDuration)
       }
-      self.vibrate = vibrationsEnabled
-      self.triggerVibrations()
+    } else {
+      if (volumeMax) {
+        self.setVolume(volume: 0.5, showSystemUI: true)
+      }
+    }
 
-      if !audioLoop {
-        let audioDuration = audioPlayer.duration
-        DispatchQueue.main.asyncAfter(deadline: .now() + audioDuration) {
-          self.vibrate = false
-        }
+    self.vibrate = vibrationsEnabled
+    self.triggerVibrations()
+
+    if !audioLoop {
+      let audioDuration = audioPlayer.duration
+      DispatchQueue.main.asyncAfter(deadline: .now() + audioDuration) {
+        self.vibrate = false
       }
     }
   }
@@ -247,6 +261,24 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
           AudioServicesDisposeSystemSoundID(kSystemSoundID_Vibrate)
           self.triggerVibrations()
         }
+    }
+  }
+
+  // MARK: - setVolume
+  public func setVolume(volume: Float, showSystemUI: Bool) {
+    let volumeView = MPVolumeView()
+
+    if (!showSystemUI) {
+      volumeView.frame = CGRect(x: -1000, y: -1000, width: 1, height: 1)
+      volumeView.showsVolumeSlider = false
+      UIApplication.shared.delegate!.window!?.rootViewController!.view.addSubview(volumeView)
+    }
+
+    let slider = volumeView.subviews.first(where: { $0 is UISlider }) as? UISlider
+
+    DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.01) {
+      slider?.value = volume
+      volumeView.removeFromSuperview()
     }
   }
 
