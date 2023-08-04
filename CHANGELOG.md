@@ -1,3 +1,6 @@
+## 1.1.8
+* [Android] Add missing isRinging method.
+
 ## 1.1.7
 * [iOS] Fix alarm stop.
 
