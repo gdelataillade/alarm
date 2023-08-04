@@ -25,7 +25,8 @@ class AlarmSettings {
   /// If [loopAudio] is set to false, vibrations will stop when audio ends.
   final bool vibrate;
 
-  /// If true, set system volume to maximum when [dateTime] is reached.
+  /// If true, set system volume to maximum when [dateTime] is reached
+  /// and set it back to its previous value when alarm is stopped.
   /// Else, use current system volume. Disabled by default.
   final bool volumeMax;
 

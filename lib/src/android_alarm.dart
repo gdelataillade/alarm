@@ -22,6 +22,7 @@ class AndroidAlarm {
 
   static bool ringing = false;
   static bool vibrationsActive = false;
+  static double? previousVolume;
 
   static bool get isRinging => ringing;
   static bool get hasOtherAlarms => AlarmStorage.getSavedAlarms().length > 1;
@@ -227,8 +228,10 @@ class AndroidAlarm {
   }
 
   /// Sets the device volume to the maximum.
-  static void setMaximumVolume() =>
-      VolumeController().setVolume(1.0, showSystemUI: true);
+  static Future<void> setMaximumVolume() async {
+    previousVolume = await VolumeController().getVolume();
+    VolumeController().setVolume(1.0, showSystemUI: true);
+  }
 
   /// Sends the message `stop` to the isolate so the audio player
   /// can stop playing and dispose.
@@ -241,6 +244,11 @@ class AndroidAlarm {
     if (send != null) {
       send.send('stop');
       alarmPrint('Alarm with id $id stopped');
+    }
+
+    if (previousVolume != null) {
+      VolumeController().setVolume(previousVolume!, showSystemUI: true);
+      previousVolume = null;
     }
 
     if (!hasOtherAlarms) stopNotificationOnKillService();

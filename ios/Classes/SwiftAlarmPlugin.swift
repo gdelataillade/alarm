@@ -35,6 +35,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
   private var observerAdded = false
   private var vibrate = false
   private var playSilent = false
+  private var previousVolume: Float? = nil
+
 
   // MARK: - setUpAudioSession
   private func setUpAudioSession() {
@@ -204,13 +206,13 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
     if fadeDuration > 0.0 {
       if (volumeMax) {
-        self.setVolume(volume: 0.5, showSystemUI: true)
+        self.setVolume(volume: 0.15, showSystemUI: true)
       } else {
         audioPlayer.setVolume(1, fadeDuration: fadeDuration)
       }
     } else {
       if (volumeMax) {
-        self.setVolume(volume: 0.5, showSystemUI: true)
+        self.setVolume(volume: 0.15, showSystemUI: true)
       }
     }
 
@@ -227,7 +229,11 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
   // MARK: - stopAlarm
   private func stopAlarm(id: Int, result: FlutterResult) {
-    vibrate = false
+    self.vibrate = false
+    if (self.previousVolume != nil) {
+      setVolume(volume: self.previousVolume!, showSystemUI: true)
+      self.previousVolume = nil
+    }
 
     if let audioPlayer = self.audioPlayers[id] {
       audioPlayer.stop()
@@ -266,19 +272,22 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
   // MARK: - setVolume
   public func setVolume(volume: Float, showSystemUI: Bool) {
-    let volumeView = MPVolumeView()
+    DispatchQueue.main.async {
+      let volumeView = MPVolumeView()
 
-    if (!showSystemUI) {
-      volumeView.frame = CGRect(x: -1000, y: -1000, width: 1, height: 1)
-      volumeView.showsVolumeSlider = false
-      UIApplication.shared.delegate!.window!?.rootViewController!.view.addSubview(volumeView)
-    }
+      if (!showSystemUI) {
+        volumeView.frame = CGRect(x: -1000, y: -1000, width: 1, height: 1)
+        volumeView.showsVolumeSlider = false
+        UIApplication.shared.delegate!.window!?.rootViewController!.view.addSubview(volumeView)
+      }
 
-    let slider = volumeView.subviews.first(where: { $0 is UISlider }) as? UISlider
+      let slider = volumeView.subviews.first(where: { $0 is UISlider }) as? UISlider
+      self.previousVolume = slider?.value
 
-    DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.01) {
-      slider?.value = volume
-      volumeView.removeFromSuperview()
+      DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.01) {
+        slider?.value = volume
+        volumeView.removeFromSuperview()
+      }
     }
   }
 
