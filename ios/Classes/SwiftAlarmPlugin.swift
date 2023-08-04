@@ -13,7 +13,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
   private var registrar: FlutterPluginRegistrar!
 
-  // MARK: - FlutterPlugin Methods
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "com.gdelataillade/alarm", binaryMessenger: registrar.messenger())
     let instance = SwiftAlarmPlugin()
@@ -38,7 +37,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
   private var previousVolume: Float? = nil
 
 
-  // MARK: - setUpAudioSession
   private func setUpAudioSession() {
     do {
       try AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
@@ -48,7 +46,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
   }
 
-  // MARK: - handle
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     DispatchQueue.global(qos: .default).async {
       if call.method == "setAlarm" {
@@ -71,7 +68,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
   }
 
-  // MARK: - setAlarm
   private func setAlarm(call: FlutterMethodCall, result: FlutterResult) {
     self.setUpAudioSession()
 
@@ -92,8 +88,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     let fadeDuration = args["fadeDuration"] as! Double
     let vibrationsEnabled = args["vibrate"] as! Bool
     let volumeMax = args["volumeMax"] as! Bool
-
-    var assetAudio = args["assetAudio"] as! String
+    let assetAudio = args["assetAudio"] as! String
 
     if assetAudio.hasPrefix("assets/") {
       let filename = registrar.lookupKey(forAsset: assetAudio)
@@ -164,7 +159,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     result(true)
   }
 
-  // MARK: - startSilentSound
   private func startSilentSound() {
       let filename = registrar.lookupKey(forAsset: "assets/blank.mp3", fromPackage: "alarm")
       if let audioPath = Bundle.main.path(forResource: filename, ofType: nil) {
@@ -183,7 +177,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
       }
   }
 
-  // MARK: - loopSilentSound
   private func loopSilentSound() {
     silentAudioPlayer?.play()
     DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
@@ -198,21 +191,26 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
   }
 
-  // MARK: - handleAlarmAfterDelay
   private func handleAlarmAfterDelay(id: Int, triggerTime: Date, fadeDuration: Double, vibrationsEnabled: Bool, audioLoop: Bool, volumeMax: Bool) {
     guard let audioPlayer = self.audioPlayers[id], let storedTriggerTime = triggerTimes[id], triggerTime == storedTriggerTime else {
       return
     }
 
+    do {
+      try AVAudioSession.sharedInstance().setCategory(.playback, options: [.duckOthers])
+    } catch {
+      NSLog("SwiftAlarmPlugin: Error setting up audio session with option duckOthers: \(error.localizedDescription)")
+    }
+
     if fadeDuration > 0.0 {
       if (volumeMax) {
-        self.setVolume(volume: 0.15, showSystemUI: true)
+        self.setVolume(volume: 0.5, showSystemUI: true)
       } else {
         audioPlayer.setVolume(1, fadeDuration: fadeDuration)
       }
     } else {
       if (volumeMax) {
-        self.setVolume(volume: 0.15, showSystemUI: true)
+        self.setVolume(volume: 0.5, showSystemUI: true)
       }
     }
 
@@ -227,12 +225,16 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
   }
 
-  // MARK: - stopAlarm
   private func stopAlarm(id: Int, result: FlutterResult) {
+    do {
+      try AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
+    } catch {
+      NSLog("SwiftAlarmPlugin: Error setting up audio session with option mixWithOthers: \(error.localizedDescription)")
+    }
+
     self.vibrate = false
     if (self.previousVolume != nil) {
       setVolume(volume: self.previousVolume!, showSystemUI: true)
-      self.previousVolume = nil
     }
 
     if let audioPlayer = self.audioPlayers[id] {
@@ -259,7 +261,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
   }
 
-  // MARK: - triggerVibrations
   private func triggerVibrations() {
     if vibrate && isDevice {
       AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
@@ -270,7 +271,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
   }
 
-  // MARK: - setVolume
   public func setVolume(volume: Float, showSystemUI: Bool) {
     DispatchQueue.main.async {
       let volumeView = MPVolumeView()
@@ -282,16 +282,15 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
       }
 
       let slider = volumeView.subviews.first(where: { $0 is UISlider }) as? UISlider
-      self.previousVolume = slider?.value
 
       DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.01) {
+        self.previousVolume = slider?.value
         slider?.value = volume
         volumeView.removeFromSuperview()
       }
     }
   }
 
-  // MARK: - audioCurrentTime
   private func audioCurrentTime(id: Int, result: FlutterResult) {
     if let audioPlayer = self.audioPlayers[id] {
       let time = Double(audioPlayer.currentTime)
@@ -301,7 +300,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
   }
 
-  // MARK: - stopNotificationOnKillService
   private func stopNotificationOnKillService() {
     if audioPlayers.isEmpty && observerAdded {
       NotificationCenter.default.removeObserver(self, name: UIApplication.willTerminateNotification, object: nil)
@@ -309,7 +307,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
   }
 
-  // MARK: - applicationWillTerminate
   @objc func applicationWillTerminate(_ notification: Notification) {
     let content = UNMutableNotificationContent()
     content.title = notificationTitleOnKill
