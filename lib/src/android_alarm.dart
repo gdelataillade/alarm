@@ -19,8 +19,10 @@ class AndroidAlarm {
   static const platform =
       MethodChannel('com.gdelataillade.alarm/notifOnAppKill');
 
+  static bool ringing = false;
   static bool vibrationsActive = false;
 
+  static bool get isRinging => ringing;
   static bool get hasOtherAlarms => AlarmStorage.getSavedAlarms().length > 1;
 
   /// Initializes AndroidAlarmManager dependency.
@@ -51,6 +53,7 @@ class AndroidAlarm {
       port.listen((message) {
         alarmPrint('$message');
         if (message == 'ring') {
+          ringing = true;
           onRing?.call();
         } else {
           if (vibrate && message is String && message.startsWith('vibrate')) {
@@ -223,6 +226,7 @@ class AndroidAlarm {
   /// Sends the message `stop` to the isolate so the audio player
   /// can stop playing and dispose.
   static Future<bool> stop(int id) async {
+    ringing = false;
     vibrationsActive = false;
 
     final send = IsolateNameServer.lookupPortByName(stopPort);
