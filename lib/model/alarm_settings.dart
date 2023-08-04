@@ -27,7 +27,7 @@ class AlarmSettings {
 
   /// If true, set system volume to maximum when [dateTime] is reached
   /// and set it back to its previous value when alarm is stopped.
-  /// Else, use current system volume. Enable by default.
+  /// Else, use current system volume. Enabled by default.
   final bool volumeMax;
 
   /// Duration, in seconds, over which to fade the alarm ringtone.
