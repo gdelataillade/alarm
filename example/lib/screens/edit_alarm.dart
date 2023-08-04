@@ -47,7 +47,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       selectedTime = TimeOfDay(hour: dt.hour, minute: dt.minute);
       loopAudio = true;
       vibrate = true;
-      volumeMax = false;
+      volumeMax = true;
       showNotification = true;
       assetAudio = 'assets/marimba.mp3';
     } else {

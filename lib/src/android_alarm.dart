@@ -144,9 +144,10 @@ class AndroidAlarm {
       final loopAudio = data['loopAudio'];
       if (loopAudio) audioPlayer.setLoopMode(LoopMode.all);
 
-      send.send('Alarm fadeDuration: ${data.toString()}');
+      send.send('Alarm data received in isolate: $data');
 
       final fadeDuration = (data['fadeDuration'] as int).toDouble();
+      send.send('Alarm fadeDuration: $fadeDuration seconds');
 
       if (fadeDuration > 0.0) {
         int counter = 0;

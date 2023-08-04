@@ -204,14 +204,11 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
     if fadeDuration > 0.0 {
       if (volumeMax) {
-        self.setVolume(volume: 0.5, showSystemUI: true)
-      } else {
-        audioPlayer.setVolume(1, fadeDuration: fadeDuration)
+        self.setVolume(volume: 1.0, showSystemUI: true)
       }
-    } else {
-      if (volumeMax) {
-        self.setVolume(volume: 0.5, showSystemUI: true)
-      }
+      audioPlayer.setVolume(1.0, fadeDuration: fadeDuration)
+    } else if (volumeMax) {
+      self.setVolume(volume: 1.0, showSystemUI: true)
     }
 
     self.vibrate = vibrationsEnabled
@@ -253,11 +250,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
   private func stopSilentSound() {
     if self.audioPlayers.isEmpty {
-      NSLog("SwiftAlarmPlugin: stop playing silent because audioPlayers is empty")
       self.playSilent = false
       self.silentAudioPlayer?.stop()
-    } else {
-      NSLog("SwiftAlarmPlugin: continue playing silent because audioPlayers is not empty: \(self.audioPlayers.count)")
     }
   }
 
@@ -281,11 +275,11 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         UIApplication.shared.delegate!.window!?.rootViewController!.view.addSubview(volumeView)
       }
 
-      let slider = volumeView.subviews.first(where: { $0 is UISlider }) as? UISlider
-
-      DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.01) {
-        self.previousVolume = slider?.value
-        slider?.value = volume
+      DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
+        if let slider = volumeView.subviews.first(where: { $0 is UISlider }) as? UISlider {
+          self.previousVolume = slider.value
+          slider.value = volume
+        }
         volumeView.removeFromSuperview()
       }
     }

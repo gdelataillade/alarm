@@ -161,13 +161,12 @@ Don't hesitate to check out the example's code, and take a look at the app:
 
 |                          | Sound | Vibrate | Volume max | Notification
 | ------------------------ | ----- | ------- | ---------- | -------
-| Locked screen            |  ✅   | ✅       | ...         | ✅
-| Silent / Mute            |  ✅   | ✅       | ...         | ✅
-| Do not disturb           |  ✅   | ✅       | ...         | Silenced
-| Sleep mode               |  ✅   | ✅       | ...         | Silenced
-| While playing other media|  ✅   | ✅       | ...         | ✅
-| During a call            |  ...   | ...       | ...         | ...
-| App killed               |  ❌   | ❌       | ❌         | ✅
+| Locked screen            |  ✅   | ✅       | ✅          | ✅
+| Silent / Mute            |  ✅   | ✅       | ✅          | ✅
+| Do not disturb           |  ✅   | ✅       | ✅          | Silenced
+| Sleep mode               |  ✅   | ✅       | ✅          | Silenced
+| While playing other media|  ✅   | ✅       | ✅          | ✅
+| App killed               |  ❌   | ❌       | ❌          | ✅
 
 *Silenced: Means that the notification is not shown directly on the top of the screen. You have to go in your notification center to see it.*
 
