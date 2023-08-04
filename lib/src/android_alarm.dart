@@ -8,6 +8,7 @@ import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:vibration/vibration.dart';
+import 'package:volume_controller/volume_controller.dart';
 
 /// For Android support, [AndroidAlarmManager] is used to trigger a callback
 /// when the given time is reached. The callback will run in an isolate if app
@@ -21,6 +22,7 @@ class AndroidAlarm {
 
   static bool ringing = false;
   static bool vibrationsActive = false;
+  static double? previousVolume;
 
   static bool get isRinging => ringing;
   static bool get hasOtherAlarms => AlarmStorage.getSavedAlarms().length > 1;
@@ -36,6 +38,7 @@ class AndroidAlarm {
     String assetAudioPath,
     bool loopAudio,
     bool vibrate,
+    bool volumeMax,
     double fadeDuration,
     bool enableNotificationOnKill,
   ) async {
@@ -54,6 +57,7 @@ class AndroidAlarm {
         alarmPrint('$message');
         if (message == 'ring') {
           ringing = true;
+          if (volumeMax) setMaximumVolume();
           onRing?.call();
         } else {
           if (vibrate && message is String && message.startsWith('vibrate')) {
@@ -140,9 +144,10 @@ class AndroidAlarm {
       final loopAudio = data['loopAudio'];
       if (loopAudio) audioPlayer.setLoopMode(LoopMode.all);
 
-      send.send('Alarm fadeDuration: ${data.toString()}');
+      send.send('Alarm data received in isolate: $data');
 
       final fadeDuration = (data['fadeDuration'] as int).toDouble();
+      send.send('Alarm fadeDuration: $fadeDuration seconds');
 
       if (fadeDuration > 0.0) {
         int counter = 0;
@@ -223,6 +228,12 @@ class AndroidAlarm {
     }
   }
 
+  /// Sets the device volume to the maximum.
+  static Future<void> setMaximumVolume() async {
+    previousVolume = await VolumeController().getVolume();
+    VolumeController().setVolume(1.0, showSystemUI: true);
+  }
+
   /// Sends the message `stop` to the isolate so the audio player
   /// can stop playing and dispose.
   static Future<bool> stop(int id) async {
@@ -234,6 +245,11 @@ class AndroidAlarm {
     if (send != null) {
       send.send('stop');
       alarmPrint('Alarm with id $id stopped');
+    }
+
+    if (previousVolume != null) {
+      VolumeController().setVolume(previousVolume!, showSystemUI: true);
+      previousVolume = null;
     }
 
     if (!hasOtherAlarms) stopNotificationOnKillService();

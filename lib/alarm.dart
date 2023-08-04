@@ -109,6 +109,7 @@ class Alarm {
         alarmSettings.assetAudioPath,
         alarmSettings.loopAudio,
         alarmSettings.vibrate,
+        alarmSettings.volumeMax,
         alarmSettings.fadeDuration,
         alarmSettings.enableNotificationOnKill,
       );
@@ -120,6 +121,7 @@ class Alarm {
         alarmSettings.assetAudioPath,
         alarmSettings.loopAudio,
         alarmSettings.vibrate,
+        alarmSettings.volumeMax,
         alarmSettings.fadeDuration,
         alarmSettings.enableNotificationOnKill,
       );

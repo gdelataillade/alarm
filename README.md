@@ -104,6 +104,7 @@ final alarmSettings = AlarmSettings(
   assetAudioPath: 'assets/alarm.mp3',
   loopAudio: true,
   vibrate: true,
+  volumeMax: true,
   fadeDuration: 3.0,
   notificationTitle: 'This is the title',
   notificationBody: 'This is the body',
@@ -123,6 +124,7 @@ alarmDateTime |   `DateTime`     | The date and time you want your alarm to ring
 assetAudio |   `String`     | The path to you audio asset you want to use as ringtone. Can be a path in your assets folder or a downloaded local file path.
 loopAudio |   `bool`     | If true, audio will repeat indefinitely until alarm is stopped.
 vibrate |   `bool`     | If true, device will vibrate indefinitely until alarm is stopped. If [loopAudio] is set to false, vibrations will stop when audio ends.
+volumeMax |   `bool`     | If true, set system volume to maximum when [dateTime] is reached. Set back to previous volume when alarm is stopped.
 fadeDuration |   `double`     | Duration, in seconds, over which to fade the alarm volume. Set to 0 by default, which means no fade.
 notificationTitle |   `String`     | The title of the notification triggered when alarm rings if app is on background.
 notificationBody | `String` | The body of the notification.
@@ -157,16 +159,16 @@ Don't hesitate to check out the example's code, and take a look at the app:
 
 ## Alarm behaviour
 
-|                          | Sound | Vibrate | Notification
-| ------------------------ | ----- | ------- | -------
-| Locked screen            |  ✅   | ✅       | ✅
-| Silent / Mute            |  ✅   | ✅       | ✅
-| Do not disturb           |  ✅   | ✅       | Silenced
-| Sleep mode               |  ✅   | ✅       | Silenced
-| While playing other media|  ✅   | ✅       | ✅
-| App killed               |  ❌   | ❌       | ✅
+|                          | Sound | Vibrate | Volume max | Notification
+| ------------------------ | ----- | ------- | ---------- | -------
+| Locked screen            |  ✅   | ✅       | ✅          | ✅
+| Silent / Mute            |  ✅   | ✅       | ✅          | ✅
+| Do not disturb           |  ✅   | ✅       | ✅          | Silenced
+| Sleep mode               |  ✅   | ✅       | ✅          | Silenced
+| While playing other media|  ✅   | ✅       | ✅          | ✅
+| App killed               |  ❌   | ❌       | ❌          | ✅
 
-*Silenced: Means that the notification is not shown directly on the top of the screen. You have to go to your notification center to see it.*
+*Silenced: Means that the notification is not shown directly on the top of the screen. You have to go in your notification center to see it.*
 
 ## FAQ
 
@@ -174,10 +176,6 @@ Don't hesitate to check out the example's code, and take a look at the app:
 
 Some Android manufacturers prefer battery life over proper functionality of your apps. Check out [dontkillmyapp.com](https://dontkillmyapp.com) to find out about more about optimizations done by different vendors, and potential workarounds. 
 *Source: [https://pub.dev/packages/android_alarm_manager_plus#faq](https://pub.dev/packages/android_alarm_manager_plus#faq)*
-
-### Why isn't my alarm ringing when the device volume is off?
-
-iOS prevents third-party apps from modifying volumes. If media volume is off, then the alarm is muted. To ensure the alarm rings, users should turn on media volume before setting the alarm. For consistency, we don't add volume checks for Android, maintaining a uniform user experience on both platforms. Feel free to add one in your app is desired.
 
 ## Feature request
 

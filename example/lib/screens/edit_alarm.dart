@@ -18,6 +18,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
   late TimeOfDay selectedTime;
   late bool loopAudio;
   late bool vibrate;
+  late bool volumeMax;
   late bool showNotification;
   late String assetAudio;
 
@@ -46,6 +47,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       selectedTime = TimeOfDay(hour: dt.hour, minute: dt.minute);
       loopAudio = true;
       vibrate = true;
+      volumeMax = true;
       showNotification = true;
       assetAudio = 'assets/marimba.mp3';
     } else {
@@ -55,6 +57,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       );
       loopAudio = widget.alarmSettings!.loopAudio;
       vibrate = widget.alarmSettings!.vibrate;
+      volumeMax = widget.alarmSettings!.volumeMax;
       showNotification = widget.alarmSettings!.notificationTitle != null &&
           widget.alarmSettings!.notificationTitle!.isNotEmpty &&
           widget.alarmSettings!.notificationBody != null &&
@@ -95,6 +98,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       dateTime: dateTime,
       loopAudio: loopAudio,
       vibrate: vibrate,
+      volumeMax: volumeMax,
       notificationTitle: showNotification ? 'Alarm example' : null,
       notificationBody: showNotification ? 'Your alarm ($id) is ringing' : null,
       assetAudioPath: assetAudio,
@@ -195,6 +199,19 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
               Switch(
                 value: vibrate,
                 onChanged: (value) => setState(() => vibrate = value),
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'System volume max',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              Switch(
+                value: volumeMax,
+                onChanged: (value) => setState(() => volumeMax = value),
               ),
             ],
           ),

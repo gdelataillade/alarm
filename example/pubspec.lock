@@ -7,7 +7,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "1.1.8"
+    version: "1.2.0"
   android_alarm_manager_plus:
     dependency: transitive
     description:
@@ -484,6 +484,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.7.7"
+  volume_controller:
+    dependency: transitive
+    description:
+      name: volume_controller
+      sha256: "189bdc7a554f476b412e4c8b2f474562b09d74bc458c23667356bce3ca1d48c9"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.7"
   win32:
     dependency: transitive
     description:
