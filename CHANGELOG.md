@@ -1,3 +1,6 @@
+## 1.2.1
+* Fix fromJson error on plugin init.
+
 ## 1.2.0
 * Add [volumeMax] parameter.
 * [iOS] Keep app active in background by playing silent sound in a loop.
