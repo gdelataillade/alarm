@@ -81,7 +81,7 @@ class AlarmSettings {
     required this.assetAudioPath,
     this.loopAudio = true,
     this.vibrate = true,
-    this.volumeMax = false,
+    this.volumeMax = true,
     this.fadeDuration = 0.0,
     this.notificationTitle,
     this.notificationBody,
