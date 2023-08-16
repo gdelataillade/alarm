@@ -1,3 +1,7 @@
+## 1.2.2
+* Upgrade plugin's dependencies.
+* Prove plugin ownership for winning OnePub competition: 961eace7-3bbb-11ee-ade6-42010ab60008
+
 ## 1.2.1
 * Fix fromJson error on plugin init.
 

@@ -82,6 +82,7 @@ class AndroidAlarm {
       allowWhileIdle: true,
       exact: true,
       rescheduleOnReboot: true,
+      wakeup: true,
       params: {
         'assetAudioPath': assetAudioPath,
         'loopAudio': loopAudio,
