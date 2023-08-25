@@ -1,3 +1,10 @@
+## 2.0.0-dev.1
+*Still in development...*
+**Breaking Changes**
+* [iOS] Play silent audio until alarm rings to keep app active.
+* [iOS] Add Background Fetch to periodically check if app is still active.
+* [iOS] Add new installation steps.
+
 ## 1.2.2
 * Upgrade plugin's dependencies.
 * Prove plugin ownership for winning OnePub competition: 961eace7-3bbb-11ee-ade6-42010ab60008

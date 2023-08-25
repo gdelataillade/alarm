@@ -37,7 +37,11 @@ Implements `invokeMethod` to play the alarm audio using `AVAudioPlayer`. Due to 
 
 ### iOS installation steps
 
-In order to play audio in background, open your project in Xcode, select your Runner and select the Capabilities tab. Under the Capabilities tab, set the Background Modes switch to ON and select the “Audio, AirPlay, and Picture in Picture” option under the list of available modes.
+Open your project in Xcode, select your Runner and then Signing & Capabilities tab. In the Background Modes section, make sure to enable:
+- [x] Audio, AirPlay, and Picture in Picture
+- [x] Background fetch
+
+Still in Xcode, open your Info.plist and add the key `Permitted background task scheduler identifiers`, with the item `com.transistorsoft.fetch` inside.
 
 ### Android installation steps
 
@@ -194,7 +198,7 @@ These are some features that I have in mind that could be useful:
 - Use `ffigen` and `jnigen` binding generators to call native code more efficiently instead of using method channels.
 - [Notification actions](https://pub.dev/packages/flutter_local_notifications#notification-actions): stop and snooze.
 - Stop alarm sound when notification is dismissed.
-- Add macOS, Windows, Linux and web support.
+- Make alarm ring even if app was terminated.
 
 Thank you for considering contributing to this plugin. Your help is greatly appreciated!
 
