@@ -38,7 +38,7 @@ class Alarm {
     };
 
     await Future.wait([
-      if (iOS) AlarmBGFetch.init(),
+      if (iOS) AlarmBackgroundFetch.init(),
       if (android) AndroidAlarm.init(),
       AlarmNotification.instance.init(),
       AlarmStorage.init(),

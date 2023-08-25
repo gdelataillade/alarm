@@ -1,14 +1,13 @@
 import 'package:alarm/alarm.dart';
 import 'package:background_fetch/background_fetch.dart';
 
-class AlarmBGFetch {
-  static List<DateTime> fetchs = [];
+/// The purpose of this class is to trigger a background fetch event
+/// every 15 minutes to reschedule all the alarms to make sure the alarms
+/// are still active.
+class AlarmBackgroundFetch {
+  static List<DateTime> fetches = [];
 
   static Future<void> init() async {
-    await configure();
-  }
-
-  static Future<void> configure() async {
     final config = BackgroundFetchConfig(
       minimumFetchInterval: 15,
       stopOnTerminate: false,
@@ -22,6 +21,7 @@ class AlarmBGFetch {
     );
 
     final res = await BackgroundFetch.configure(config, callback);
+
     if (res == BackgroundFetch.STATUS_AVAILABLE) {
       alarmPrint("Background fetch is available. Minimum interval: 15 minutes");
     }
@@ -29,7 +29,7 @@ class AlarmBGFetch {
 
   static Future<void> callback(String taskId) async {
     alarmPrint("Background fetch event received. TaskId: $taskId");
-    fetchs.add(DateTime.now());
+    fetches.add(DateTime.now());
     await Alarm.checkAlarm();
     BackgroundFetch.finish(taskId);
   }

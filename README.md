@@ -11,28 +11,6 @@
 
 This Flutter plugin provides a simple and easy-to-use interface for setting and canceling alarms on iOS and Android devices. It utilizes the `android_alarm_manager_plus` plugin for Android and the native iOS `AVAudioPlayer` class.
 
-## Why this plugin ?
-
-As a Flutter developer at [Evolum](https://evolum.co), my CTO and I needed to develop an alarm feature for the new version of our app.
-
-An alarm feature is a great way to increase users engagement.
-
-For the Android part, we used `android_alarm_manager_plus` plugin, but to be honest it was not very intuitive and incomplete.
-
-Then, for the iOS part, we couldn't find any plugin or tutorial to add this feature.
-
-Another issue we found is that when a user kills the app, all processes are terminated so the alarm may not ring. The workaround we thought about was to show a notification when the user kills the app to warn him that the alarm may not ring. Then, he just has to reopen the app to reschedule the alarm.
-
-Therefore, we decided to write our own plugin to wrap everything and make it easy for everybody.
-
-## Under the hood
-
-### Android
-Uses `oneShotAt` from the `android_alarm_manager_plus` plugin with a two-way communication isolated callback to start/stop the alarm.
-
-### iOS
-Implements `invokeMethod` to play the alarm audio using `AVAudioPlayer`. Due to the suspension of asynchronous native code when the app is in the background, we listen for app state changes and check if the player is playing when the app returns to the foreground. If it's the case, it means the alarm is ringing, and it's time to trigger your `onRing` callback.
-
 ## Getting Started
 
 ### iOS installation steps
@@ -178,8 +156,17 @@ Don't hesitate to check out the example's code, and take a look at the app:
 
 ### My alarm is not firing on a specific Android device
 
-Some Android manufacturers prefer battery life over proper functionality of your apps. Check out [dontkillmyapp.com](https://dontkillmyapp.com) to find out about more about optimizations done by different vendors, and potential workarounds. 
+Some Android manufacturers prefer battery life over proper functionality of your apps. Check out [dontkillmyapp.com](https://dontkillmyapp.com) to find out about more about optimizations done by different vendors, and potential workarounds.
+Most common workaround is to ask the user to disable battery optimization settings.
 *Source: [https://pub.dev/packages/android_alarm_manager_plus#faq](https://pub.dev/packages/android_alarm_manager_plus#faq)*
+
+## Under the hood
+
+### Android
+Uses `oneShotAt` from the `android_alarm_manager_plus` plugin with a two-way communication isolated callback to start/stop the alarm.
+
+### iOS
+Keeps the app awake using a silent `AVAudioPlayer` until alarm rings. When in the background, it also uses `Background App Refresh` to periodically ensure the app is still active.
 
 ## Feature request
 

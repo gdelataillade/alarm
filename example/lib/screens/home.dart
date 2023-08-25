@@ -75,8 +75,13 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
         title: const Text('Package alarm example app'),
         actions: [
           IconButton(
-            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(AlarmBGFetch.fetchs.toString()))),
+            onPressed: () {
+              final content =
+                  "Background App Checks done this session:\n${AlarmBackgroundFetch.fetches}";
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(content)),
+              );
+            },
             icon: const Icon(Icons.info),
           ),
         ],
