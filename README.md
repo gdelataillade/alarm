@@ -15,11 +15,16 @@ This Flutter plugin provides a simple and easy-to-use interface for setting and 
 
 ### iOS installation steps
 
-Open your project in Xcode, select your Runner and then Signing & Capabilities tab. In the Background Modes section, make sure to enable:
+1) Open your project in Xcode, select your Runner and then Signing & Capabilities tab. In the Background Modes section, make sure to enable:
 - [x] Audio, AirPlay, and Picture in Picture
 - [x] Background fetch
 
-Still in Xcode, open your Info.plist and add the key `Permitted background task scheduler identifiers`, with the item `com.transistorsoft.fetch` inside.
+[See screenshot 1](https://github.com/gdelataillade/alarm/assets/32983806/2ad67186-1f22-462c-b953-fe55a35fea09)
+
+2) Still in Xcode, open your Info.plist and add the key `Permitted background task scheduler identifiers`, with the item `com.transistorsoft.fetch` inside.
+
+[See screenshot 2](https://github.com/gdelataillade/alarm/assets/32983806/a7ab90be-4518-48a7-a21d-d2844b4b036c)
+
 
 ### Android installation steps
 
