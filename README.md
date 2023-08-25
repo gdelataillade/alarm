@@ -114,7 +114,7 @@ final alarmSettings = AlarmSettings(
 
 And finally set the alarm:
 ```Dart
-await Alarm.set(settings: alarmSettings)
+await Alarm.set(alarmSettings: alarmSettings)
 ```
 
 Property |   Type     | Description

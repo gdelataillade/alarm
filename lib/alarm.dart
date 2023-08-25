@@ -4,6 +4,7 @@ export 'package:alarm/model/alarm_settings.dart';
 import 'dart:async';
 
 import 'package:alarm/model/alarm_settings.dart';
+import 'package:alarm/service/background_fetch.dart';
 import 'package:alarm/src/ios_alarm.dart';
 import 'package:alarm/src/android_alarm.dart';
 import 'package:alarm/service/notification.dart';
@@ -37,6 +38,7 @@ class Alarm {
     };
 
     await Future.wait([
+      if (iOS) AlarmBGFetch.init(),
       if (android) AndroidAlarm.init(),
       AlarmNotification.instance.init(),
       AlarmStorage.init(),

@@ -136,7 +136,7 @@ class AlarmNotification {
             UILocalNotificationDateInterpretation.absoluteTime,
       );
       alarmPrint(
-        'Notification with id $id scheduled successfuly at $zdt (GMT - Zulu time)',
+        'Notification with id $id scheduled successfuly at $zdt GMT',
       );
     } catch (e) {
       throw AlarmException('Schedule notification with id $id error: $e');

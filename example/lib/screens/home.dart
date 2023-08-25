@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:alarm/alarm.dart';
+import 'package:alarm/service/background_fetch.dart';
 import 'package:alarm_example/screens/edit_alarm.dart';
 import 'package:alarm_example/screens/ring.dart';
 import 'package:alarm_example/widgets/tile.dart';
@@ -70,7 +71,16 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Package alarm example app')),
+      appBar: AppBar(
+        title: const Text('Package alarm example app'),
+        actions: [
+          IconButton(
+            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(AlarmBGFetch.fetchs.toString()))),
+            icon: const Icon(Icons.info),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: alarms.isNotEmpty
             ? ListView.separated(
@@ -108,7 +118,7 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
                   id: 42,
                   dateTime: DateTime.now(),
                   assetAudioPath: 'assets/marimba.mp3',
-                  volumeMax: false,
+                  volumeMax: true,
                 );
                 Alarm.set(alarmSettings: alarmSettings);
               },
