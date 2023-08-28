@@ -33,6 +33,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     private var observerAdded = false
     private var vibrate = false
     private var playSilent = false
+    private var interruption = false
     private var previousVolume: Float? = nil
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -58,6 +59,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
 
     private func setAlarm(call: FlutterMethodCall, result: FlutterResult) {
+        self.mixOtherAudios()
+
         let args = call.arguments as! Dictionary<String, Any>
 
         notifOnKillEnabled = (args["notifOnKillEnabled"] as! Bool)
@@ -142,17 +145,15 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
         NSLog("SwiftAlarmPlugin: Timer of \(delayInSeconds) seconds")
         DispatchQueue.main.async {
+            // TODO: Cancel timer when alarm is aborted. Otherwise, the alarm vibrations will trigger if even was edited.
             let timer = Timer.scheduledTimer(timeInterval: delayInSeconds, target: self, selector: #selector(self.executeTask(_:)), userInfo: id, repeats: false)
         }
 
-        // TODO: Cancel timer when alarm is aborted
         // DispatchQueue.main.asyncAfter(deadline: .now() + delayInSeconds, execute: self.tasksQueue[id]!)
         result(true)
     }
 
     @objc func executeTask(_ timer: Timer) {
-        NSLog("SwiftAlarmPlugin: timer trigger")
-
         if let taskId = timer.userInfo as? Int, let task = tasksQueue[taskId] {
             task.perform()
         }
@@ -163,11 +164,10 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         if let audioPath = Bundle.main.path(forResource: filename, ofType: nil) {
             let audioUrl = URL(fileURLWithPath: audioPath)
             do {
-                self.mixOtherAudios()
                 self.silentAudioPlayer = try AVAudioPlayer(contentsOf: audioUrl)
                 self.silentAudioPlayer?.numberOfLoops = -1
                 self.silentAudioPlayer?.prepareToPlay()
-                self.silentAudioPlayer?.volume = 0.0 // be careful with apple guidelines
+                self.silentAudioPlayer?.volume = 0.0
                 self.playSilent = true
                 NotificationCenter.default.addObserver(self, selector: #selector(handleAudioSessionInterruption), name: AVAudioSession.interruptionNotification, object: nil)
                 self.loopSilentSound()
@@ -180,15 +180,19 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
 
     private func loopSilentSound() {
-        self.silentAudioPlayer?.play()
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-//            self.silentAudioPlayer?.pause()
-//            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-//                if self.playSilent {
-//                    self.loopSilentSound()
-//                }
-//            }
-//        }
+        if self.playSilent && !self.interruption {
+            self.silentAudioPlayer?.play()
+            NSLog("SwiftAlarmPlugin: Playing silent audio...")
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            self.silentAudioPlayer?.pause()
+            NSLog("SwiftAlarmPlugin: Paused silent audio...")
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                self.loopSilentSound()
+            }
+        }
     }
 
     // TODO: Check if alarm was supposed to ring during the interruption, if yes, make sur it rings after interruption
@@ -201,21 +205,24 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
         switch type {
             case .began:
-                // Interruption began
-                NSLog("SwiftAlarmPlugin: Interruption began, pausing silent audio...")
-                self.stopSilentSound()
+                NSLog("SwiftAlarmPlugin: Interruption began...")
+                self.interruption = true
+                self.silentAudioPlayer?.pause()
 
             case .ended:
+                self.interruption = false
+                NSLog("SwiftAlarmPlugin: Interruption ended...")
+                
                 if let optionsValue = info[AVAudioSessionInterruptionOptionKey] as? UInt {
                     let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
                     if options.contains(.shouldResume) {
-                        // Interruption Ended - resume playback
-                        NSLog("SwiftAlarmPlugin: Interruption ended, resuming silent audio...")
-                        self.loopSilentSound()
+                        self.duckOtherAudios()
                     }
                 }
 
-            default: ()
+            default:
+                NSLog("SwiftAlarmPlugin: Other interruption type...")
+                break
         }
     }
 
