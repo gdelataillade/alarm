@@ -1,5 +1,9 @@
-## 2.0.0-dev.1
+## 2.0.0-dev.2
 *Still in development...*
+* [iOS] Improve silent audio interruption handling.
+* Add a shortcut button in example app.
+
+## 2.0.0-dev.1
 **Breaking Changes**
 * [iOS] Play silent audio until alarm rings to keep app active.
 * [iOS] Add Background Fetch to periodically check if app is still active.
