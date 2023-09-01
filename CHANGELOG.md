@@ -1,5 +1,8 @@
-## 2.0.0-dev.2
+## 2.0.0-dev.3
 *Still in development...*
+* [iOS] Improve alarm reliability.
+
+## 2.0.0-dev.2
 * [iOS] Improve silent audio interruption handling.
 * Add a shortcut button in example app.
 

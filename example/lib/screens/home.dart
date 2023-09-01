@@ -73,7 +73,7 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Package alarm example app'),
+        title: const Text('alarm 2.0.0-dev.3'),
         actions: [
           IconButton(
             onPressed: () {
