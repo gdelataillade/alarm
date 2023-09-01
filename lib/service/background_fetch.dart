@@ -35,6 +35,7 @@ class AlarmBackgroundFetch {
 
   static Future<void> stop() async {
     if (!isActive) return;
+    isActive = false;
 
     await BackgroundFetch.stop();
 
