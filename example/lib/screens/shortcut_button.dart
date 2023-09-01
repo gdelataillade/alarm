@@ -17,7 +17,8 @@ class _ExampleAlarmHomeShortcutButtonState
   bool showMenu = false;
 
   Future<void> onPressButton(int delayInHours) async {
-    final dateTime = DateTime.now().add(Duration(hours: delayInHours));
+    DateTime dateTime = DateTime.now().add(Duration(hours: delayInHours));
+    dateTime = dateTime.copyWith(second: 0, millisecond: 0);
 
     setState(() => showMenu = false);
 
