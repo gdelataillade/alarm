@@ -38,7 +38,6 @@ class Alarm {
     };
 
     await Future.wait([
-      if (iOS) AlarmBackgroundFetch.init(),
       if (android) AndroidAlarm.init(),
       AlarmNotification.instance.init(),
       AlarmStorage.init(),
@@ -104,6 +103,8 @@ class Alarm {
     }
 
     if (iOS) {
+      AlarmBackgroundFetch.set();
+
       return IOSAlarm.setAlarm(
         alarmSettings.id,
         alarmSettings.dateTime,
@@ -151,6 +152,8 @@ class Alarm {
     await AlarmStorage.unsaveAlarm(id);
 
     AlarmNotification.instance.cancel(id);
+
+    if (iOS && !hasAlarm()) AlarmBackgroundFetch.stop();
 
     return iOS ? await IOSAlarm.stopAlarm(id) : await AndroidAlarm.stop(id);
   }
