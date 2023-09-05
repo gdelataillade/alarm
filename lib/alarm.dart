@@ -9,6 +9,7 @@ import 'package:alarm/src/android_alarm.dart';
 import 'package:alarm/service/notification.dart';
 import 'package:alarm/service/storage.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 /// Custom print function designed for Alarm plugin.
 DebugPrintCallback alarmPrint = debugPrintThrottled;
@@ -23,6 +24,9 @@ class Alarm {
   /// Stream of the ringing status.
   static final ringStream = StreamController<AlarmSettings>();
 
+  /// Stream when notification is selected.
+  static final notificationStream = StreamController<AlarmSettings>();
+
   /// Initializes Alarm services.
   ///
   /// Also calls [checkAlarm] that will reschedule alarms that were set before
@@ -36,11 +40,17 @@ class Alarm {
       }
     };
 
+    await AlarmStorage.init();
     await Future.wait([
       if (android) AndroidAlarm.init(),
       AlarmNotification.instance.init(),
-      AlarmStorage.init(),
     ]);
+
+    // Pipe notification streams
+    AlarmNotification.notificationStream.stream.listen((alarmSettings) {
+      notificationStream.add(alarmSettings);
+    });
+
     await checkAlarm();
   }
 
@@ -53,8 +63,14 @@ class Alarm {
       final now = DateTime.now();
       if (alarm.dateTime.isAfter(now)) {
         await set(alarmSettings: alarm);
+      } else if (await AlarmNotification.didNotificationLaunchedApp) {
+        AlarmNotification.onSelectNotification(NotificationResponse(
+          notificationResponseType:
+              NotificationResponseType.selectedNotification,
+          id: alarm.id,
+        ));
       } else {
-        await AlarmStorage.unsaveAlarm(alarm.id);
+        alarmPrint('[ALARM] keeping past alarms during initialization');
       }
     }
   }
@@ -114,17 +130,7 @@ class Alarm {
         alarmSettings.enableNotificationOnKill,
       );
     } else if (android) {
-      return await AndroidAlarm.set(
-        alarmSettings.id,
-        alarmSettings.dateTime,
-        () => ringStream.add(alarmSettings),
-        alarmSettings.assetAudioPath,
-        alarmSettings.loopAudio,
-        alarmSettings.vibrate,
-        alarmSettings.volumeMax,
-        alarmSettings.fadeDuration,
-        alarmSettings.enableNotificationOnKill,
-      );
+      return await AndroidAlarm.set(alarmSettings);
     }
 
     return false;

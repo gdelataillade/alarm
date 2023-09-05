@@ -28,44 +28,51 @@ class AndroidAlarm {
   static bool get hasOtherAlarms => AlarmStorage.getSavedAlarms().length > 1;
 
   /// Initializes AndroidAlarmManager dependency.
-  static Future<void> init() => AndroidAlarmManager.initialize();
+  static Future<void> init() {
+    for (final settings in AlarmStorage.getSavedAlarms()) {
+      // Re-register ports after the app restarts
+      _registerPort(settings);
+    }
+    return AndroidAlarmManager.initialize();
+  }
 
-  /// Creates isolate communication channel and set alarm at given [dateTime].
-  static Future<bool> set(
-    int id,
-    DateTime dateTime,
-    void Function()? onRing,
-    String assetAudioPath,
-    bool loopAudio,
-    bool vibrate,
-    bool volumeMax,
-    double fadeDuration,
-    bool enableNotificationOnKill,
-  ) async {
+  static void _registerPort(
+    AlarmSettings settings, {
+    bool registerIfTaken = false,
+  }) {
     try {
       final port = ReceivePort();
       final success = IsolateNameServer.registerPortWithName(
         port.sendPort,
-        "$ringPort-$id",
+        "$ringPort-${settings.id}",
       );
 
       if (!success) {
-        IsolateNameServer.removePortNameMapping("$ringPort-$id");
-        IsolateNameServer.registerPortWithName(port.sendPort, "$ringPort-$id");
+        // Port already registered
+        if (!registerIfTaken) {
+          return;
+        }
+
+        IsolateNameServer.removePortNameMapping("$ringPort-${settings.id}");
+        IsolateNameServer.registerPortWithName(
+            port.sendPort, "$ringPort-${settings.id}");
       }
+
       port.listen((message) {
         alarmPrint('$message');
         if (message == 'ring') {
           ringing = true;
-          if (volumeMax) setMaximumVolume();
-          onRing?.call();
+          if (settings.volumeMax) setMaximumVolume();
+          Alarm.ringStream.add(settings);
         } else {
-          if (vibrate && message is String && message.startsWith('vibrate')) {
+          if (settings.vibrate &&
+              message is String &&
+              message.startsWith('vibrate')) {
             final audioDuration = message.split('-').last;
 
             if (int.tryParse(audioDuration) != null) {
               final duration = Duration(seconds: int.parse(audioDuration));
-              triggerVibrations(duration: loopAudio ? null : duration);
+              triggerVibrations(duration: settings.loopAudio ? null : duration);
             }
           }
         }
@@ -73,10 +80,14 @@ class AndroidAlarm {
     } catch (e) {
       throw AlarmException('Isolate error: $e');
     }
+  }
 
+  /// Creates isolate communication channel and set alarm at given [dateTime].
+  static Future<bool> set(AlarmSettings settings) async {
+    _registerPort(settings, registerIfTaken: true);
     final res = await AndroidAlarmManager.oneShotAt(
-      dateTime,
-      id,
+      settings.dateTime,
+      settings.id,
       AndroidAlarm.playAlarm,
       alarmClock: true,
       allowWhileIdle: true,
@@ -84,17 +95,17 @@ class AndroidAlarm {
       rescheduleOnReboot: true,
       wakeup: true,
       params: {
-        'assetAudioPath': assetAudioPath,
-        'loopAudio': loopAudio,
-        'fadeDuration': fadeDuration,
+        'assetAudioPath': settings.assetAudioPath,
+        'loopAudio': settings.loopAudio,
+        'fadeDuration': settings.fadeDuration,
       },
     );
 
     alarmPrint(
-      'Alarm with id $id scheduled ${res ? 'successfully' : 'failed'} at $dateTime',
+      'Alarm with id ${settings.id} scheduled ${res ? 'successfully' : 'failed'} at ${settings.dateTime}',
     );
 
-    if (enableNotificationOnKill && !hasOtherAlarms) {
+    if (settings.enableNotificationOnKill && !hasOtherAlarms) {
       try {
         await platform.invokeMethod(
           'setNotificationOnKillService',
@@ -118,21 +129,35 @@ class AndroidAlarm {
   /// Alarm is played with AudioPlayer and stopped when the message `stop`
   /// is received from the main thread.
   @pragma('vm:entry-point')
-  static Future<void> playAlarm(int id, Map<String, dynamic> data) async {
+  static Future<void> playAlarm(
+    int id,
+    Map<String, dynamic> data, [
+    int retryCount = 10,
+  ]) async {
+    alarmPrint('[ANDROID_ALARM] callback: playAlarm');
     final audioPlayer = AudioPlayer();
 
-    final res = IsolateNameServer.lookupPortByName("$ringPort-$id");
-    if (res == null) throw const AlarmException('Isolate port not found');
+    final callerPort = IsolateNameServer.lookupPortByName("$ringPort-$id");
+    if (callerPort == null) {
+      alarmPrint(
+          '[ANDROID_ALARM] Isolate port not found. $retryCount retries left');
+      if (retryCount == 0) {
+        throw const AlarmException('Isolate port not found');
+      }
 
-    final send = res;
-    send.send('ring');
+      return Future.delayed(const Duration(seconds: 2),
+          () => playAlarm(id, data, retryCount - 1));
+    }
+
+    callerPort.send('ring');
 
     try {
       final assetAudioPath = data['assetAudioPath'] as String;
       Duration? audioDuration;
 
       if (assetAudioPath.startsWith('http')) {
-        send.send('Network URL not supported. Please provide local asset.');
+        callerPort
+            .send('Network URL not supported. Please provide local asset.');
         return;
       }
 
@@ -140,15 +165,15 @@ class AndroidAlarm {
           ? await audioPlayer.setAsset(assetAudioPath)
           : await audioPlayer.setFilePath(assetAudioPath);
 
-      send.send('vibrate-${audioDuration?.inSeconds}');
+      callerPort.send('vibrate-${audioDuration?.inSeconds}');
 
       final loopAudio = data['loopAudio'];
       if (loopAudio) audioPlayer.setLoopMode(LoopMode.all);
 
-      send.send('Alarm data received in isolate: $data');
+      callerPort.send('Alarm data received in isolate: $data');
 
       final fadeDuration = (data['fadeDuration'] as int).toDouble();
-      send.send('Alarm fadeDuration: $fadeDuration seconds');
+      callerPort.send('Alarm fadeDuration: $fadeDuration seconds');
 
       if (fadeDuration > 0.0) {
         int counter = 0;
@@ -156,7 +181,7 @@ class AndroidAlarm {
         audioPlayer.setVolume(0.1);
         audioPlayer.play();
 
-        send.send('Alarm playing with fadeDuration ${fadeDuration}s');
+        callerPort.send('Alarm playing with fadeDuration ${fadeDuration}s');
 
         Timer.periodic(
           Duration(milliseconds: fadeDuration * 1000 ~/ 10),
@@ -168,11 +193,11 @@ class AndroidAlarm {
         );
       } else {
         audioPlayer.play();
-        send.send('Alarm with id $id starts playing.');
+        callerPort.send('Alarm with id $id starts playing.');
       }
     } catch (e) {
       await AudioPlayer.clearAssetCache();
-      send.send('Asset cache reset. Please try again.');
+      callerPort.send('Asset cache reset. Please try again.');
       throw AlarmException(
         "Alarm with id $id and asset path '${data['assetAudioPath']}' error: $e",
       );
@@ -189,7 +214,7 @@ class AndroidAlarm {
       }
 
       port.listen((message) async {
-        send.send('(isolate) received: $message');
+        callerPort.send('(isolate) received: $message');
         if (message == 'stop') {
           await audioPlayer.stop();
           await audioPlayer.dispose();
@@ -238,6 +263,7 @@ class AndroidAlarm {
   /// Sends the message `stop` to the isolate so the audio player
   /// can stop playing and dispose.
   static Future<bool> stop(int id) async {
+    alarmPrint('[ANDROID_ALARM] stop alarm');
     ringing = false;
     vibrationsActive = false;
 

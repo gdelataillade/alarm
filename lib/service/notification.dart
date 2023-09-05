@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:alarm/alarm.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -11,6 +13,19 @@ class AlarmNotification {
   static final instance = AlarmNotification._();
 
   final localNotif = FlutterLocalNotificationsPlugin();
+
+  /// Stream when notification is selected.
+  static final notificationStream = StreamController<AlarmSettings>();
+
+  static Future<bool> get didNotificationLaunchedApp async {
+    final NotificationAppLaunchDetails? notificationAppLaunchDetails =
+        await instance.localNotif.getNotificationAppLaunchDetails();
+    if (notificationAppLaunchDetails == null) {
+      alarmPrint(
+          '[NOTIFICATION] couln\'t find if app was launched by notification');
+    }
+    return notificationAppLaunchDetails?.didNotificationLaunchApp ?? false;
+  }
 
   AlarmNotification._();
 
@@ -40,6 +55,11 @@ class AlarmNotification {
 
   // Callback to stop the alarm when the notification is opened.
   static onSelectNotification(NotificationResponse notificationResponse) async {
+    final settings = Alarm.getAlarm(notificationResponse.id ?? 0);
+    if (settings != null) {
+      notificationStream.add(settings);
+    }
+
     await stopAlarm(notificationResponse.id);
   }
 
@@ -65,17 +85,21 @@ class AlarmNotification {
   Future<bool> requestPermission() async {
     bool? result;
 
-    result = defaultTargetPlatform == TargetPlatform.android
-        ? await localNotif
-            .resolvePlatformSpecificImplementation<
-                AndroidFlutterLocalNotificationsPlugin>()
-            ?.requestPermission()
-        : await localNotif
-            .resolvePlatformSpecificImplementation<
-                IOSFlutterLocalNotificationsPlugin>()
-            ?.requestPermissions(alert: true, badge: true, sound: true);
+    try {
+      result = defaultTargetPlatform == TargetPlatform.android
+          ? await localNotif
+              .resolvePlatformSpecificImplementation<
+                  AndroidFlutterLocalNotificationsPlugin>()
+              ?.requestPermission()
+          : await localNotif
+              .resolvePlatformSpecificImplementation<
+                  IOSFlutterLocalNotificationsPlugin>()
+              ?.requestPermissions(alert: true, badge: true, sound: true);
+    } catch (e) {
+      alarmPrint('Failure during checking notification permission. $e');
+    }
 
-    return result ?? false;
+    return result ?? true;
   }
 
   tz.TZDateTime nextInstanceOfTime(DateTime dateTime) {

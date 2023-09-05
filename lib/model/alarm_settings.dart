@@ -49,6 +49,9 @@ class AlarmSettings {
   /// Stops the alarm on opened notification.
   final bool stopOnNotificationOpen;
 
+  /// Additional data to pass around.
+  final String? extra;
+
   /// Returns a hash code for this `AlarmSettings` instance using Jenkins hash function.
   @override
   int get hashCode {
@@ -65,6 +68,7 @@ class AlarmSettings {
     hash = hash ^ (notificationBody?.hashCode ?? 0);
     hash = hash ^ enableNotificationOnKill.hashCode;
     hash = hash ^ stopOnNotificationOpen.hashCode;
+    hash = hash ^ (extra?.hashCode ?? 0);
     hash = hash & 0x3fffffff;
 
     return hash;
@@ -87,6 +91,7 @@ class AlarmSettings {
     this.notificationBody,
     this.enableNotificationOnKill = true,
     this.stopOnNotificationOpen = true,
+    this.extra,
   });
 
   /// Constructs an `AlarmSettings` instance from the given JSON data.
@@ -102,6 +107,7 @@ class AlarmSettings {
         notificationBody: json['notificationBody'] as String?,
         enableNotificationOnKill: json['enableNotificationOnKill'] as bool,
         stopOnNotificationOpen: json['stopOnNotificationOpen'] as bool,
+        extra: json['extra'] as String?,
       );
 
   /// Creates a copy of `AlarmSettings` but with the given fields replaced with
@@ -118,6 +124,7 @@ class AlarmSettings {
     String? notificationBody,
     bool? enableNotificationOnKill,
     bool? stopOnNotificationOpen,
+    String? extra,
   }) {
     return AlarmSettings(
       id: id ?? this.id,
@@ -133,6 +140,7 @@ class AlarmSettings {
           enableNotificationOnKill ?? this.enableNotificationOnKill,
       stopOnNotificationOpen:
           stopOnNotificationOpen ?? this.stopOnNotificationOpen,
+      extra: extra ?? this.extra,
     );
   }
 
@@ -149,6 +157,7 @@ class AlarmSettings {
         'notificationBody': notificationBody,
         'enableNotificationOnKill': enableNotificationOnKill,
         'stopOnNotificationOpen': stopOnNotificationOpen,
+        'extra': extra,
       };
 
   /// Returns all the properties of `AlarmSettings` for debug purposes.
@@ -176,5 +185,6 @@ class AlarmSettings {
           notificationTitle == other.notificationTitle &&
           notificationBody == other.notificationBody &&
           enableNotificationOnKill == other.enableNotificationOnKill &&
-          stopOnNotificationOpen == other.stopOnNotificationOpen;
+          stopOnNotificationOpen == other.stopOnNotificationOpen &&
+          extra == other.extra;
 }
