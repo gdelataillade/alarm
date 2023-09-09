@@ -1,5 +1,8 @@
-## 2.0.0-dev.3
+## 2.0.0-dev.4
 *Still in development...*
+* [iOS] Improve background fetch & audio interruptions
+
+## 2.0.0-dev.3
 * [iOS] Improve alarm reliability.
 
 ## 2.0.0-dev.2
