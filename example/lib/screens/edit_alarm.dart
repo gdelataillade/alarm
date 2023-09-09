@@ -32,7 +32,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       selectedDateTime = selectedDateTime.copyWith(second: 0, millisecond: 0);
       loopAudio = true;
       vibrate = true;
-      volumeMax = true;
+      volumeMax = false;
       showNotification = true;
       assetAudio = 'assets/marimba.mp3';
     } else {

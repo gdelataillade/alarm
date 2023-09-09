@@ -50,6 +50,10 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 let args = call.arguments as! Dictionary<String, Any>
                 let id = args["id"] as! Int
                 self.audioCurrentTime(id: id, result: result)
+            } else if call.method == "backgroundCheck" {
+                let args = call.arguments as! Dictionary<String, Any>
+                let ids = args["ids"] as! [Int]
+                self.backgroundCheck(ids: ids, result: result)
             } else {
                 DispatchQueue.main.sync {
                     result(FlutterMethodNotImplemented)
@@ -163,10 +167,11 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             do {
                 self.silentAudioPlayer = try AVAudioPlayer(contentsOf: audioUrl)
                 self.silentAudioPlayer?.numberOfLoops = -1
-                self.silentAudioPlayer?.prepareToPlay()
-                self.silentAudioPlayer?.volume = 0.0
+                self.silentAudioPlayer?.volume = 0.1
                 self.playSilent = true
-                self.loopSilentSound()
+                self.silentAudioPlayer?.play()
+                NotificationCenter.default.addObserver(self, selector: #selector(handleInterruption), name: AVAudioSession.interruptionNotification, object: nil)
+                // self.loopSilentSound()
             } catch {
                 NSLog("SwiftAlarmPlugin: Error: Could not create and play audio player: \(error)")
             }
@@ -175,21 +180,39 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
     }
 
-    private func loopSilentSound() {
-        self.silentAudioPlayer?.play()
-        NSLog("SwiftAlarmPlugin: Playing silent audio...")
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            self.silentAudioPlayer?.pause()
-            NSLog("SwiftAlarmPlugin: Paused silent audio...")
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-                if self.playSilent {
-                    self.loopSilentSound()
-                }
-            }
+    @objc func handleInterruption(notification: Notification) {
+        guard let info = notification.userInfo,
+            let typeValue = info[AVAudioSessionInterruptionTypeKey] as? UInt,
+            let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
+            return
         }
+
+        switch type {
+            case .began:
+                NSLog("SwiftAlarmPlugin: Interruption began")
+            case .ended:
+                self.silentAudioPlayer?.play()
+                NSLog("SwiftAlarmPlugin: Interruption ended")
+            default:
+                break
+            }
     }
+
+    // private func loopSilentSound() {
+    //     self.silentAudioPlayer?.play()
+    //     NSLog("SwiftAlarmPlugin: Playing silent audio...")
+
+    //     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+    //         self.silentAudioPlayer?.pause()
+    //         NSLog("SwiftAlarmPlugin: Paused silent audio...")
+            
+    //         DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+    //             if self.playSilent {
+    //                 self.loopSilentSound()
+    //             }
+    //         }
+    //     }
+    // }
 
     private func handleAlarmAfterDelay(id: Int, triggerTime: Date, fadeDuration: Double, vibrationsEnabled: Bool, audioLoop: Bool, volumeMax: Bool) {
         guard let audioPlayer = self.audioPlayers[id], let storedTriggerTime = triggerTimes[id], triggerTime == storedTriggerTime else {
@@ -253,6 +276,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         if self.audioPlayers.isEmpty {
             self.playSilent = false
             self.silentAudioPlayer?.stop()
+            NotificationCenter.default.removeObserver(self)
         }
     }
 
@@ -289,13 +313,39 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
     }
 
+    private func backgroundCheck(ids: [Int], result: FlutterResult) {
+        self.mixOtherAudios()
+
+        let isPlaying = self.silentAudioPlayer?.isPlaying ?? false
+
+        self.silentAudioPlayer?.pause()
+        self.silentAudioPlayer?.play()
+
+        for id in ids {
+            NSLog("SwiftAlarmPlugin: Background check alarm with id \(id)")
+            if let audioPlayer = self.audioPlayers[id] {
+                let dateTime = self.triggerTimes[id]!
+                let currentTime = audioPlayer.deviceCurrentTime
+                let time = currentTime + dateTime.timeIntervalSinceNow
+                // self.audioPlayers[id]!.stop()
+                self.audioPlayers[id]!.play(atTime: time)
+            }
+
+            let delayInSeconds = self.triggerTimes[id]!.timeIntervalSinceNow
+            DispatchQueue.main.async {
+                self.timers[id] = Timer.scheduledTimer(timeInterval: delayInSeconds, target: self, selector: #selector(self.executeTask(_:)), userInfo: id, repeats: false)
+            }
+        }
+
+        result(isPlaying)
+    }
+
     private func stopNotificationOnKillService() {
         if audioPlayers.isEmpty && observerAdded {
             NotificationCenter.default.removeObserver(self, name: UIApplication.willTerminateNotification, object: nil)
             observerAdded = false
         }
     }
-
     @objc func applicationWillTerminate(_ notification: Notification) {
         let content = UNMutableNotificationContent()
         content.title = notificationTitleOnKill
@@ -314,7 +364,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
     private func mixOtherAudios() {
         do {
-            try AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers])
             try AVAudioSession.sharedInstance().setActive(true)
         } catch {
             NSLog("SwiftAlarmPlugin: Error setting up audio session with option mixWithOthers: \(error.localizedDescription)")
@@ -323,7 +373,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
     private func duckOtherAudios() {
         do {
-            try AVAudioSession.sharedInstance().setCategory(.playback, options: [.duckOthers])
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.duckOthers])
             try AVAudioSession.sharedInstance().setActive(true)
         } catch {
             NSLog("SwiftAlarmPlugin: Error setting up audio session with option duckOthers: \(error.localizedDescription)")

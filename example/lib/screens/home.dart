@@ -77,8 +77,11 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
         actions: [
           IconButton(
             onPressed: () {
+              final checksDt = AlarmBackgroundFetch.fetches.map((e) {
+                return '${e.year}-${e.month}-${e.day} ${e.hour}h${e.minute}';
+              });
               final content =
-                  "Background App Checks done this session:\n${AlarmBackgroundFetch.fetches}";
+                  "Background App Checks done this session:\n$checksDt";
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text(content)),
               );

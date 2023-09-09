@@ -96,7 +96,7 @@ class AlarmNotification {
     required String body,
   }) async {
     const iOSPlatformChannelSpecifics = DarwinNotificationDetails(
-      presentAlert: false,
+      presentAlert: true,
       presentBadge: false,
       presentSound: false,
     );
