@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class AlarmSettings {
   /// Unique identifier assiocated with the alarm.
   final int id;
@@ -50,7 +52,7 @@ class AlarmSettings {
   final bool stopOnNotificationOpen;
 
   /// Additional data to pass around.
-  final String? extra;
+  final Map<String, dynamic>? extra;
 
   /// Returns a hash code for this `AlarmSettings` instance using Jenkins hash function.
   @override
@@ -107,7 +109,7 @@ class AlarmSettings {
         notificationBody: json['notificationBody'] as String?,
         enableNotificationOnKill: json['enableNotificationOnKill'] as bool,
         stopOnNotificationOpen: json['stopOnNotificationOpen'] as bool,
-        extra: json['extra'] as String?,
+        extra: json['extra'] as Map<String, dynamic>?,
       );
 
   /// Creates a copy of `AlarmSettings` but with the given fields replaced with
@@ -124,7 +126,7 @@ class AlarmSettings {
     String? notificationBody,
     bool? enableNotificationOnKill,
     bool? stopOnNotificationOpen,
-    String? extra,
+    Map<String, dynamic>? extra,
   }) {
     return AlarmSettings(
       id: id ?? this.id,
@@ -186,5 +188,5 @@ class AlarmSettings {
           notificationBody == other.notificationBody &&
           enableNotificationOnKill == other.enableNotificationOnKill &&
           stopOnNotificationOpen == other.stopOnNotificationOpen &&
-          extra == other.extra;
+          mapEquals(extra, other.extra);
 }
