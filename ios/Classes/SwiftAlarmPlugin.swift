@@ -189,6 +189,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
         switch type {
             case .began:
+                self.silentAudioPlayer?.play()
                 NSLog("SwiftAlarmPlugin: Interruption began")
             case .ended:
                 self.silentAudioPlayer?.play()
@@ -246,6 +247,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
 
     private func stopAlarm(id: Int, result: FlutterResult) {
+        self.mixOtherAudios()
+
         self.vibrate = false
         if self.previousVolume != nil {
             self.setVolume(volume: self.previousVolume!, enable: false)
