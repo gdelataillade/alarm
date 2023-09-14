@@ -8,8 +8,8 @@ import 'package:alarm/src/ios_alarm.dart';
 import 'package:alarm/src/android_alarm.dart';
 import 'package:alarm/service/notification.dart';
 import 'package:alarm/service/storage.dart';
+import 'package:alarm/utils.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 /// Custom print function designed for Alarm plugin.
 DebugPrintCallback alarmPrint = debugPrintThrottled;
@@ -25,7 +25,10 @@ class Alarm {
   static final ringStream = StreamController<AlarmSettings>();
 
   /// Stream when notification is selected.
-  static final notificationStream = StreamController<AlarmSettings>();
+  static final alarmNotificationStream = StreamController<AlarmSettings>();
+
+  /// Stream when bedtime notification is selected.
+  static final bedtimeNotificationStream = StreamController<AlarmSettings>();
 
   /// Initializes Alarm services.
   ///
@@ -33,7 +36,10 @@ class Alarm {
   /// app termination.
   ///
   /// Set [showDebugLogs] to `false` to hide all the logs from the plugin.
-  static Future<void> init({bool showDebugLogs = true}) async {
+  static Future<void> init({
+    bool showDebugLogs = true,
+    DateTime? nowAtStartup,
+  }) async {
     alarmPrint = (String? message, {int? wrapWidth}) {
       if (kDebugMode && showDebugLogs) {
         print("[Alarm] $message");
@@ -47,30 +53,39 @@ class Alarm {
     ]);
 
     // Pipe notification streams
-    AlarmNotification.notificationStream.stream.listen((alarmSettings) {
-      notificationStream.add(alarmSettings);
+    AlarmNotification.alarmNotificationStream.stream.listen((alarmSettings) {
+      alarmNotificationStream.add(alarmSettings);
+    });
+    AlarmNotification.bedtimeNotificationStream.stream.listen((alarmSettings) {
+      bedtimeNotificationStream.add(alarmSettings);
     });
 
-    await checkAlarm();
+    await checkAlarm(nowAtStartup);
   }
 
   /// Checks if some alarms were set on previous session.
   /// If it's the case then reschedules them.
-  static Future<void> checkAlarm() async {
-    final alarms = AlarmStorage.getSavedAlarms();
+  static Future<void> checkAlarm([DateTime? nowAtStartup]) async {
+    nowAtStartup ??= DateTime.now();
+    final launchedByNotification =
+        await AlarmNotification.checkNotificationLaunchedApp();
+    alarmPrint('Notification launched app: $launchedByNotification');
 
+    final alarms = AlarmStorage.getSavedAlarms();
     for (final alarm in alarms) {
       final now = DateTime.now();
       if (alarm.dateTime.isAfter(now)) {
-        await set(alarmSettings: alarm);
-      } else if (await AlarmNotification.didNotificationLaunchedApp) {
-        AlarmNotification.onSelectNotification(NotificationResponse(
-          notificationResponseType:
-              NotificationResponseType.selectedNotification,
-          id: alarm.id,
-        ));
+        alarmPrint(
+          'Now: $now; Now (startup): $nowAtStartup; bedtime: ${alarm.bedtime}',
+        );
+        await set(
+          alarmSettings: alarm,
+          skipBedtimeNotification:
+              alarm.bedtime?.isBefore(nowAtStartup) ?? false,
+          nowAtStartup: nowAtStartup,
+        );
       } else {
-        alarmPrint('[ALARM] keeping past alarms during initialization');
+        alarmPrint('Keeping past alarms during initialization');
       }
     }
   }
@@ -82,39 +97,73 @@ class Alarm {
   ///
   /// Also, schedules notification if [notificationTitle] and [notificationBody]
   /// are not null nor empty.
-  static Future<bool> set({required AlarmSettings alarmSettings}) async {
+  static Future<bool> set({
+    required AlarmSettings alarmSettings,
+    bool skipBedtimeNotification = false,
+    DateTime? nowAtStartup,
+  }) async {
     if (!alarmSettings.assetAudioPath.contains('.')) {
       throw AlarmException(
         'Provided asset audio file does not have extension: ${alarmSettings.assetAudioPath}',
       );
     }
 
+    // Hack: when requesting permission throws it signals that the app was
+    //       launched by the system and it's running in the background. We need
+    //       to know that in order to properly handle bedtime notification
+    //       states.
+    bool appInBackground = false;
+    try {
+      await AlarmNotification.instance.requestPermissionUnguarded();
+    } catch (e) {
+      appInBackground = true;
+    }
+    alarmPrint('App running in the background: $appInBackground');
+
     for (final alarm in Alarm.getAlarms()) {
       if (alarm.id == alarmSettings.id ||
           (alarm.dateTime.day == alarmSettings.dateTime.day &&
               alarm.dateTime.hour == alarmSettings.dateTime.hour &&
               alarm.dateTime.minute == alarmSettings.dateTime.minute)) {
-        await Alarm.stop(alarm.id);
+        await Alarm.stop(
+          alarm.id,
+          skipBedtimeNotification: !appInBackground && skipBedtimeNotification,
+        );
       }
     }
 
     await AlarmStorage.saveAlarm(alarmSettings);
 
+    // Alarm notification
     if (alarmSettings.notificationTitle != null &&
         alarmSettings.notificationBody != null) {
       if (alarmSettings.notificationTitle!.isNotEmpty &&
           alarmSettings.notificationBody!.isNotEmpty) {
-        await AlarmNotification.instance.scheduleAlarmNotif(
+        await AlarmNotification.scheduleNotification(
           id: alarmSettings.id,
           dateTime: alarmSettings.dateTime,
           title: alarmSettings.notificationTitle!,
           body: alarmSettings.notificationBody!,
+          nowAtStartup: nowAtStartup,
         );
       }
     }
 
-    if (alarmSettings.enableNotificationOnKill) {
-      await AlarmNotification.instance.requestPermission();
+    // Bedtime notification
+    if (!skipBedtimeNotification &&
+        alarmSettings.bedtime != null &&
+        alarmSettings.bedtimeNotificationTitle?.isNotEmpty == true &&
+        alarmSettings.bedtimeNotificationBody?.isNotEmpty == true) {
+      await AlarmNotification.scheduleNotification(
+        alarmId: alarmSettings.id,
+        id: _toBedtimeNotificationId(alarmSettings.id),
+        dateTime: alarmSettings.bedtime!,
+        title: alarmSettings.bedtimeNotificationTitle!,
+        body: alarmSettings.bedtimeNotificationBody!,
+        playSound: true,
+        enableLights: true,
+        nowAtStartup: nowAtStartup,
+      );
     }
 
     if (iOS) {
@@ -151,10 +200,16 @@ class Alarm {
       AlarmStorage.setNotificationContentOnAppKill(title, body);
 
   /// Stops alarm.
-  static Future<bool> stop(int id) async {
+  static Future<bool> stop(
+    int id, {
+    bool skipBedtimeNotification = false,
+  }) async {
     await AlarmStorage.unsaveAlarm(id);
 
     AlarmNotification.instance.cancel(id);
+    if (!skipBedtimeNotification) {
+      AlarmNotification.instance.cancel(_toBedtimeNotificationId(id));
+    }
 
     return iOS ? await IOSAlarm.stopAlarm(id) : await AndroidAlarm.stop(id);
   }
@@ -189,6 +244,9 @@ class Alarm {
 
   /// Returns all the alarms.
   static List<AlarmSettings> getAlarms() => AlarmStorage.getSavedAlarms();
+
+  /// Returns a unique ID for the bedtime notification
+  static _toBedtimeNotificationId(int id) => fastHash('$id-bedtime');
 }
 
 class AlarmException implements Exception {

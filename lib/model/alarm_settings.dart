@@ -51,6 +51,16 @@ class AlarmSettings {
   /// Stops the alarm on opened notification.
   final bool stopOnNotificationOpen;
 
+  /// Date and time when a notification will be triggered to notify the user
+  /// that it's time to go to bed.
+  final DateTime? bedtime;
+
+  /// Title of the notification to be shown when it's time for [bedtime].
+  final String? bedtimeNotificationTitle;
+
+  /// Body of the notification to be shown when it's time for [bedtime].
+  final String? bedtimeNotificationBody;
+
   /// Additional data to pass around.
   final Map<String, dynamic>? extra;
 
@@ -70,6 +80,9 @@ class AlarmSettings {
     hash = hash ^ (notificationBody?.hashCode ?? 0);
     hash = hash ^ enableNotificationOnKill.hashCode;
     hash = hash ^ stopOnNotificationOpen.hashCode;
+    hash = hash ^ (bedtime?.hashCode ?? 0);
+    hash = hash ^ (bedtimeNotificationTitle?.hashCode ?? 0);
+    hash = hash ^ (bedtimeNotificationBody?.hashCode ?? 0);
     hash = hash ^ (extra?.hashCode ?? 0);
     hash = hash & 0x3fffffff;
 
@@ -93,6 +106,9 @@ class AlarmSettings {
     this.notificationBody,
     this.enableNotificationOnKill = true,
     this.stopOnNotificationOpen = true,
+    this.bedtime,
+    this.bedtimeNotificationTitle,
+    this.bedtimeNotificationBody,
     this.extra,
   });
 
@@ -109,6 +125,11 @@ class AlarmSettings {
         notificationBody: json['notificationBody'] as String?,
         enableNotificationOnKill: json['enableNotificationOnKill'] as bool,
         stopOnNotificationOpen: json['stopOnNotificationOpen'] as bool,
+        bedtime: json['bedtime'] != null
+            ? DateTime.fromMicrosecondsSinceEpoch(json['bedtime'] as int)
+            : null,
+        bedtimeNotificationTitle: json['bedtimeNotificationTitle'] as String?,
+        bedtimeNotificationBody: json['bedtimeNotificationBody'] as String?,
         extra: json['extra'] as Map<String, dynamic>?,
       );
 
@@ -126,6 +147,9 @@ class AlarmSettings {
     String? notificationBody,
     bool? enableNotificationOnKill,
     bool? stopOnNotificationOpen,
+    DateTime? bedtime,
+    String? bedtimeNotificationTitle,
+    String? bedtimeNotificationBody,
     Map<String, dynamic>? extra,
   }) {
     return AlarmSettings(
@@ -142,6 +166,11 @@ class AlarmSettings {
           enableNotificationOnKill ?? this.enableNotificationOnKill,
       stopOnNotificationOpen:
           stopOnNotificationOpen ?? this.stopOnNotificationOpen,
+      bedtime: bedtime ?? this.bedtime,
+      bedtimeNotificationTitle:
+          bedtimeNotificationTitle ?? this.bedtimeNotificationTitle,
+      bedtimeNotificationBody:
+          bedtimeNotificationBody ?? this.bedtimeNotificationBody,
       extra: extra ?? this.extra,
     );
   }
@@ -159,6 +188,9 @@ class AlarmSettings {
         'notificationBody': notificationBody,
         'enableNotificationOnKill': enableNotificationOnKill,
         'stopOnNotificationOpen': stopOnNotificationOpen,
+        'bedtime': bedtime?.microsecondsSinceEpoch,
+        'bedtimeNotificationTitle': bedtimeNotificationTitle,
+        'bedtimeNotificationBody': bedtimeNotificationBody,
         'extra': extra,
       };
 
@@ -167,6 +199,9 @@ class AlarmSettings {
   String toString() {
     Map<String, dynamic> json = toJson();
     json['dateTime'] = DateTime.fromMicrosecondsSinceEpoch(json['dateTime']);
+    json['bedtime'] = json['bedtime'] != null
+        ? DateTime.fromMicrosecondsSinceEpoch(json['bedtime'])
+        : null;
 
     return "AlarmSettings: ${json.toString()}";
   }
@@ -188,5 +223,8 @@ class AlarmSettings {
           notificationBody == other.notificationBody &&
           enableNotificationOnKill == other.enableNotificationOnKill &&
           stopOnNotificationOpen == other.stopOnNotificationOpen &&
+          bedtime == other.bedtime &&
+          bedtimeNotificationTitle == other.bedtimeNotificationTitle &&
+          bedtimeNotificationBody == other.bedtimeNotificationBody &&
           mapEquals(extra, other.extra);
 }
