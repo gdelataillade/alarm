@@ -215,12 +215,14 @@ class Alarm {
   }
 
   /// Stops all the alarms.
-  static Future<void> stopAll() async {
+  static Future<bool> stopAll() async {
     final alarms = AlarmStorage.getSavedAlarms();
 
+    bool allStopped = true;
     for (final alarm in alarms) {
-      await stop(alarm.id);
+      allStopped &= await stop(alarm.id);
     }
+    return allStopped;
   }
 
   /// Whether the alarm is ringing.
