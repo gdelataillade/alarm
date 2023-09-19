@@ -27,11 +27,14 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
     );
   }
 
-  void loadAlarms() {
-    setState(() {
-      alarms = Alarm.getAlarms();
-      alarms.sort((a, b) => a.dateTime.isBefore(b.dateTime) ? 0 : 1);
-    });
+  void loadAlarms() async {
+    final alarms = await Alarm.getAlarms();
+    if (mounted) {
+      setState(() {
+        this.alarms = alarms;
+        this.alarms.sort((a, b) => a.dateTime.isBefore(b.dateTime) ? 0 : 1);
+      });
+    }
   }
 
   Future<void> navigateToRingScreen(AlarmSettings alarmSettings) async {

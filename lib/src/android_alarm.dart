@@ -7,6 +7,7 @@ import 'package:alarm/service/storage.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:vibration/vibration.dart';
 import 'package:volume_controller/volume_controller.dart';
 
@@ -20,20 +21,24 @@ class AndroidAlarm {
   static const platform =
       MethodChannel('com.gdelataillade.alarm/notifOnAppKill');
 
-  static bool ringing = false;
+  static final _ringingBehavior = BehaviorSubject<AlarmSettings?>();
+  static Stream<AlarmSettings?> get ringingStream => _ringingBehavior.stream;
+  static AlarmSettings? get ringing => _ringingBehavior.valueOrNull;
+  static set _ringing(AlarmSettings? value) => _ringingBehavior.add(value);
+
   static bool vibrationsActive = false;
   static double? previousVolume;
 
-  static bool get isRinging => ringing;
-  static bool get hasOtherAlarms => AlarmStorage.getSavedAlarms().length > 1;
+  static Future<bool> get hasOtherAlarms async =>
+      (await AlarmStorage.getSavedAlarms()).length > 1;
 
   /// Initializes AndroidAlarmManager dependency.
-  static Future<void> init() {
-    for (final settings in AlarmStorage.getSavedAlarms()) {
+  static Future<void> init() async {
+    for (final settings in await AlarmStorage.getSavedAlarms()) {
       // Re-register ports after the app restarts
       _registerPort(settings);
     }
-    return AndroidAlarmManager.initialize();
+    await AndroidAlarmManager.initialize();
   }
 
   static void _registerPort(
@@ -61,7 +66,7 @@ class AndroidAlarm {
       port.listen((message) {
         alarmPrint('$message');
         if (message == 'ring') {
-          ringing = true;
+          _ringing = settings;
           if (settings.volumeMax) setMaximumVolume();
           Alarm.ringStream.add(settings);
         } else {
@@ -105,13 +110,13 @@ class AndroidAlarm {
       'Alarm with id ${settings.id} scheduled ${res ? 'successfully' : 'failed'} at ${settings.dateTime}',
     );
 
-    if (settings.enableNotificationOnKill && !hasOtherAlarms) {
+    if (settings.enableNotificationOnKill && !(await hasOtherAlarms)) {
       try {
         await platform.invokeMethod(
           'setNotificationOnKillService',
           {
-            'title': AlarmStorage.getNotificationOnAppKillTitle(),
-            'description': AlarmStorage.getNotificationOnAppKillBody(),
+            'title': await AlarmStorage.getNotificationOnAppKillTitle(),
+            'description': await AlarmStorage.getNotificationOnAppKillBody(),
           },
         );
         alarmPrint('NotificationOnKillService set with success');
@@ -132,7 +137,7 @@ class AndroidAlarm {
   static Future<void> playAlarm(
     int id,
     Map<String, dynamic> data, [
-    int retryCount = 10,
+    int retryCount = 20,
   ]) async {
     alarmPrint('[ANDROID_ALARM] callback: playAlarm');
     final audioPlayer = AudioPlayer();
@@ -145,7 +150,7 @@ class AndroidAlarm {
         throw const AlarmException('Isolate port not found');
       }
 
-      return Future.delayed(const Duration(seconds: 2),
+      return Future.delayed(const Duration(seconds: 1),
           () => playAlarm(id, data, retryCount - 1));
     }
 
@@ -264,7 +269,7 @@ class AndroidAlarm {
   /// can stop playing and dispose.
   static Future<bool> stop(int id) async {
     alarmPrint('[ANDROID_ALARM] stop alarm');
-    ringing = false;
+    _ringing = null;
     vibrationsActive = false;
 
     final send = IsolateNameServer.lookupPortByName(stopPort);
@@ -279,7 +284,7 @@ class AndroidAlarm {
       previousVolume = null;
     }
 
-    if (!hasOtherAlarms) stopNotificationOnKillService();
+    if (!await hasOtherAlarms) stopNotificationOnKillService();
 
     return await AndroidAlarmManager.cancel(id);
   }

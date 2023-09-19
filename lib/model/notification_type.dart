@@ -1,0 +1,1 @@
+enum NotificationType { alarm, bedtime }

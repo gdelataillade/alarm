@@ -42,9 +42,9 @@ class IOSAlarm {
               'volumeMax': volumeMax,
               'notifOnKillEnabled': enableNotificationOnKill,
               'notifTitleOnAppKill':
-                  AlarmStorage.getNotificationOnAppKillTitle(),
+                  await AlarmStorage.getNotificationOnAppKillTitle(),
               'notifDescriptionOnAppKill':
-                  AlarmStorage.getNotificationOnAppKillBody(),
+                  await AlarmStorage.getNotificationOnAppKillBody(),
             },
           ) ??
           false;
