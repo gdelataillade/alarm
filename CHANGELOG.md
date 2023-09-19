@@ -1,5 +1,9 @@
-## 2.0.0-dev.4
+## 2.0.0-dev.5
 *Still in development...*
+* [iOS] Move background fetch to native.
+* [Android] Fix build errors.
+
+## 2.0.0-dev.4
 * [iOS] Improve background fetch & audio interruptions
 
 ## 2.0.0-dev.3

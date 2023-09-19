@@ -23,7 +23,7 @@ class _ExampleAlarmHomeShortcutButtonState
     setState(() => showMenu = false);
 
     final alarmSettings = AlarmSettings(
-      id: delayInHours,
+      id: DateTime.now().millisecondsSinceEpoch % 10000,
       dateTime: dateTime,
       assetAudioPath: 'assets/marimba.mp3',
       volumeMax: true,
