@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:alarm/alarm.dart';
-import 'package:alarm/service/background_fetch.dart';
 import 'package:alarm_example/screens/edit_alarm.dart';
 import 'package:alarm_example/screens/ring.dart';
 import 'package:alarm_example/screens/shortcut_button.dart';
@@ -72,24 +71,7 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('alarm 2.0.0-dev.4'),
-        actions: [
-          IconButton(
-            onPressed: () {
-              final checksDt = AlarmBackgroundFetch.fetches.map((e) {
-                return '${e.year}-${e.month}-${e.day} ${e.hour}h${e.minute}';
-              });
-              final content =
-                  "Background App Checks done this session:\n$checksDt";
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(content)),
-              );
-            },
-            icon: const Icon(Icons.info),
-          ),
-        ],
-      ),
+      appBar: AppBar(title: const Text('alarm 2.0.0-dev.4')),
       body: SafeArea(
         child: alarms.isNotEmpty
             ? ListView.separated(

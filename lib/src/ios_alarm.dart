@@ -114,20 +114,6 @@ class IOSAlarm {
     return pos2 > pos1;
   }
 
-  /// Checks if alarm audio players are still active during the background check.
-  static Future<bool> backgroundCheck() async {
-    final alarms = Alarm.getAlarms();
-    if (alarms.isEmpty) return true;
-
-    final alarmIds = alarms.map((e) => e.id).toList();
-
-    return await methodChannel.invokeMethod<bool?>(
-          'backgroundCheck',
-          {'ids': alarmIds},
-        ) ??
-        false;
-  }
-
   /// Listens when app goes foreground so we can check if alarm is ringing.
   /// When app goes background, periodical timer will be disposed.
   static void listenAppStateChange({

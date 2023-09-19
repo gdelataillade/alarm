@@ -9,7 +9,6 @@ environment:
 
 dependencies:
   android_alarm_manager_plus: ^3.0.1
-  background_fetch: ^1.2.1
   flutter:
     sdk: flutter
   flutter_fgbg: ^0.3.0

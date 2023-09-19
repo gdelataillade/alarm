@@ -3,6 +3,7 @@ import UIKit
 import AVFoundation
 import AudioToolbox
 import MediaPlayer
+import BackgroundTasks
 
 public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     #if targetEnvironment(simulator)
@@ -12,6 +13,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     #endif
 
     private var registrar: FlutterPluginRegistrar!
+    static let sharedInstance = SwiftAlarmPlugin()
+    static let backgroundTaskIdentifier: String = "com.gdelataillade.fetch"
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: "com.gdelataillade/alarm", binaryMessenger: registrar.messenger())
@@ -50,10 +53,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 let args = call.arguments as! Dictionary<String, Any>
                 let id = args["id"] as! Int
                 self.audioCurrentTime(id: id, result: result)
-            } else if call.method == "backgroundCheck" {
-                let args = call.arguments as! Dictionary<String, Any>
-                let ids = args["ids"] as! [Int]
-                self.backgroundCheck(ids: ids, result: result)
             } else {
                 DispatchQueue.main.sync {
                     result(FlutterMethodNotImplemented)
@@ -149,6 +148,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
         DispatchQueue.main.async {
             self.timers[id] = Timer.scheduledTimer(timeInterval: delayInSeconds, target: self, selector: #selector(self.executeTask(_:)), userInfo: id, repeats: false)
+            SwiftAlarmPlugin.scheduleAppRefresh()
         }
 
         result(true)
@@ -280,6 +280,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             self.playSilent = false
             self.silentAudioPlayer?.stop()
             NotificationCenter.default.removeObserver(self)
+            SwiftAlarmPlugin.cancelBackgroundTasks()
         }
     }
 
@@ -316,13 +317,16 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
     }
 
-    private func backgroundCheck(ids: [Int], result: FlutterResult) {
-        self.mixOtherAudios()
+    // Runs when a background fetch event is triggered
+    private func backgroundFetch() {
+        NSLog("SwiftAlarmPlugin: -> Background fetch !")
 
-        let isPlaying = self.silentAudioPlayer?.isPlaying ?? false
+        self.mixOtherAudios()
 
         self.silentAudioPlayer?.pause()
         self.silentAudioPlayer?.play()
+
+        let ids = Array(self.audioPlayers.keys)
 
         for id in ids {
             NSLog("SwiftAlarmPlugin: Background check alarm with id \(id)")
@@ -339,8 +343,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 self.timers[id] = Timer.scheduledTimer(timeInterval: delayInSeconds, target: self, selector: #selector(self.executeTask(_:)), userInfo: id, repeats: false)
             }
         }
-
-        result(isPlaying)
     }
 
     private func stopNotificationOnKillService() {
@@ -349,6 +351,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             observerAdded = false
         }
     }
+
     @objc func applicationWillTerminate(_ notification: Notification) {
         let content = UNMutableNotificationContent()
         content.title = notificationTitleOnKill
@@ -380,6 +383,50 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             try AVAudioSession.sharedInstance().setActive(true)
         } catch {
             NSLog("SwiftAlarmPlugin: Error setting up audio session with option duckOthers: \(error.localizedDescription)")
+        }
+    }
+
+    // Runs from AppDelegate when the app is launched
+    static public func registerBackgroundTasks() {
+        NSLog("SwiftAlarmPlugin: -> registerBackgroundTasks !")
+
+        if #available(iOS 13.0, *) {
+            BGTaskScheduler.shared.register(forTaskWithIdentifier: backgroundTaskIdentifier, using: nil) { task in
+                self.scheduleAppRefresh()
+                sharedInstance.backgroundFetch()
+                task.setTaskCompleted(success: true)
+            }
+        } else {
+            NSLog("SwiftAlarmPlugin: BGTaskScheduler not available for your version of iOS lower than 13.0")
+        }
+    }
+
+    // Enables background fetch
+    static func scheduleAppRefresh() {
+        NSLog("SwiftAlarmPlugin: -> scheduleAppRefresh !")
+
+        if #available(iOS 13.0, *) {
+            let request = BGAppRefreshTaskRequest(identifier: backgroundTaskIdentifier)
+
+            request.earliestBeginDate = Date(timeIntervalSinceNow: 15 * 60)
+            do {
+                try BGTaskScheduler.shared.submit(request)
+            } catch {
+                NSLog("SwiftAlarmPlugin: Could not schedule app refresh: \(error)")
+            }
+        } else {
+            NSLog("SwiftAlarmPlugin: BGTaskScheduler not available for your version of iOS lower than 13.0")
+        }
+    }
+
+    // Disable background fetch
+    static func cancelBackgroundTasks() {
+        NSLog("SwiftAlarmPlugin: -> cancelBackgroundTasks !")
+
+        if #available(iOS 13.0, *) {
+            BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: backgroundTaskIdentifier)
+        } else {
+            NSLog("SwiftAlarmPlugin: BGTaskScheduler not available for your version of iOS lower than 13.0")
         }
     }
 }

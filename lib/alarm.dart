@@ -4,7 +4,6 @@ export 'package:alarm/model/alarm_settings.dart';
 import 'dart:async';
 
 import 'package:alarm/model/alarm_settings.dart';
-import 'package:alarm/service/background_fetch.dart';
 import 'package:alarm/src/ios_alarm.dart';
 import 'package:alarm/src/android_alarm.dart';
 import 'package:alarm/service/notification.dart';
@@ -103,8 +102,6 @@ class Alarm {
     }
 
     if (iOS) {
-      AlarmBackgroundFetch.set();
-
       return IOSAlarm.setAlarm(
         alarmSettings.id,
         alarmSettings.dateTime,
@@ -152,8 +149,6 @@ class Alarm {
     await AlarmStorage.unsaveAlarm(id);
 
     AlarmNotification.instance.cancel(id);
-
-    if (iOS && !hasAlarm()) AlarmBackgroundFetch.stop();
 
     return iOS ? await IOSAlarm.stopAlarm(id) : await AndroidAlarm.stop(id);
   }
