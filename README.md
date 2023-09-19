@@ -11,67 +11,12 @@
 
 This Flutter plugin provides a simple and easy-to-use interface for setting and canceling alarms on iOS and Android devices. It utilizes the `android_alarm_manager_plus` plugin for Android and the native iOS `AVAudioPlayer` class.
 
-## Getting Started
+## 🔧 Installation steps
 
-### iOS installation steps
+### [iOS Setup](https://github.com/gdelataillade/alarm/blob/feat/ios-background-fetch/help/INSTALL-IOS.md)
+### [Android Setup](https://github.com/gdelataillade/alarm/blob/feat/ios-background-fetch/help/INSTALL-ANDROID.md)
 
-1) Open your project in Xcode, select your Runner and then Signing & Capabilities tab. In the Background Modes section, make sure to enable:
-- [x] Audio, AirPlay, and Picture in Picture
-- [x] Background fetch
-
-[See screenshot 1](https://github.com/gdelataillade/alarm/assets/32983806/2ad67186-1f22-462c-b953-fe55a35fea09)
-
-2) Still in Xcode, open your Info.plist and add the key `Permitted background task scheduler identifiers`, with the item `com.gdelataillade.fetch` inside.
-
-[See screenshot 2](https://github.com/gdelataillade/alarm/assets/32983806/a7ab90be-4518-48a7-a21d-d2844b4b036c)
-
-
-### Android installation steps
-
-In your `android/app/build.gradle`, make sure you have the following config:
-```Gradle
-android {
-  compileSdkVersion 33
-  [...]
-  defaultConfig {
-    [...]
-    multiDexEnabled true
-  }
-}
-```
-
-After that, add the following to your `AndroidManifest.xml` within the `<manifest></manifest>` tags:
-
-```xml
-<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-<uses-permission android:name="android.permission.WAKE_LOCK"/>
-<!-- For apps with targetSDK=31 (Android 12) -->
-<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
-```
-
-Next, within the `<application></application>` tags, add:
-
-```xml
-<service
-    android:name="dev.fluttercommunity.plus.androidalarmmanager.AlarmService"
-    android:permission="android.permission.BIND_JOB_SERVICE"
-    android:exported="false"/>
-<receiver
-    android:name="dev.fluttercommunity.plus.androidalarmmanager.AlarmBroadcastReceiver"
-    android:exported="false"/>
-<receiver
-    android:name="dev.fluttercommunity.plus.androidalarmmanager.RebootBroadcastReceiver"
-    android:enabled="false"
-    android:exported="false">
-    <intent-filter>
-        <action android:name="android.intent.action.BOOT_COMPLETED" />
-    </intent-filter>
-</receiver>
-```
-
-Finally, add your audio asset(s) to your project like usual.
-
-## How to use
+## 📖 How to use
 
 Add to your pubspec.yaml:
 ```Bash
@@ -137,14 +82,14 @@ Alarm.ringStream.stream.listen((_) => yourOnRingCallback());
 
 To avoid unexpected behaviors, if you set an alarm for the same time as an existing one, the new alarm will replace the existing one.
 
-## Example app
+## 📱 Example app
 
 Don't hesitate to check out the example's code, and take a look at the app:
 
 ![alarm_example_1](https://user-images.githubusercontent.com/32983806/230773695-915860d5-fb3d-47ee-b990-805ff33ed0c3.png)
 ![alarm_example_2](https://user-images.githubusercontent.com/32983806/230773701-f77a042d-a493-4b9c-a9d0-41509fe227fd.png)
 
-## Alarm behaviour
+## ⏰ Alarm behaviour
 
 |                          | Sound | Vibrate | Volume max | Notification
 | ------------------------ | ----- | ------- | ---------- | -------
@@ -157,7 +102,7 @@ Don't hesitate to check out the example's code, and take a look at the app:
 
 *Silenced: Means that the notification is not shown directly on the top of the screen. You have to go in your notification center to see it.*
 
-## FAQ
+## ❓ FAQ
 
 ### My alarm is not firing on a specific Android device
 
@@ -165,7 +110,7 @@ Some Android manufacturers prefer battery life over proper functionality of your
 Most common workaround is to ask the user to disable battery optimization settings.
 *Source: [https://pub.dev/packages/android_alarm_manager_plus#faq](https://pub.dev/packages/android_alarm_manager_plus#faq)*
 
-## Under the hood
+## ⚙️ Under the hood
 
 ### Android
 Uses `oneShotAt` from the `android_alarm_manager_plus` plugin with a two-way communication isolated callback to start/stop the alarm.
@@ -173,11 +118,11 @@ Uses `oneShotAt` from the `android_alarm_manager_plus` plugin with a two-way com
 ### iOS
 Keeps the app awake using a silent `AVAudioPlayer` until alarm rings. When in the background, it also uses `Background App Refresh` to periodically ensure the app is still active.
 
-## Feature request
+## ✉️ Feature request
 
 If you have a feature request, just open an issue explaining clearly what you want and if you convince me I will develop it for you.
 
-## Contributing
+## 💙 Contributing
 
 We welcome contributions to this plugin! If you would like to make a change or add a new feature, please follow these steps:
 
