@@ -86,8 +86,8 @@ To avoid unexpected behaviors, if you set an alarm for the same time as an exist
 
 Don't hesitate to check out the example's code, and take a look at the app:
 
-![alarm_example_1](https://user-images.githubusercontent.com/32983806/230773695-915860d5-fb3d-47ee-b990-805ff33ed0c3.png)
-![alarm_example_2](https://user-images.githubusercontent.com/32983806/230773701-f77a042d-a493-4b9c-a9d0-41509fe227fd.png)
+![home](https://github.com/gdelataillade/alarm/assets/32983806/695736aa-b55f-4050-8b0d-274b0d46714a)
+![edit](https://github.com/gdelataillade/alarm/assets/32983806/05329836-9fbe-462c-aa1e-dce0fa70f455)
 
 ## ⏰ Alarm behaviour
 
@@ -104,11 +104,25 @@ Don't hesitate to check out the example's code, and take a look at the app:
 
 ## ❓ FAQ
 
+### Why didn't my alarm fire on iOS?
+
+Several factors could prevent your alarm from ringing:
+- Your iPhone was restarted (either from a manual reboot or due to an iOS update).
+- The app was either manually terminated or was closed because of memory constraints.
+
 ### My alarm is not firing on a specific Android device
 
 Some Android manufacturers prefer battery life over proper functionality of your apps. Check out [dontkillmyapp.com](https://dontkillmyapp.com) to find out about more about optimizations done by different vendors, and potential workarounds.
 Most common workaround is to ask the user to disable battery optimization settings.
 *Source: [https://pub.dev/packages/android_alarm_manager_plus#faq](https://pub.dev/packages/android_alarm_manager_plus#faq)*
+
+### How can I increase the reliability of the alarm ringing?
+
+The more time the app spends in the background, the higher the chance the OS might stop it from running due to memory or battery optimizations. Here's how you can optimize:
+
+- **Regular App Usage**: Encourage users to open the app at least once a day.
+- **Leverage Background Modes**: Engage in activities like weather API calls that keep the app active in the background.
+- **User Settings**: Educate users to refrain from using 'Do Not Disturb' (DnD) and 'Low Power Mode' when they're expecting the alarm to ring.
 
 ## ⚙️ Under the hood
 
