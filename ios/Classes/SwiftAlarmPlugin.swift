@@ -171,7 +171,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 self.playSilent = true
                 self.silentAudioPlayer?.play()
                 NotificationCenter.default.addObserver(self, selector: #selector(handleInterruption), name: AVAudioSession.interruptionNotification, object: nil)
-                // self.loopSilentSound()
             } catch {
                 NSLog("SwiftAlarmPlugin: Error: Could not create and play audio player: \(error)")
             }
@@ -199,21 +198,17 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             }
     }
 
-    // private func loopSilentSound() {
-    //     self.silentAudioPlayer?.play()
-    //     NSLog("SwiftAlarmPlugin: Playing silent audio...")
-
-    //     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-    //         self.silentAudioPlayer?.pause()
-    //         NSLog("SwiftAlarmPlugin: Paused silent audio...")
-            
-    //         DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-    //             if self.playSilent {
-    //                 self.loopSilentSound()
-    //             }
-    //         }
-    //     }
-    // }
+    private func loopSilentSound() {
+        self.silentAudioPlayer?.play()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            self.silentAudioPlayer?.pause()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                if self.playSilent {
+                    self.loopSilentSound()
+                }
+            }
+        }
+    }
 
     private func handleAlarmAfterDelay(id: Int, triggerTime: Date, fadeDuration: Double, vibrationsEnabled: Bool, audioLoop: Bool, volumeMax: Bool) {
         guard let audioPlayer = self.audioPlayers[id], let storedTriggerTime = triggerTimes[id], triggerTime == storedTriggerTime else {
@@ -317,10 +312,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
     }
 
-    // Runs when a background fetch event is triggered
     private func backgroundFetch() {
-        NSLog("SwiftAlarmPlugin: -> Background fetch !")
-
         self.mixOtherAudios()
 
         self.silentAudioPlayer?.pause()
@@ -334,7 +326,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 let dateTime = self.triggerTimes[id]!
                 let currentTime = audioPlayer.deviceCurrentTime
                 let time = currentTime + dateTime.timeIntervalSinceNow
-                // self.audioPlayers[id]!.stop()
                 self.audioPlayers[id]!.play(atTime: time)
             }
 
@@ -363,7 +354,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             if let error = error {
                 NSLog("SwiftAlarmPlugin: Failed to show notification on kill service => error: \(error.localizedDescription)")
             } else {
-                NSLog("SwiftAlarmPlugin: Show notification on kill now")
+                NSLog("SwiftAlarmPlugin: Trigger notification on app kill")
             }
         }
     }
@@ -386,10 +377,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
     }
 
-    // Runs from AppDelegate when the app is launched
+    /// Runs from AppDelegate when the app is launched
     static public func registerBackgroundTasks() {
-        NSLog("SwiftAlarmPlugin: -> registerBackgroundTasks !")
-
         if #available(iOS 13.0, *) {
             BGTaskScheduler.shared.register(forTaskWithIdentifier: backgroundTaskIdentifier, using: nil) { task in
                 self.scheduleAppRefresh()
@@ -401,10 +390,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
     }
 
-    // Enables background fetch
+    /// Enables background fetch
     static func scheduleAppRefresh() {
-        NSLog("SwiftAlarmPlugin: -> scheduleAppRefresh !")
-
         if #available(iOS 13.0, *) {
             let request = BGAppRefreshTaskRequest(identifier: backgroundTaskIdentifier)
 
@@ -419,10 +406,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
     }
 
-    // Disable background fetch
+    /// Disables background fetch
     static func cancelBackgroundTasks() {
-        NSLog("SwiftAlarmPlugin: -> cancelBackgroundTasks !")
-
         if #available(iOS 13.0, *) {
             BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: backgroundTaskIdentifier)
         } else {

@@ -13,6 +13,8 @@ This Flutter plugin provides a simple and easy-to-use interface for setting and 
 
 ## 🔧 Installation steps
 
+Please carefully follow these installation steps. They have been updated for plugin version `2.0.0`.
+
 ### [iOS Setup](https://github.com/gdelataillade/alarm/blob/feat/ios-background-fetch/help/INSTALL-IOS.md)
 ### [Android Setup](https://github.com/gdelataillade/alarm/blob/feat/ios-background-fetch/help/INSTALL-ANDROID.md)
 
@@ -113,8 +115,8 @@ Several factors could prevent your alarm from ringing:
 ### My alarm is not firing on a specific Android device
 
 Some Android manufacturers prefer battery life over proper functionality of your apps. Check out [dontkillmyapp.com](https://dontkillmyapp.com) to find out about more about optimizations done by different vendors, and potential workarounds.
-Most common workaround is to ask the user to disable battery optimization settings.
-*Source: [https://pub.dev/packages/android_alarm_manager_plus#faq](https://pub.dev/packages/android_alarm_manager_plus#faq)*
+Most common solution is to educate users to disable **battery optimization** settings.
+*Source: [android_alarm_manager_plus FAQ](https://pub.dev/packages/android_alarm_manager_plus#faq)*
 
 ### How can I increase the reliability of the alarm ringing?
 

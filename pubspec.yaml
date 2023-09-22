@@ -4,7 +4,7 @@ version: 2.0.0-dev.5
 homepage: https://github.com/gdelataillade/alarm
 
 environment:
-  sdk: '>=2.18.5 <4.0.0'
+  sdk: '>=3.0.0 <4.0.0'
   flutter: ">=2.5.0"
 
 dependencies:
