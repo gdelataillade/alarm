@@ -1,5 +1,8 @@
-## 2.0.0-dev.5
+## 2.0.0-release-candidate-1
 *Still in development...*
+* Add minor improvements.
+
+## 2.0.0-dev.5
 * [iOS] Move background fetch to native.
 * [Android] Fix build errors.
 
