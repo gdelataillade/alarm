@@ -1,5 +1,9 @@
+## 2.0.0
+**Breaking Changes**
+* Installation steps were updated in the README. Please make sure to follow them.
+* [iOS] Add Background Fetch to periodically make sure alarms are still active in the background.
+
 ## 2.0.0-release-candidate-1
-*Still in development...*
 * Add minor improvements.
 
 ## 2.0.0-dev.5
@@ -17,7 +21,6 @@
 * Add a shortcut button in example app.
 
 ## 2.0.0-dev.1
-**Breaking Changes**
 * [iOS] Play silent audio until alarm rings to keep app active.
 * [iOS] Add Background Fetch to periodically check if app is still active.
 * [iOS] Add new installation steps.
