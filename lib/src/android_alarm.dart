@@ -128,6 +128,11 @@ class AndroidAlarm {
     return res;
   }
 
+  @pragma('vm:entry-point')
+  static void watchdogHeartbeat(int id, Map<String, dynamic> data) {
+    alarmPrint('[ANDROID_ALARM] watchdog heartbeat');
+  }
+
   /// Callback triggered when alarmDateTime is reached.
   /// The message `ring` is sent to the main thread in order to
   /// tell the device that the alarm is starting to ring.
@@ -140,10 +145,24 @@ class AndroidAlarm {
     int retryCount = 20,
   ]) async {
     alarmPrint('[ANDROID_ALARM] callback: playAlarm');
-    final audioPlayer = AudioPlayer();
 
+    // Hack: periodically wake up the app to make sure the activity manager
+    // doesn't freezes our app.
+    final watchdogId = '$id-watchdog'.hashCode;
+    await AndroidAlarmManager.periodic(
+      const Duration(seconds: 1),
+      watchdogId,
+      AndroidAlarm.watchdogHeartbeat,
+      allowWhileIdle: true,
+      exact: true,
+      rescheduleOnReboot: true,
+      wakeup: true,
+    );
+
+    final audioPlayer = AudioPlayer();
     final callerPort = IsolateNameServer.lookupPortByName("$ringPort-$id");
     if (callerPort == null) {
+      await AndroidAlarmManager.cancel(watchdogId);
       alarmPrint(
           '[ANDROID_ALARM] Isolate port not found. $retryCount retries left');
       if (retryCount == 0) {
@@ -161,6 +180,7 @@ class AndroidAlarm {
       Duration? audioDuration;
 
       if (assetAudioPath.startsWith('http')) {
+        await AndroidAlarmManager.cancel(watchdogId);
         callerPort
             .send('Network URL not supported. Please provide local asset.');
         return;
@@ -202,6 +222,7 @@ class AndroidAlarm {
       }
     } catch (e) {
       await AudioPlayer.clearAssetCache();
+      await AndroidAlarmManager.cancel(watchdogId);
       callerPort.send('Asset cache reset. Please try again.');
       throw AlarmException(
         "Alarm with id $id and asset path '${data['assetAudioPath']}' error: $e",
@@ -223,10 +244,12 @@ class AndroidAlarm {
         if (message == 'stop') {
           await audioPlayer.stop();
           await audioPlayer.dispose();
+          await AndroidAlarmManager.cancel(watchdogId);
           port.close();
         }
       });
     } catch (e) {
+      await AndroidAlarmManager.cancel(watchdogId);
       throw AlarmException('Isolate error: $e');
     }
   }

@@ -46,6 +46,7 @@ class Alarm {
     bool showDebugLogs = true,
     DateTime? nowAtStartup,
     String snoozeLabel = "Snooze",
+    void Function(String msg)? logProxy,
   }) async {
     if (_initialized) {
       alarmPrint('Already initialized. Ignoring request to initialize again');
@@ -53,7 +54,13 @@ class Alarm {
     }
 
     alarmPrint = (String? message, {int? wrapWidth}) {
-      if (kDebugMode && showDebugLogs) {
+      if (!showDebugLogs) {
+        return;
+      }
+
+      if (logProxy != null) {
+        logProxy("[Alarm] $message");
+      } else if (kDebugMode) {
         print("[Alarm] $message");
       }
     };
