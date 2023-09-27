@@ -18,7 +18,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
   late DateTime selectedDateTime;
   late bool loopAudio;
   late bool vibrate;
-  late bool volumeMax;
+  late double? volume;
   late bool showNotification;
   late String assetAudio;
 
@@ -32,14 +32,14 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       selectedDateTime = selectedDateTime.copyWith(second: 0, millisecond: 0);
       loopAudio = true;
       vibrate = true;
-      volumeMax = false;
+      volume = null;
       showNotification = true;
       assetAudio = 'assets/marimba.mp3';
     } else {
       selectedDateTime = widget.alarmSettings!.dateTime;
       loopAudio = widget.alarmSettings!.loopAudio;
       vibrate = widget.alarmSettings!.vibrate;
-      volumeMax = widget.alarmSettings!.volumeMax;
+      volume = widget.alarmSettings!.volume;
       showNotification = widget.alarmSettings!.notificationTitle != null &&
           widget.alarmSettings!.notificationTitle!.isNotEmpty &&
           widget.alarmSettings!.notificationBody != null &&
@@ -93,7 +93,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       dateTime: selectedDateTime,
       loopAudio: loopAudio,
       vibrate: vibrate,
-      volumeMax: volumeMax,
+      volume: volume,
       notificationTitle: showNotification ? 'Alarm example' : null,
       notificationBody: showNotification ? 'Your alarm ($id) is ringing' : null,
       assetAudioPath: assetAudio,
@@ -204,8 +204,8 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               Switch(
-                value: volumeMax,
-                onChanged: (value) => setState(() => volumeMax = value),
+                value: volume != null,
+                onChanged: (value) => setState(() => volume = value ? 1 : null),
               ),
             ],
           ),

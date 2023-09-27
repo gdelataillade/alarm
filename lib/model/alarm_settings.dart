@@ -20,10 +20,15 @@ class AlarmSettings {
   /// If [loopAudio] is set to false, vibrations will stop when audio ends.
   final bool vibrate;
 
-  /// If true, set system volume to maximum when [dateTime] is reached
-  /// and set it back to its previous value when alarm is stopped.
-  /// Else, use current system volume. Enabled by default.
-  final bool volumeMax;
+  /// Specifies the system volume level to be set at the designated [dateTime].
+  ///
+  /// Accepts a value between 0 (mute) and 1 (maximum volume). When the alarm is triggered at [dateTime],
+  /// the system volume adjusts to this specified level. Upon stopping the alarm, the system volume reverts
+  /// to its prior setting.
+  ///
+  /// If left unspecified or set to `null`, the current system volume at the time of the alarm will be used.
+  /// Defaults to `null`.
+  final double? volume;
 
   /// Duration, in seconds, over which to fade the alarm ringtone.
   /// Set to 0.0 by default, which means no fade.
@@ -59,7 +64,7 @@ class AlarmSettings {
     hash = hash ^ assetAudioPath.hashCode;
     hash = hash ^ loopAudio.hashCode;
     hash = hash ^ vibrate.hashCode;
-    hash = hash ^ volumeMax.hashCode;
+    hash = hash ^ volume.hashCode;
     hash = hash ^ fadeDuration.hashCode;
     hash = hash ^ (notificationTitle?.hashCode ?? 0);
     hash = hash ^ (notificationBody?.hashCode ?? 0);
@@ -81,7 +86,7 @@ class AlarmSettings {
     required this.assetAudioPath,
     this.loopAudio = true,
     this.vibrate = true,
-    this.volumeMax = true,
+    this.volume,
     this.fadeDuration = 0.0,
     this.notificationTitle,
     this.notificationBody,
@@ -96,8 +101,8 @@ class AlarmSettings {
         dateTime: DateTime.fromMicrosecondsSinceEpoch(json['dateTime'] as int),
         assetAudioPath: json['assetAudioPath'] as String,
         loopAudio: json['loopAudio'] as bool,
-        vibrate: json['vibrate'] as bool,
-        volumeMax: json['volumeMax'] as bool,
+        vibrate: json['vibrate'] != null ? json['vibrate'] as bool : true,
+        volume: json['volume'] as double,
         fadeDuration: json['fadeDuration'] as double,
         notificationTitle: json['notificationTitle'] as String?,
         notificationBody: json['notificationBody'] as String?,
@@ -114,7 +119,7 @@ class AlarmSettings {
     String? assetAudioPath,
     bool? loopAudio,
     bool? vibrate,
-    bool? volumeMax,
+    double? volume,
     double? fadeDuration,
     String? notificationTitle,
     String? notificationBody,
@@ -128,7 +133,7 @@ class AlarmSettings {
       assetAudioPath: assetAudioPath ?? this.assetAudioPath,
       loopAudio: loopAudio ?? this.loopAudio,
       vibrate: vibrate ?? this.vibrate,
-      volumeMax: volumeMax ?? this.volumeMax,
+      volume: volume ?? this.volume,
       fadeDuration: fadeDuration ?? this.fadeDuration,
       notificationTitle: notificationTitle ?? this.notificationTitle,
       notificationBody: notificationBody ?? this.notificationBody,
@@ -148,7 +153,7 @@ class AlarmSettings {
         'assetAudioPath': assetAudioPath,
         'loopAudio': loopAudio,
         'vibrate': vibrate,
-        'volumeMax': volumeMax,
+        'volume': volume,
         'fadeDuration': fadeDuration,
         'notificationTitle': notificationTitle,
         'notificationBody': notificationBody,
@@ -177,7 +182,7 @@ class AlarmSettings {
           assetAudioPath == other.assetAudioPath &&
           loopAudio == other.loopAudio &&
           vibrate == other.vibrate &&
-          volumeMax == other.volumeMax &&
+          volume == other.volume &&
           fadeDuration == other.fadeDuration &&
           notificationTitle == other.notificationTitle &&
           notificationBody == other.notificationBody &&

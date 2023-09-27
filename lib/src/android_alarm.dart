@@ -51,7 +51,7 @@ class AndroidAlarm {
         alarmPrint('$message');
         if (message == 'ring') {
           ringing = true;
-          if (settings.volumeMax) setMaximumVolume();
+          if (settings.volume != null) setMaximumVolume();
           onRing?.call();
         } else {
           if (settings.vibrate &&
