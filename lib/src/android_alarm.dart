@@ -51,7 +51,7 @@ class AndroidAlarm {
         alarmPrint('$message');
         if (message == 'ring') {
           ringing = true;
-          if (settings.volume != null) setMaximumVolume();
+          if (settings.volume != null) setSystemVolume(settings.volume!);
           onRing?.call();
         } else {
           if (settings.vibrate &&
@@ -235,10 +235,10 @@ class AndroidAlarm {
     }
   }
 
-  /// Sets the device volume to the maximum.
-  static Future<void> setMaximumVolume() async {
+  /// Sets the device volume to [volume].
+  static Future<void> setSystemVolume(double volume) async {
     previousVolume = await VolumeController().getVolume();
-    VolumeController().setVolume(1.0, showSystemUI: true);
+    VolumeController().setVolume(volume, showSystemUI: true);
   }
 
   /// Sends the message `stop` to the isolate so the audio player
