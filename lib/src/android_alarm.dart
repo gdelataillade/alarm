@@ -32,16 +32,10 @@ class AndroidAlarm {
 
   /// Creates isolate communication channel and set alarm at given [dateTime].
   static Future<bool> set(
-    int id,
-    DateTime dateTime,
+    AlarmSettings settings,
     void Function()? onRing,
-    String assetAudioPath,
-    bool loopAudio,
-    bool vibrate,
-    bool volumeMax,
-    double fadeDuration,
-    bool enableNotificationOnKill,
   ) async {
+    final id = settings.id;
     try {
       final port = ReceivePort();
       final success = IsolateNameServer.registerPortWithName(
@@ -57,15 +51,17 @@ class AndroidAlarm {
         alarmPrint('$message');
         if (message == 'ring') {
           ringing = true;
-          if (volumeMax) setMaximumVolume();
+          if (settings.volumeMax) setMaximumVolume();
           onRing?.call();
         } else {
-          if (vibrate && message is String && message.startsWith('vibrate')) {
+          if (settings.vibrate &&
+              message is String &&
+              message.startsWith('vibrate')) {
             final audioDuration = message.split('-').last;
 
             if (int.tryParse(audioDuration) != null) {
               final duration = Duration(seconds: int.parse(audioDuration));
-              triggerVibrations(duration: loopAudio ? null : duration);
+              triggerVibrations(duration: settings.loopAudio ? null : duration);
             }
           }
         }
@@ -75,7 +71,7 @@ class AndroidAlarm {
     }
 
     final res = await AndroidAlarmManager.oneShotAt(
-      dateTime,
+      settings.dateTime,
       id,
       AndroidAlarm.playAlarm,
       alarmClock: true,
@@ -84,17 +80,17 @@ class AndroidAlarm {
       rescheduleOnReboot: true,
       wakeup: true,
       params: {
-        'assetAudioPath': assetAudioPath,
-        'loopAudio': loopAudio,
-        'fadeDuration': fadeDuration,
+        'assetAudioPath': settings.assetAudioPath,
+        'loopAudio': settings.loopAudio,
+        'fadeDuration': settings.fadeDuration,
       },
     );
 
     alarmPrint(
-      'Alarm with id $id scheduled ${res ? 'successfully' : 'failed'} at $dateTime',
+      'Alarm with id $id scheduled ${res ? 'successfully' : 'failed'} at ${settings.dateTime}',
     );
 
-    if (enableNotificationOnKill && !hasOtherAlarms) {
+    if (settings.enableNotificationOnKill && !hasOtherAlarms) {
       try {
         await platform.invokeMethod(
           'setNotificationOnKillService',

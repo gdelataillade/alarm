@@ -103,27 +103,13 @@ class Alarm {
 
     if (iOS) {
       return IOSAlarm.setAlarm(
-        alarmSettings.id,
-        alarmSettings.dateTime,
+        alarmSettings,
         () => ringStream.add(alarmSettings),
-        alarmSettings.assetAudioPath,
-        alarmSettings.loopAudio,
-        alarmSettings.vibrate,
-        alarmSettings.volumeMax,
-        alarmSettings.fadeDuration,
-        alarmSettings.enableNotificationOnKill,
       );
     } else if (android) {
       return await AndroidAlarm.set(
-        alarmSettings.id,
-        alarmSettings.dateTime,
+        alarmSettings,
         () => ringStream.add(alarmSettings),
-        alarmSettings.assetAudioPath,
-        alarmSettings.loopAudio,
-        alarmSettings.vibrate,
-        alarmSettings.volumeMax,
-        alarmSettings.fadeDuration,
-        alarmSettings.enableNotificationOnKill,
       );
     }
 
