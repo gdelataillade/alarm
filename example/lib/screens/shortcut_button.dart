@@ -18,9 +18,14 @@ class _ExampleAlarmHomeShortcutButtonState
 
   Future<void> onPressButton(int delayInHours) async {
     DateTime dateTime = DateTime.now().add(Duration(hours: delayInHours));
-    dateTime = dateTime.copyWith(second: 0, millisecond: 0);
+
+    if (delayInHours != 0) {
+      dateTime = dateTime.copyWith(second: 0, millisecond: 0);
+    }
 
     setState(() => showMenu = false);
+
+    alarmPrint(dateTime.toString());
 
     final alarmSettings = AlarmSettings(
       id: DateTime.now().millisecondsSinceEpoch % 10000,
