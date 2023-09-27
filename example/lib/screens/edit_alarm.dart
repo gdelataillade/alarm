@@ -200,19 +200,6 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'System volume max',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              Switch(
-                value: volume != null,
-                onChanged: (value) => setState(() => volume = value ? 1 : null),
-              ),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
                 'Show notification',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
@@ -256,6 +243,45 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
                 onChanged: (value) => setState(() => assetAudio = value!),
               ),
             ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Custom volume',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              Switch(
+                value: volume != null,
+                onChanged: (value) =>
+                    setState(() => volume = value ? 0.5 : null),
+              ),
+            ],
+          ),
+          SizedBox(
+            height: 30,
+            child: volume != null
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Icon(
+                        volume! > 0.7
+                            ? Icons.volume_up_rounded
+                            : volume! > 0.1
+                                ? Icons.volume_down_rounded
+                                : Icons.volume_mute_rounded,
+                      ),
+                      Expanded(
+                        child: Slider(
+                          value: volume!,
+                          onChanged: (value) {
+                            setState(() => volume = value);
+                          },
+                        ),
+                      ),
+                    ],
+                  )
+                : const SizedBox(),
           ),
           if (!creating)
             TextButton(
