@@ -18,7 +18,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
   late DateTime selectedDateTime;
   late bool loopAudio;
   late bool vibrate;
-  late bool volumeMax;
+  late double? volume;
   late String assetAudio;
 
   @override
@@ -31,13 +31,13 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       selectedDateTime = selectedDateTime.copyWith(second: 0, millisecond: 0);
       loopAudio = true;
       vibrate = true;
-      volumeMax = false;
+      volume = null;
       assetAudio = 'assets/marimba.mp3';
     } else {
       selectedDateTime = widget.alarmSettings!.dateTime;
       loopAudio = widget.alarmSettings!.loopAudio;
       vibrate = widget.alarmSettings!.vibrate;
-      volumeMax = widget.alarmSettings!.volumeMax;
+      volume = widget.alarmSettings!.volume;
       assetAudio = widget.alarmSettings!.assetAudioPath;
     }
   }
@@ -87,7 +87,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       dateTime: selectedDateTime,
       loopAudio: loopAudio,
       vibrate: vibrate,
-      volumeMax: volumeMax,
+      volume: volume,
       assetAudioPath: assetAudio,
       notificationTitle: 'Alarm example',
       notificationBody: 'Your alarm ($id) is ringing',
@@ -198,8 +198,8 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               Switch(
-                value: volumeMax,
-                onChanged: (value) => setState(() => volumeMax = value),
+                value: volume != null,
+                onChanged: (value) => setState(() => volume = value ? 1 : null),
               ),
             ],
           ),

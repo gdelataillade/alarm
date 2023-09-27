@@ -38,7 +38,7 @@ final alarmSettings = AlarmSettings(
   assetAudioPath: 'assets/alarm.mp3',
   loopAudio: true,
   vibrate: true,
-  volumeMax: true,
+  volume: 0.8,
   fadeDuration: 3.0,
   notificationTitle: 'This is the title',
   notificationBody: 'This is the body',
@@ -58,7 +58,8 @@ alarmDateTime |   `DateTime`     | The date and time you want your alarm to ring
 assetAudio |   `String`     | The path to you audio asset you want to use as ringtone. Can be a path in your assets folder or a downloaded local file path.
 loopAudio |   `bool`     | If true, audio will repeat indefinitely until alarm is stopped.
 vibrate |   `bool`     | If true, device will vibrate indefinitely until alarm is stopped. If [loopAudio] is set to false, vibrations will stop when audio ends.
-volumeMax |   `bool`     | If true, set system volume to maximum when [dateTime] is reached. Set back to previous volume when alarm is stopped.
+volume |   `double`     | Sets system volume level (0 to 1) at [dateTime]; reverts on alarm stop. Defaults to current volume if null.
+when alarm is stopped.
 fadeDuration |   `double`     | Duration, in seconds, over which to fade the alarm volume. Set to 0 by default, which means no fade.
 notificationTitle |   `String`     | The title of the notification triggered when alarm rings if app is on background.
 notificationBody | `String` | The body of the notification.
@@ -91,14 +92,14 @@ Don't hesitate to check out the example's code, and take a look at the app:
 
 ## ⏰ Alarm behaviour
 
-|                          | Sound | Vibrate | Volume max | Notification
-| ------------------------ | ----- | ------- | ---------- | -------
-| Locked screen            |  ✅   | ✅       | ✅          | ✅
-| Silent / Mute            |  ✅   | ✅       | ✅          | ✅
-| Do not disturb           |  ✅   | ✅       | ✅          | Silenced
-| Sleep mode               |  ✅   | ✅       | ✅          | Silenced
-| While playing other media|  ✅   | ✅       | ✅          | ✅
-| App killed               |  🤖   | 🤖       | 🤖          | ✅
+|                          | Sound | Vibrate | Volume | Notification
+| ------------------------ | ----- | ------- | -------| -------
+| Locked screen            |  ✅   | ✅       | ✅     | ✅
+| Silent / Mute            |  ✅   | ✅       | ✅     | ✅
+| Do not disturb           |  ✅   | ✅       | ✅     | Silenced
+| Sleep mode               |  ✅   | ✅       | ✅     | Silenced
+| While playing other media|  ✅   | ✅       | ✅     | ✅
+| App killed               |  🤖   | 🤖       | 🤖     | ✅
 
 ✅ : iOS and Android
 🤖 : Android only.
