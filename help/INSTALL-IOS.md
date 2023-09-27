@@ -45,3 +45,5 @@ SwiftAlarmPlugin.registerBackgroundTasks()
 ![app-delegate](https://github.com/gdelataillade/alarm/assets/32983806/fcc00495-ecf0-4db3-9964-89bbedf577a7)
 
 This configures the app to manage foreground notifications and setup background tasks.
+
+Don't forget to run `pod install --repo-update` to update your pods.
