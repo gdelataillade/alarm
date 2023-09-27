@@ -1,0 +1,1 @@
+enum MessageType { log, notification }

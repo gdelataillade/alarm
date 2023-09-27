@@ -3,7 +3,8 @@ import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:alarm/alarm.dart';
-import 'package:alarm/extensions/notification_response_mapper.dart';
+import 'package:alarm/model/message_type.dart';
+import 'package:alarm/model/port_message.dart';
 import 'package:alarm/model/notification_action.dart';
 import 'package:alarm/model/notification_payload.dart';
 import 'package:alarm/model/notification_type.dart';
@@ -105,19 +106,48 @@ class AlarmNotification {
   static onSelectNotificationBackground(
     NotificationResponse notificationResponse,
   ) async {
-    alarmPrint(
-      '[NOTIFICATION] notification selected in background, delegating to regular callback',
-    );
+    alarmPrint('[NOTIFICATION] notification selected in background');
+    final action = NotificationAction.from(notificationResponse.actionId);
+    if (action == NotificationAction.snooze) {
+      // Handle alarm snooze in here instead of delegating it to ensure the OS
+      // doesn't kill the app in the middle
+      alarmPrint('[NOTIFICATION] + handling snooze in the background');
+      await onSnoozeSelectedBackground(notificationResponse);
+      return;
+    }
+
     final callerPort =
         IsolateNameServer.lookupPortByName(_backgroundComPortName);
     if (callerPort != null) {
-      callerPort.send(notificationResponse.serialize());
+      alarmPrint('[NOTIFICATION] + delegating to regular callback');
+      callerPort
+          .send(PortMessage.notification(notificationResponse).serialize());
     } else {
       alarmPrint(
-        '[NOTIFICATION] notification selected in background, but port was closed',
+        '[NOTIFICATION] + port was closed, attempting to handle in the background',
       );
       await Alarm.init();
       onSelectNotification(notificationResponse);
+    }
+  }
+
+  /// Snoozes the alarm while running in a background isolate.
+  static Future<void> onSnoozeSelectedBackground(
+      NotificationResponse notificationResponse) async {
+    final callerPort =
+        IsolateNameServer.lookupPortByName(_backgroundComPortName);
+    bgLogPrint(callerPort, 'snooze button selected');
+    await Alarm.init();
+    final alarmSettings = await Alarm.getAlarm(notificationResponse.id ?? 0);
+    if (alarmSettings != null) {
+      bgLogPrint(callerPort, 'trying to reschedule the alarm');
+      await Alarm.set(
+        alarmSettings: alarmSettings.copyWith(
+          dateTime: DateTime.now().add(alarmSettings.snoozeDuration),
+        ),
+      );
+    } else {
+      bgLogPrint(callerPort, 'Failed! could\'t find alarm');
     }
   }
 
@@ -237,25 +267,31 @@ class AlarmNotification {
   /// Shows notification permission request. Defaults to `true` when it fails to
   /// check while the app is in the background.
   Future<bool> requestPermission() async {
-    bool? result;
+    bool? enabled;
 
     try {
-      result = defaultTargetPlatform == TargetPlatform.android
-          ? await localNotif
-              .resolvePlatformSpecificImplementation<
-                  AndroidFlutterLocalNotificationsPlugin>()
-              ?.requestPermission()
-          : await localNotif
-              .resolvePlatformSpecificImplementation<
-                  IOSFlutterLocalNotificationsPlugin>()
-              ?.requestPermissions(alert: true, badge: true, sound: true);
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        // Android
+        final platform = localNotif.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+        enabled = await platform?.areNotificationsEnabled();
+        if (enabled == null || !enabled) {
+          enabled = await platform?.requestPermission();
+        }
+      } else {
+        // iOS
+        enabled = await localNotif
+            .resolvePlatformSpecificImplementation<
+                IOSFlutterLocalNotificationsPlugin>()
+            ?.requestPermissions(alert: true, badge: true, sound: true);
+      }
     } catch (e) {
       alarmPrint(
         'Failure during checking notification permission. Most likely because the app is in the background',
       );
     }
 
-    return result ?? true;
+    return enabled ?? true;
   }
 
   /// Shows notification permission request. May throw.
@@ -365,6 +401,11 @@ class AlarmNotification {
     alarmPrint('Notification with id $id canceled');
   }
 
+  /// Attempt to proxy the log to the main app or default to console
+  static bgLogPrint(SendPort? port, String message) => (port != null)
+      ? port.send(PortMessage.log(message).serialize())
+      : alarmPrint('[NOTIFICATION] $message');
+
   /// Register port to communicate with [Isolate] when a notification is
   /// selected while the app is in the background.
   static void _registerPort() {
@@ -384,11 +425,26 @@ class AlarmNotification {
         );
       }
 
-      port.listen((message) {
-        alarmPrint('[NOTIFICATION] received message: $message');
-        NotificationResponse notificationResponse =
-            NotificationResponseExt.deserialize(message);
-        onSelectNotification(notificationResponse);
+      port.listen((rawMessage) {
+        final portMessage = PortMessage.deserialize(rawMessage);
+        switch (portMessage.type) {
+          case MessageType.log:
+            alarmPrint(
+                '[NOTIFICATION] message from isolate: ${portMessage.message}');
+            break;
+
+          case MessageType.notification:
+            alarmPrint(
+              '[NOTIFICATION] delegating notification response from isolate: ${portMessage.message}',
+            );
+            onSelectNotification(portMessage.notificationResponse!);
+            break;
+
+          default:
+            alarmPrint(
+              '[NOTIFICATION] unhandled message from isolate: $rawMessage',
+            );
+        }
       });
     } catch (e) {
       throw AlarmException('Isolate error: $e');
