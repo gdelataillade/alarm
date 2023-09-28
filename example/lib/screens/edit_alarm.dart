@@ -96,6 +96,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
     final alarmSettings = AlarmSettings(
       id: id,
       dateTime: dateTime,
+      originalTime: TimeOfDay.fromDateTime(dateTime),
       loopAudio: loopAudio,
       vibrate: vibrate,
       volumeMax: volumeMax,

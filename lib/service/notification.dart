@@ -9,6 +9,7 @@ import 'package:alarm/model/notification_action.dart';
 import 'package:alarm/model/notification_payload.dart';
 import 'package:alarm/model/notification_type.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -21,7 +22,7 @@ class AlarmNotification {
 
   static const String _categoryWithSnooze = "snooze";
   static const String _categoryDefault = "default";
-  static const String _backgroundComPortName = "alarm-notification-com";
+  static const String _backgroundPort = "alarm-notification-com";
 
   final localNotif = FlutterLocalNotificationsPlugin();
 
@@ -57,7 +58,11 @@ class AlarmNotification {
   AlarmNotification._();
 
   /// Adds configuration for local notifications and initialize service.
-  Future<void> init({String snoozeLabel = "Snooze"}) async {
+  Future<void> init({
+    String snoozeLabel = "Snooze",
+    String dismissLabel = "Dismiss",
+    bool forceRegisterPort = true,
+  }) async {
     const initializationSettingsAndroid = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
     );
@@ -67,8 +72,14 @@ class AlarmNotification {
         requestBadgePermission: false,
         onDidReceiveLocalNotification: onSelectNotificationOldIOS,
         notificationCategories: [
-          const DarwinNotificationCategory(
+          DarwinNotificationCategory(
             _categoryDefault,
+            actions: [
+              DarwinNotificationAction.plain(
+                NotificationAction.dismiss.name,
+                dismissLabel,
+              ),
+            ],
             options: {
               DarwinNotificationCategoryOption.allowAnnouncement,
             },
@@ -79,6 +90,10 @@ class AlarmNotification {
               DarwinNotificationAction.plain(
                 NotificationAction.snooze.name,
                 snoozeLabel,
+              ),
+              DarwinNotificationAction.plain(
+                NotificationAction.dismiss.name,
+                dismissLabel,
               ),
             ],
             options: {
@@ -99,7 +114,7 @@ class AlarmNotification {
       onDidReceiveNotificationResponse: onSelectNotification,
     );
     tz.initializeTimeZones();
-    _registerPort();
+    _registerPort(forceRegisterPort: forceRegisterPort);
   }
 
   @pragma('vm:entry-point')
@@ -108,72 +123,101 @@ class AlarmNotification {
   ) async {
     alarmPrint('[NOTIFICATION] notification selected in background');
     final action = NotificationAction.from(notificationResponse.actionId);
-    if (action == NotificationAction.snooze) {
-      // Handle alarm snooze in here instead of delegating it to ensure the OS
-      // doesn't kill the app in the middle
-      alarmPrint('[NOTIFICATION] + handling snooze in the background');
-      await onSnoozeSelectedBackground(notificationResponse);
-      return;
-    }
+    switch (action) {
+      case NotificationAction.snooze:
+        // Handle in isolate to prevent OS from killing the app during execution
+        alarmPrint('[NOTIFICATION] + handling SNOOZE in the background');
+        await onSnoozeInBackground(notificationResponse);
+        return;
 
-    final callerPort =
-        IsolateNameServer.lookupPortByName(_backgroundComPortName);
-    if (callerPort != null) {
-      alarmPrint('[NOTIFICATION] + delegating to regular callback');
-      callerPort
-          .send(PortMessage.notification(notificationResponse).serialize());
-    } else {
-      alarmPrint(
-        '[NOTIFICATION] + port was closed, attempting to handle in the background',
-      );
-      await Alarm.init();
-      onSelectNotification(notificationResponse);
+      case NotificationAction.dismiss:
+        // Handle in isolate to prevent OS from killing the app during execution
+        alarmPrint('[NOTIFICATION] + handling DISMISS in the background');
+        await onDismissInBackground(notificationResponse);
+        return;
+
+      default:
+        await onActionInBackground(notificationResponse);
     }
   }
 
   /// Snoozes the alarm while running in a background isolate.
-  static Future<void> onSnoozeSelectedBackground(
-      NotificationResponse notificationResponse) async {
-    final callerPort =
-        IsolateNameServer.lookupPortByName(_backgroundComPortName);
-    bgLogPrint(callerPort, 'snooze button selected');
-    await Alarm.init();
-    final alarmSettings = await Alarm.getAlarm(notificationResponse.id ?? 0);
-    if (alarmSettings != null) {
-      bgLogPrint(callerPort, 'trying to reschedule the alarm');
-      await Alarm.set(
-        alarmSettings: alarmSettings.copyWith(
-          dateTime: DateTime.now().add(alarmSettings.snoozeDuration),
-        ),
-      );
+  static Future<void> onSnoozeInBackground(
+    NotificationResponse notificationResponse,
+  ) async {
+    final port = IsolateNameServer.lookupPortByName(_backgroundPort);
+    bgLogPrint(port, 'SNOOZE button selected');
+
+    if (notificationResponse.id != null) {
+      await Alarm.snooze(notificationResponse.id!);
     } else {
-      bgLogPrint(callerPort, 'Failed! could\'t find alarm');
+      await Alarm.snoozeAll();
+    }
+
+    port?.send(PortMessage.notification(notificationResponse).serialize());
+  }
+
+  /// Dismisses the alarm while running in a background isolate.
+  static Future<void> onDismissInBackground(
+    NotificationResponse notificationResponse,
+  ) async {
+    final port = IsolateNameServer.lookupPortByName(_backgroundPort);
+    bgLogPrint(port, 'DISMISS button selected');
+
+    if (notificationResponse.id != null) {
+      await Alarm.stop(notificationResponse.id!);
+    } else {
+      await Alarm.stopAll();
+    }
+
+    port?.send(PortMessage.notification(notificationResponse).serialize());
+  }
+
+  /// Default background handler for all types of notification actions.
+  static Future<void> onActionInBackground(
+    NotificationResponse notificationResponse,
+  ) async {
+    final port = IsolateNameServer.lookupPortByName(_backgroundPort);
+    if (port != null) {
+      alarmPrint('[NOTIFICATION] + delegating to regular callback');
+      port.send(PortMessage.notification(notificationResponse).serialize());
+    } else {
+      alarmPrint('[NOTIFICATION] + port closed, try to run in the background');
+      onSelectNotification(notificationResponse);
     }
   }
 
   // Callback to stop the alarm when the notification is opened.
-  static onSelectNotification(NotificationResponse notificationResponse) async {
+  static onSelectNotification(
+    NotificationResponse notificationResponse, {
+    bool calledFromIsolate = false,
+  }) async {
     alarmPrint(
       '[NOTIFICATION] notification selected with payload: ${notificationResponse.payload}',
     );
-    NotificationPayload? payload;
-    if (notificationResponse.payload?.isNotEmpty == true) {
-      payload = NotificationPayload.deserialize(notificationResponse.payload!);
-    }
+    NotificationPayload? payload =
+        NotificationPayload.tryDeserialize(notificationResponse.payload);
 
     if (payload?.type == NotificationType.bedtime) {
       onSelectBedtimeNotification(notificationResponse, payload!);
       return;
     }
 
+    if (!calledFromIsolate) {
+      // Only dismiss the alarm if not called from isolate. Isolate already
+      // handles that.
+      if (notificationResponse.id != null) {
+        await Alarm.stop(notificationResponse.id!);
+      } else {
+        await Alarm.stopAll();
+      }
+    }
+
     final settings = await Alarm.getAlarm(notificationResponse.id ?? 0);
     if (settings != null) {
+      alarmPrint('[NOTIFICATION] + broadcasting alarm: $settings');
       final action = NotificationAction.from(notificationResponse.actionId);
-      final event = NotificationEvent(
-        settings,
-        action,
-        snoozed: action == NotificationAction.snooze,
-      );
+      final event = NotificationEvent(settings, action);
       alarmNotificationStream.add(event);
     }
   }
@@ -191,13 +235,9 @@ class AlarmNotification {
 
     final settings = await Alarm.getAlarm(payload.alarmId!);
     if (settings != null) {
+      alarmPrint('[NOTIFICATION] + broadcasting bedtime: $settings');
       final action = NotificationAction.from(notificationResponse.actionId);
-      final event = NotificationEvent(
-        settings,
-        action,
-        snoozed: action == NotificationAction.snooze,
-      );
-
+      final event = NotificationEvent(settings, action);
       bedtimeNotificationStream.add(event);
     }
   }
@@ -208,15 +248,13 @@ class AlarmNotification {
     int id,
     String? title,
     String? body,
-    String? payload,
+    String? rawPayload,
   ) async {
-    NotificationPayload? payloadModel;
-    if (payload?.isNotEmpty == true) {
-      payloadModel = NotificationPayload.deserialize(payload!);
-    }
+    NotificationPayload? payload =
+        NotificationPayload.tryDeserialize(rawPayload);
 
-    if (payloadModel?.type == NotificationType.bedtime) {
-      onSelectBedtimeNotificationOldIOS(id, title, body, payloadModel);
+    if (payload?.type == NotificationType.bedtime) {
+      onSelectBedtimeNotificationOldIOS(id, title, body, payload);
       return;
     }
 
@@ -323,6 +361,23 @@ class AlarmNotification {
     return tz.TZDateTime.from(dateTime, tz.local);
   }
 
+  static DateTime nextDateTime(TimeOfDay time) {
+    final now = DateTime.now();
+    var result = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      time.hour,
+      time.minute,
+    );
+
+    if (result.isBefore(now)) {
+      result = result.add(const Duration(days: 1));
+    }
+
+    return result;
+  }
+
   /// Schedules notification at the given [dateTime].
   static Future<void> scheduleNotification({
     required int id,
@@ -334,6 +389,7 @@ class AlarmNotification {
     bool enableLights = false,
     bool snooze = false,
     String snoozeLabel = 'Snooze',
+    String dismissLabel = 'Dismiss',
     int? alarmId,
     DateTime? nowAtStartup,
   }) async {
@@ -354,7 +410,14 @@ class AlarmNotification {
       enableLights: enableLights,
       actions: [
         if (snooze && type == NotificationType.alarm)
-          AndroidNotificationAction(NotificationAction.snooze.name, snoozeLabel)
+          AndroidNotificationAction(
+            NotificationAction.snooze.name,
+            snoozeLabel,
+          ),
+        AndroidNotificationAction(
+          NotificationAction.dismiss.name,
+          dismissLabel,
+        ),
       ],
     );
 
@@ -408,20 +471,25 @@ class AlarmNotification {
 
   /// Register port to communicate with [Isolate] when a notification is
   /// selected while the app is in the background.
-  static void _registerPort() {
+  static void _registerPort({bool forceRegisterPort = true}) {
     try {
       final port = ReceivePort();
       final success = IsolateNameServer.registerPortWithName(
         port.sendPort,
-        _backgroundComPortName,
+        _backgroundPort,
       );
 
       if (!success) {
         // Port already registered
-        IsolateNameServer.removePortNameMapping(_backgroundComPortName);
+        if (!forceRegisterPort) {
+          alarmPrint('[NOTIFICATION] Reusing existing port');
+          return;
+        }
+
+        IsolateNameServer.removePortNameMapping(_backgroundPort);
         IsolateNameServer.registerPortWithName(
           port.sendPort,
-          _backgroundComPortName,
+          _backgroundPort,
         );
       }
 
@@ -435,9 +503,12 @@ class AlarmNotification {
 
           case MessageType.notification:
             alarmPrint(
-              '[NOTIFICATION] delegating notification response from isolate: ${portMessage.message}',
+              '[NOTIFICATION] delegating notification response from isolate',
             );
-            onSelectNotification(portMessage.notificationResponse!);
+            onSelectNotification(
+              portMessage.notificationResponse!,
+              calledFromIsolate: true,
+            );
             break;
 
           default:

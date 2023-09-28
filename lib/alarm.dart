@@ -46,6 +46,7 @@ class Alarm {
     bool showDebugLogs = true,
     DateTime? nowAtStartup,
     String snoozeLabel = "Snooze",
+    String dismissLabel = "Dismiss",
     void Function(String msg)? logProxy,
   }) async {
     if (_initialized) {
@@ -70,6 +71,7 @@ class Alarm {
       if (android) AndroidAlarm.init(),
       AlarmNotification.instance.init(
         snoozeLabel: snoozeLabel,
+        dismissLabel: dismissLabel,
       ),
     ]);
 
@@ -91,15 +93,6 @@ class Alarm {
     }
 
     alarmNotificationStream.add(event);
-
-    // When snoozed, reschedule the alarm
-    if (event.snoozed) {
-      set(
-        alarmSettings: event.alarmSettings.copyWith(
-          dateTime: DateTime.now().add(event.alarmSettings.snoozeDuration),
-        ),
-      );
-    }
   }
 
   /// Callback when the bedtime notification is selected.
@@ -180,6 +173,8 @@ class Alarm {
         body: alarmSettings.notificationBody!,
         nowAtStartup: nowAtStartup,
         snooze: alarmSettings.snooze ?? false,
+        snoozeLabel: alarmSettings.notificationActionSnoozeLabel ?? 'Snooze',
+        dismissLabel: alarmSettings.notificationActionDismissLabel ?? 'Dismiss',
         type: NotificationType.alarm,
       );
     }
@@ -191,7 +186,7 @@ class Alarm {
         alarmSettings.bedtimeNotificationBody?.isNotEmpty == true) {
       await AlarmNotification.scheduleNotification(
         alarmId: alarmSettings.id,
-        id: _toBedtimeNotificationId(alarmSettings.id),
+        id: toBedtimeNotificationId(alarmSettings.id),
         dateTime: alarmSettings.bedtime!,
         title: alarmSettings.bedtimeNotificationTitle!,
         body: alarmSettings.bedtimeNotificationBody!,
@@ -211,7 +206,7 @@ class Alarm {
         alarmSettings.loopAudio,
         alarmSettings.vibrate,
         alarmSettings.volumeMax,
-        alarmSettings.fadeDuration,
+        alarmSettings.fadeDuration.inSeconds,
         alarmSettings.enableNotificationOnKill,
       );
     } else if (android) {
@@ -240,11 +235,9 @@ class Alarm {
     int id, {
     bool skipBedtimeNotification = false,
   }) async {
-    await AlarmStorage.unsaveAlarm(id);
-
     AlarmNotification.instance.cancel(id);
     if (!skipBedtimeNotification) {
-      AlarmNotification.instance.cancel(_toBedtimeNotificationId(id));
+      AlarmNotification.instance.cancel(toBedtimeNotificationId(id));
     }
 
     return iOS ? await IOSAlarm.stopAlarm(id) : await AndroidAlarm.stop(id);
@@ -259,6 +252,23 @@ class Alarm {
       allStopped &= await stop(alarm.id);
     }
     return allStopped;
+  }
+
+  /// Snoozes alarm.
+  static Future<bool> snooze(int id) async {
+    AlarmNotification.instance.cancel(id);
+    return iOS ? await IOSAlarm.snoozeAlarm(id) : await AndroidAlarm.snooze(id);
+  }
+
+  /// Snoozes all the alarms.
+  static Future<bool> snoozeAll() async {
+    final alarms = await AlarmStorage.getSavedAlarms();
+
+    bool allSnoozed = true;
+    for (final alarm in alarms) {
+      allSnoozed &= await snooze(alarm.id);
+    }
+    return allSnoozed;
   }
 
   /// Whether the alarm is ringing.
@@ -293,8 +303,11 @@ class Alarm {
   static Future<List<AlarmSettings>> getAlarms() =>
       AlarmStorage.getSavedAlarms();
 
+  /// Remove the alarm from local storage.
+  static Future<bool> deleteAlarm(int id) => AlarmStorage.unsaveAlarm(id);
+
   /// Returns a unique ID for the bedtime notification
-  static _toBedtimeNotificationId(int id) => fastHash('$id-bedtime');
+  static toBedtimeNotificationId(int id) => fastHash('$id-bedtime');
 }
 
 class AlarmException implements Exception {

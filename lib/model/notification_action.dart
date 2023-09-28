@@ -1,18 +1,18 @@
 import 'alarm_settings.dart';
 
 class NotificationEvent {
-  NotificationEvent(this.alarmSettings, this.action, {this.snoozed = false});
+  NotificationEvent(this.alarmSettings, this.action);
   final AlarmSettings alarmSettings;
   final NotificationAction action;
-  final bool snoozed;
 }
 
 enum NotificationAction {
   dismiss,
-  snooze;
+  snooze,
+  select;
 
   /// Tries to parse [name] into a [NotificationAction]. When it fails, defaults
-  /// to [NotificationAction.dismiss].
+  /// to [NotificationAction.select].
   static NotificationAction from(String? name) {
     final action = NotificationAction.values
         .where(
@@ -21,7 +21,7 @@ enum NotificationAction {
         .firstOrNull;
 
     if (action == null) {
-      return NotificationAction.dismiss;
+      return NotificationAction.select;
     }
 
     return action;

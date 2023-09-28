@@ -19,6 +19,19 @@ class NotificationPayload with _$NotificationPayload {
   NotificationPayload._();
 
   String serialize() => jsonEncode(toJson());
+
   static NotificationPayload deserialize(String serialized) =>
       NotificationPayload.fromJson(jsonDecode(serialized));
+
+  static NotificationPayload? tryDeserialize(String? serialized) {
+    if (serialized == null) {
+      return null;
+    }
+
+    try {
+      return NotificationPayload.deserialize(serialized);
+    } catch (_) {
+      return null;
+    }
+  }
 }

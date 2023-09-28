@@ -13,6 +13,7 @@ class AlarmStorage {
 
   static Future<SharedPreferences> get prefs async {
     _prefs ??= await SharedPreferences.getInstance();
+    await _prefs!.reload();
     return _prefs!;
   }
 
@@ -22,18 +23,18 @@ class AlarmStorage {
 
   /// Saves alarm info in local storage so we can restore it later
   /// in the case app is terminated.
-  static Future<void> saveAlarm(AlarmSettings alarmSettings) async {
+  static Future<bool> saveAlarm(AlarmSettings alarmSettings) async {
     alarmPrint('+ Save alarm: $prefix${alarmSettings.id}');
-    (await prefs).setString(
+    return (await prefs).setString(
       '$prefix${alarmSettings.id}',
       json.encode(alarmSettings.toJson()),
     );
   }
 
   /// Removes alarm from local storage.
-  static Future<void> unsaveAlarm(int id) async {
+  static Future<bool> unsaveAlarm(int id) async {
     alarmPrint('- Unsave alarm: $prefix$id');
-    (await prefs).remove("$prefix$id");
+    return (await prefs).remove("$prefix$id");
   }
 
   /// Whether at least one alarm is set.

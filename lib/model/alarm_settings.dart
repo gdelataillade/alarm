@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 class AlarmSettings {
   /// Unique identifier assiocated with the alarm.
@@ -6,6 +7,12 @@ class AlarmSettings {
 
   /// Date and time when the alarm will be triggered.
   final DateTime dateTime;
+
+  /// Hour and minute of the original alarm time (before snoozes).
+  final TimeOfDay originalTime;
+
+  /// Whether the alarm should recur every day until it's cancelled.
+  final bool recurring;
 
   /// Path to audio asset to be used as the alarm ringtone. Accepted formats:
   ///
@@ -32,9 +39,9 @@ class AlarmSettings {
   /// Else, use current system volume. Enabled by default.
   final bool volumeMax;
 
-  /// Duration, in seconds, over which to fade the alarm ringtone.
-  /// Set to 0.0 by default, which means no fade.
-  final double fadeDuration;
+  /// Duration, over which to fade the alarm ringtone.
+  /// Set to 0 by default, which means no fade.
+  final Duration fadeDuration;
 
   /// Title of the notification to be shown when alarm is triggered.
   /// Must not be null nor empty to show a notification.
@@ -70,6 +77,9 @@ class AlarmSettings {
   /// The label for the action button in the notification for `snooze`.
   final String? notificationActionSnoozeLabel;
 
+  /// The label for the action button in the notification for `dismiss`.
+  final String? notificationActionDismissLabel;
+
   /// Additional data to pass around.
   final Map<String, dynamic>? extra;
 
@@ -80,6 +90,8 @@ class AlarmSettings {
 
     hash = hash ^ id.hashCode;
     hash = hash ^ dateTime.hashCode;
+    hash = hash ^ originalTime.hashCode;
+    hash = hash ^ recurring.hashCode;
     hash = hash ^ assetAudioPath.hashCode;
     hash = hash ^ loopAudio.hashCode;
     hash = hash ^ vibrate.hashCode;
@@ -95,6 +107,7 @@ class AlarmSettings {
     hash = hash ^ (snooze?.hashCode ?? 0);
     hash = hash ^ snoozeDuration.hashCode;
     hash = hash ^ (notificationActionSnoozeLabel?.hashCode ?? 0);
+    hash = hash ^ (notificationActionDismissLabel?.hashCode ?? 0);
     hash = hash ^ (extra?.hashCode ?? 0);
     hash = hash & 0x3fffffff;
 
@@ -109,11 +122,13 @@ class AlarmSettings {
   const AlarmSettings({
     required this.id,
     required this.dateTime,
+    required this.originalTime,
     required this.assetAudioPath,
+    this.recurring = false,
     this.loopAudio = true,
     this.vibrate = true,
     this.volumeMax = true,
-    this.fadeDuration = 0.0,
+    this.fadeDuration = const Duration(seconds: 0),
     this.snoozeDuration = const Duration(minutes: 5),
     this.notificationTitle,
     this.notificationBody,
@@ -124,6 +139,7 @@ class AlarmSettings {
     this.bedtimeNotificationBody,
     this.snooze,
     this.notificationActionSnoozeLabel,
+    this.notificationActionDismissLabel,
     this.extra,
   });
 
@@ -131,11 +147,16 @@ class AlarmSettings {
   factory AlarmSettings.fromJson(Map<String, dynamic> json) => AlarmSettings(
         id: json['id'] as int,
         dateTime: DateTime.fromMicrosecondsSinceEpoch(json['dateTime'] as int),
+        originalTime: TimeOfDay(
+          hour: json['originalHour'] as int,
+          minute: json['originalMinute'] as int,
+        ),
+        recurring: json['recurring'] as bool,
         assetAudioPath: json['assetAudioPath'] as String,
         loopAudio: json['loopAudio'] as bool,
         vibrate: json['vibrate'] != null ? json['vibrate'] as bool : true,
         volumeMax: json['volumeMax'] != null ? json['volumeMax'] as bool : true,
-        fadeDuration: json['fadeDuration'] as double,
+        fadeDuration: Duration(seconds: json['fadeDuration']),
         notificationTitle: json['notificationTitle'] as String?,
         notificationBody: json['notificationBody'] as String?,
         enableNotificationOnKill: json['enableNotificationOnKill'] as bool,
@@ -149,6 +170,8 @@ class AlarmSettings {
         snoozeDuration: Duration(seconds: json['snoozeDuration']),
         notificationActionSnoozeLabel:
             json['notificationActionSnoozeLabel'] as String?,
+        notificationActionDismissLabel:
+            json['notificationActionDismissLabel'] as String?,
         extra: json['extra'] as Map<String, dynamic>?,
       );
 
@@ -157,11 +180,13 @@ class AlarmSettings {
   AlarmSettings copyWith({
     int? id,
     DateTime? dateTime,
+    TimeOfDay? originalTime,
+    bool? recurring,
     String? assetAudioPath,
     bool? loopAudio,
     bool? vibrate,
     bool? volumeMax,
-    double? fadeDuration,
+    Duration? fadeDuration,
     String? notificationTitle,
     String? notificationBody,
     bool? enableNotificationOnKill,
@@ -172,11 +197,14 @@ class AlarmSettings {
     bool? snooze,
     Duration? snoozeDuration,
     String? notificationActionSnoozeLabel,
+    String? notificationActionDismissLabel,
     Map<String, dynamic>? extra,
   }) {
     return AlarmSettings(
       id: id ?? this.id,
       dateTime: dateTime ?? this.dateTime,
+      originalTime: originalTime ?? this.originalTime,
+      recurring: recurring ?? this.recurring,
       assetAudioPath: assetAudioPath ?? this.assetAudioPath,
       loopAudio: loopAudio ?? this.loopAudio,
       vibrate: vibrate ?? this.vibrate,
@@ -197,6 +225,8 @@ class AlarmSettings {
       snoozeDuration: snoozeDuration ?? this.snoozeDuration,
       notificationActionSnoozeLabel:
           notificationActionSnoozeLabel ?? this.notificationActionSnoozeLabel,
+      notificationActionDismissLabel:
+          notificationActionDismissLabel ?? this.notificationActionDismissLabel,
       extra: extra ?? this.extra,
     );
   }
@@ -205,11 +235,14 @@ class AlarmSettings {
   Map<String, dynamic> toJson() => {
         'id': id,
         'dateTime': dateTime.microsecondsSinceEpoch,
+        'originalHour': originalTime.hour,
+        'originalMinute': originalTime.minute,
+        'recurring': recurring,
         'assetAudioPath': assetAudioPath,
         'loopAudio': loopAudio,
         'vibrate': vibrate,
         'volumeMax': volumeMax,
-        'fadeDuration': fadeDuration,
+        'fadeDuration': fadeDuration.inSeconds,
         'notificationTitle': notificationTitle,
         'notificationBody': notificationBody,
         'enableNotificationOnKill': enableNotificationOnKill,
@@ -220,6 +253,7 @@ class AlarmSettings {
         'snooze': snooze,
         'snoozeDuration': snoozeDuration.inSeconds,
         'notificationActionSnoozeLabel': notificationActionSnoozeLabel,
+        'notificationActionDismissLabel': notificationActionDismissLabel,
         'extra': extra,
       };
 
@@ -228,6 +262,10 @@ class AlarmSettings {
   String toString() {
     Map<String, dynamic> json = toJson();
     json['dateTime'] = DateTime.fromMicrosecondsSinceEpoch(json['dateTime']);
+    json['originalTime'] = TimeOfDay(
+      hour: json['originalHour'] as int,
+      minute: json['originalMinute'] as int,
+    );
     json['bedtime'] = json['bedtime'] != null
         ? DateTime.fromMicrosecondsSinceEpoch(json['bedtime'])
         : null;
@@ -244,6 +282,8 @@ class AlarmSettings {
           runtimeType == other.runtimeType &&
           id == other.id &&
           dateTime == other.dateTime &&
+          originalTime == other.originalTime &&
+          recurring == other.recurring &&
           assetAudioPath == other.assetAudioPath &&
           loopAudio == other.loopAudio &&
           vibrate == other.vibrate &&
@@ -260,5 +300,27 @@ class AlarmSettings {
           snoozeDuration == other.snoozeDuration &&
           notificationActionSnoozeLabel ==
               other.notificationActionSnoozeLabel &&
+          notificationActionDismissLabel ==
+              other.notificationActionDismissLabel &&
           mapEquals(extra, other.extra);
+
+  /// Returns the next [DateTime] when the alarm should be set. If the time
+  /// has passed today, it will return the [DateTime] for tomorrow at the time
+  /// and minute this alarm was originally scheduled for.
+  DateTime nextDateTime() {
+    final now = DateTime.now();
+    var result = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      originalTime.hour,
+      originalTime.minute,
+    );
+
+    if (result.isBefore(now)) {
+      result = result.add(const Duration(days: 1));
+    }
+
+    return result;
+  }
 }

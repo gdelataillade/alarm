@@ -24,7 +24,7 @@ class IOSAlarm {
     bool loopAudio,
     bool vibrate,
     bool volumeMax,
-    double fadeDuration,
+    int fadeDuration,
     bool enableNotificationOnKill,
   ) async {
     try {
@@ -97,6 +97,11 @@ class IOSAlarm {
     if (res) alarmPrint('Alarm with id $id stopped with success');
 
     return res;
+  }
+
+  /// TODO: not implemented
+  static Future<bool> snoozeAlarm(int id) async {
+    throw Exception('snooze not implemented');
   }
 
   /// Checks whether alarm is ringing by getting the native audio player's

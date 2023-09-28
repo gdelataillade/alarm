@@ -3,6 +3,8 @@ import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:alarm/alarm.dart';
+import 'package:alarm/model/notification_type.dart';
+import 'package:alarm/service/notification.dart';
 import 'package:alarm/service/storage.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/services.dart';
@@ -69,16 +71,17 @@ class AndroidAlarm {
           _ringing = settings;
           if (settings.volumeMax) setMaximumVolume();
           Alarm.ringStream.add(settings);
-        } else {
-          if (settings.vibrate &&
-              message is String &&
-              message.startsWith('vibrate')) {
-            final audioDuration = message.split('-').last;
+        } else if (message == 'clear') {
+          _ringing = null;
+          vibrationsActive = false;
+        } else if (settings.vibrate &&
+            message is String &&
+            message.startsWith('vibrate')) {
+          final audioDuration = message.split('-').last;
 
-            if (int.tryParse(audioDuration) != null) {
-              final duration = Duration(seconds: int.parse(audioDuration));
-              triggerVibrations(duration: settings.loopAudio ? null : duration);
-            }
+          if (int.tryParse(audioDuration) != null) {
+            final duration = Duration(seconds: int.parse(audioDuration));
+            triggerVibrations(duration: settings.loopAudio ? null : duration);
           }
         }
       });
@@ -99,11 +102,7 @@ class AndroidAlarm {
       exact: true,
       rescheduleOnReboot: true,
       wakeup: true,
-      params: {
-        'assetAudioPath': settings.assetAudioPath,
-        'loopAudio': settings.loopAudio,
-        'fadeDuration': settings.fadeDuration,
-      },
+      params: settings.toJson(),
     );
 
     alarmPrint(
@@ -145,7 +144,7 @@ class AndroidAlarm {
     int retryCount = 20,
   ]) async {
     alarmPrint('[ANDROID_ALARM] callback: playAlarm');
-
+    final alarmSettings = AlarmSettings.fromJson(data);
     // Hack: periodically wake up the app to make sure the activity manager
     // doesn't freezes our app.
     final watchdogId = '$id-watchdog'.hashCode;
@@ -176,7 +175,7 @@ class AndroidAlarm {
     callerPort.send('ring');
 
     try {
-      final assetAudioPath = data['assetAudioPath'] as String;
+      final assetAudioPath = alarmSettings.assetAudioPath;
       Duration? audioDuration;
 
       if (assetAudioPath.startsWith('http')) {
@@ -192,15 +191,15 @@ class AndroidAlarm {
 
       callerPort.send('vibrate-${audioDuration?.inSeconds}');
 
-      final loopAudio = data['loopAudio'];
+      final loopAudio = alarmSettings.loopAudio;
       if (loopAudio) audioPlayer.setLoopMode(LoopMode.all);
 
       callerPort.send('Alarm data received in isolate: $data');
 
-      final fadeDuration = (data['fadeDuration'] as int).toDouble();
+      final fadeDuration = alarmSettings.fadeDuration;
       callerPort.send('Alarm fadeDuration: $fadeDuration seconds');
 
-      if (fadeDuration > 0.0) {
+      if (fadeDuration > Duration.zero) {
         int counter = 0;
 
         audioPlayer.setVolume(0.1);
@@ -209,7 +208,7 @@ class AndroidAlarm {
         callerPort.send('Alarm playing with fadeDuration ${fadeDuration}s');
 
         Timer.periodic(
-          Duration(milliseconds: fadeDuration * 1000 ~/ 10),
+          Duration(milliseconds: fadeDuration.inMilliseconds ~/ 10),
           (timer) {
             counter++;
             audioPlayer.setVolume(counter / 10);
@@ -225,7 +224,7 @@ class AndroidAlarm {
       await AndroidAlarmManager.cancel(watchdogId);
       callerPort.send('Asset cache reset. Please try again.');
       throw AlarmException(
-        "Alarm with id $id and asset path '${data['assetAudioPath']}' error: $e",
+        "Alarm with id $id and asset path '${alarmSettings.assetAudioPath}' error: $e",
       );
     }
 
@@ -239,14 +238,50 @@ class AndroidAlarm {
         IsolateNameServer.registerPortWithName(port.sendPort, stopPort);
       }
 
+      String? processingMessage;
       port.listen((message) async {
-        callerPort.send('(isolate) received: $message');
-        if (message == 'stop') {
-          await audioPlayer.stop();
-          await audioPlayer.dispose();
-          await AndroidAlarmManager.cancel(watchdogId);
-          port.close();
+        if (processingMessage == message) {
+          callerPort.send(
+            '(isolate) ignoring request for "$message" since in the middle of processing the same request.',
+          );
+          return;
         }
+
+        processingMessage = message;
+        callerPort.send('(isolate) received: $message');
+        callerPort.send('clear');
+        await audioPlayer.stop();
+        await audioPlayer.dispose();
+
+        switch (message) {
+          case 'stop':
+            if (alarmSettings.recurring) {
+              final nextAlarmTime = alarmSettings.nextDateTime();
+              await _rescheduleAlarm(
+                port: callerPort,
+                alarmSettings: alarmSettings.copyWith(dateTime: nextAlarmTime),
+                withBedtime: true,
+              );
+            }
+            break;
+
+          case 'snooze':
+            final nextAlarmTime =
+                DateTime.now().add(alarmSettings.snoozeDuration);
+            await _rescheduleAlarm(
+              port: callerPort,
+              alarmSettings: alarmSettings.copyWith(dateTime: nextAlarmTime),
+            );
+            break;
+
+          default:
+            callerPort.send('(isolate) Unknown message: $message');
+        }
+
+        await AndroidAlarmManager.cancel(watchdogId);
+        port.close();
+        IsolateNameServer.removePortNameMapping(stopPort);
+        processingMessage = null;
       });
     } catch (e) {
       await AndroidAlarmManager.cancel(watchdogId);
@@ -288,18 +323,19 @@ class AndroidAlarm {
     VolumeController().setVolume(1.0, showSystemUI: true);
   }
 
-  /// Sends the message `stop` to the isolate so the audio player
-  /// can stop playing and dispose.
-  static Future<bool> stop(int id) async {
-    alarmPrint('[ANDROID_ALARM] stop alarm');
+  /// Sends the message `snooze` to the isolate so the audio player can stop
+  /// playing, dispose and then reschedule the alarm.
+  static Future<bool> snooze(int id) async {
+    alarmPrint('[ANDROID_ALARM] snooze alarm');
     _ringing = null;
     vibrationsActive = false;
 
     final send = IsolateNameServer.lookupPortByName(stopPort);
-
+    bool snoozed = false;
     if (send != null) {
-      send.send('stop');
-      alarmPrint('Alarm with id $id stopped');
+      alarmPrint('[ANDROID_ALARM] + requesting isolate to snooze alarm $id');
+      send.send('snooze');
+      snoozed = true;
     }
 
     if (previousVolume != null) {
@@ -309,7 +345,34 @@ class AndroidAlarm {
 
     if (!await hasOtherAlarms) stopNotificationOnKillService();
 
-    return await AndroidAlarmManager.cancel(id);
+    return snoozed;
+  }
+
+  /// Sends the message `stop` to the isolate so the audio player
+  /// can stop playing, dispose, and reschedule the alarm if it's recurring.
+  static Future<bool> stop(int id) async {
+    alarmPrint('[ANDROID_ALARM] stop alarm');
+    _ringing = null;
+    vibrationsActive = false;
+
+    final send = IsolateNameServer.lookupPortByName(stopPort);
+    bool stopped = true;
+    if (send != null) {
+      alarmPrint('[ANDROID_ALARM] + requesting isolate to stop alarm $id');
+      send.send('stop');
+    } else {
+      alarmPrint('[ANDROID_ALARM] + Cancelling future alarm $id');
+      stopped = await AndroidAlarmManager.cancel(id);
+    }
+
+    if (previousVolume != null) {
+      VolumeController().setVolume(previousVolume!, showSystemUI: true);
+      previousVolume = null;
+    }
+
+    if (!await hasOtherAlarms) stopNotificationOnKillService();
+
+    return stopped;
   }
 
   static Future<void> stopNotificationOnKillService() async {
@@ -318,6 +381,65 @@ class AndroidAlarm {
       alarmPrint('NotificationOnKillService stopped with success');
     } catch (e) {
       throw AlarmException('NotificationOnKillService error: $e');
+    }
+  }
+
+  /// Reschedule the alarm and its associated notifications.
+  static Future<void> _rescheduleAlarm({
+    required SendPort port,
+    required AlarmSettings alarmSettings,
+    bool withBedtime = false,
+  }) async {
+    await AlarmStorage.saveAlarm(alarmSettings);
+
+    port.send('[ANDROID_ALARM] Trying to reschedule alarm: $alarmSettings');
+    final success = await AndroidAlarmManager.oneShotAt(
+      alarmSettings.dateTime,
+      alarmSettings.id,
+      AndroidAlarm.playAlarm,
+      alarmClock: true,
+      allowWhileIdle: true,
+      exact: true,
+      rescheduleOnReboot: true,
+      wakeup: true,
+      params: alarmSettings.toJson(),
+    );
+    port.send('[ANDROID_ALARM] + alarm rescheduled: $success');
+
+    // Avoid registering a port for the isolate inside the notification if one
+    // is already registered to ensure the UI will receive callbacks.
+    await AlarmNotification.instance.init(forceRegisterPort: false);
+
+    // Alarm notification
+    if (alarmSettings.notificationTitle?.isNotEmpty == true &&
+        alarmSettings.notificationBody?.isNotEmpty == true) {
+      await AlarmNotification.scheduleNotification(
+        id: alarmSettings.id,
+        dateTime: alarmSettings.dateTime,
+        title: alarmSettings.notificationTitle!,
+        body: alarmSettings.notificationBody!,
+        snooze: alarmSettings.snooze ?? false,
+        snoozeLabel: alarmSettings.notificationActionSnoozeLabel ?? 'Snooze',
+        dismissLabel: alarmSettings.notificationActionDismissLabel ?? 'Dismiss',
+        type: NotificationType.alarm,
+      );
+    }
+
+    // Bedtime notification
+    if (withBedtime &&
+        alarmSettings.bedtime != null &&
+        alarmSettings.bedtimeNotificationTitle?.isNotEmpty == true &&
+        alarmSettings.bedtimeNotificationBody?.isNotEmpty == true) {
+      await AlarmNotification.scheduleNotification(
+        alarmId: alarmSettings.id,
+        id: Alarm.toBedtimeNotificationId(alarmSettings.id),
+        dateTime: alarmSettings.bedtime!,
+        title: alarmSettings.bedtimeNotificationTitle!,
+        body: alarmSettings.bedtimeNotificationBody!,
+        playSound: true,
+        enableLights: true,
+        type: NotificationType.bedtime,
+      );
     }
   }
 }
