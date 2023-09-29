@@ -19,7 +19,7 @@ Then, add the following to your `AndroidManifest.xml` within the `<manifest></ma
 ```xml
 <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 <uses-permission android:name="android.permission.WAKE_LOCK"/>
-<!-- For apps with targetSDK=31 (Android 12) -->
+<uses-permission android:name="android.permission.VIBRATE"/>
 <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
 ```
 
