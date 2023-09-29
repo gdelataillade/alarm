@@ -20,11 +20,12 @@ Then, add the following to your `AndroidManifest.xml` within the `<manifest></ma
 <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 <uses-permission android:name="android.permission.WAKE_LOCK"/>
 <uses-permission android:name="android.permission.VIBRATE"/>
+<uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
 <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
 ```
 
 ## Step 3
-Finally, within the `<application></application>` tags, add:
+Now, within the `<application></application>` tags, add:
 
 ```xml
 <service
@@ -42,4 +43,12 @@ Finally, within the `<application></application>` tags, add:
         <action android:name="android.intent.action.BOOT_COMPLETED" />
     </intent-filter>
 </receiver>
+```
+
+Finally, if you want your notifications to show in full screen even when the device is locked, add these attributes in `<activity>`:
+
+```xml
+<activity
+    android:showWhenLocked="true"
+    android:turnScreenOn="true">
 ```

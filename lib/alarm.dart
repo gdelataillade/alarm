@@ -93,6 +93,7 @@ class Alarm {
           dateTime: alarmSettings.dateTime,
           title: alarmSettings.notificationTitle!,
           body: alarmSettings.notificationBody!,
+          fullScreenIntent: alarmSettings.androidFullScreenIntent,
         );
       }
     }
