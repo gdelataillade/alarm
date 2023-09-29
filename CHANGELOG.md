@@ -1,3 +1,8 @@
+## 2.0.1
+* Update README.
+* Fix example app's ring now button.
+* Refactor set alarm methods.
+
 ## 2.0.0
 **Breaking Changes**
 * Installation steps were updated in the README. Please make sure to follow them.
