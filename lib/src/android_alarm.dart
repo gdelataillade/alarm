@@ -439,6 +439,7 @@ class AndroidAlarm {
         playSound: true,
         enableLights: true,
         type: NotificationType.bedtime,
+        autoDismiss: alarmSettings.bedtimeAutoDissmiss,
       );
     }
   }

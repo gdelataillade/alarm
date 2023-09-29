@@ -62,6 +62,10 @@ class AlarmSettings {
   /// that it's time to go to bed.
   final DateTime? bedtime;
 
+  /// The amount of time after which the bedtime notification should be
+  /// dismissed.
+  final Duration bedtimeAutoDissmiss;
+
   /// Title of the notification to be shown when it's time for [bedtime].
   final String? bedtimeNotificationTitle;
 
@@ -102,6 +106,7 @@ class AlarmSettings {
     hash = hash ^ enableNotificationOnKill.hashCode;
     hash = hash ^ stopOnNotificationOpen.hashCode;
     hash = hash ^ (bedtime?.hashCode ?? 0);
+    hash = hash ^ bedtimeAutoDissmiss.hashCode;
     hash = hash ^ (bedtimeNotificationTitle?.hashCode ?? 0);
     hash = hash ^ (bedtimeNotificationBody?.hashCode ?? 0);
     hash = hash ^ (snooze?.hashCode ?? 0);
@@ -135,6 +140,7 @@ class AlarmSettings {
     this.enableNotificationOnKill = true,
     this.stopOnNotificationOpen = true,
     this.bedtime,
+    this.bedtimeAutoDissmiss = const Duration(hours: 2),
     this.bedtimeNotificationTitle,
     this.bedtimeNotificationBody,
     this.snooze,
@@ -164,6 +170,7 @@ class AlarmSettings {
         bedtime: json['bedtime'] != null
             ? DateTime.fromMicrosecondsSinceEpoch(json['bedtime'] as int)
             : null,
+        bedtimeAutoDissmiss: Duration(seconds: json['bedtimeAutoDissmiss']),
         bedtimeNotificationTitle: json['bedtimeNotificationTitle'] as String?,
         bedtimeNotificationBody: json['bedtimeNotificationBody'] as String?,
         snooze: json['snooze'] as bool?,
@@ -192,6 +199,7 @@ class AlarmSettings {
     bool? enableNotificationOnKill,
     bool? stopOnNotificationOpen,
     DateTime? bedtime,
+    Duration? bedtimeAutoDissmiss,
     String? bedtimeNotificationTitle,
     String? bedtimeNotificationBody,
     bool? snooze,
@@ -217,6 +225,7 @@ class AlarmSettings {
       stopOnNotificationOpen:
           stopOnNotificationOpen ?? this.stopOnNotificationOpen,
       bedtime: bedtime ?? this.bedtime,
+      bedtimeAutoDissmiss: bedtimeAutoDissmiss ?? this.bedtimeAutoDissmiss,
       bedtimeNotificationTitle:
           bedtimeNotificationTitle ?? this.bedtimeNotificationTitle,
       bedtimeNotificationBody:
@@ -248,6 +257,7 @@ class AlarmSettings {
         'enableNotificationOnKill': enableNotificationOnKill,
         'stopOnNotificationOpen': stopOnNotificationOpen,
         'bedtime': bedtime?.microsecondsSinceEpoch,
+        'bedtimeAutoDissmiss': bedtimeAutoDissmiss.inSeconds,
         'bedtimeNotificationTitle': bedtimeNotificationTitle,
         'bedtimeNotificationBody': bedtimeNotificationBody,
         'snooze': snooze,
@@ -269,6 +279,8 @@ class AlarmSettings {
     json['bedtime'] = json['bedtime'] != null
         ? DateTime.fromMicrosecondsSinceEpoch(json['bedtime'])
         : null;
+    json['bedtimeAutoDissmiss'] =
+        Duration(seconds: json['bedtimeAutoDissmiss']);
     json['snoozeDuration'] = Duration(seconds: json['snoozeDuration']);
 
     return "AlarmSettings: ${json.toString()}";
@@ -294,6 +306,7 @@ class AlarmSettings {
           enableNotificationOnKill == other.enableNotificationOnKill &&
           stopOnNotificationOpen == other.stopOnNotificationOpen &&
           bedtime == other.bedtime &&
+          bedtimeAutoDissmiss == other.bedtimeAutoDissmiss &&
           bedtimeNotificationTitle == other.bedtimeNotificationTitle &&
           bedtimeNotificationBody == other.bedtimeNotificationBody &&
           snooze == other.snooze &&

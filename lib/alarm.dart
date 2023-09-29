@@ -194,6 +194,7 @@ class Alarm {
         enableLights: true,
         nowAtStartup: nowAtStartup,
         type: NotificationType.bedtime,
+        autoDismiss: alarmSettings.bedtimeAutoDissmiss,
       );
     }
 

@@ -392,6 +392,7 @@ class AlarmNotification {
     String dismissLabel = 'Dismiss',
     int? alarmId,
     DateTime? nowAtStartup,
+    Duration? autoDismiss,
   }) async {
     final iOSPlatformChannelSpecifics = DarwinNotificationDetails(
       presentAlert: false,
@@ -408,6 +409,7 @@ class AlarmNotification {
       priority: Priority.max,
       playSound: playSound,
       enableLights: enableLights,
+      timeoutAfter: autoDismiss?.inMilliseconds,
       actions: [
         if (snooze && type == NotificationType.alarm)
           AndroidNotificationAction(
