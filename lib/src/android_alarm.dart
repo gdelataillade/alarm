@@ -248,7 +248,7 @@ class AndroidAlarm {
         }
 
         processingMessage = message;
-        callerPort.send('(isolate) received: $message');
+        callerPort.send('[${DateTime.now()}] (isolate) received: $message');
         callerPort.send('clear');
         await audioPlayer.stop();
         await audioPlayer.dispose();
@@ -256,21 +256,23 @@ class AndroidAlarm {
         switch (message) {
           case 'stop':
             if (alarmSettings.recurring) {
-              final nextAlarmTime = alarmSettings.nextDateTime();
               await _rescheduleAlarm(
                 port: callerPort,
-                alarmSettings: alarmSettings.copyWith(dateTime: nextAlarmTime),
+                alarmSettings: alarmSettings.copyWith(
+                  dateTime: alarmSettings.nextDateTime(),
+                  bedtime: alarmSettings.nextBedtime(),
+                ),
                 withBedtime: true,
               );
             }
             break;
 
           case 'snooze':
-            final nextAlarmTime =
-                DateTime.now().add(alarmSettings.snoozeDuration);
             await _rescheduleAlarm(
               port: callerPort,
-              alarmSettings: alarmSettings.copyWith(dateTime: nextAlarmTime),
+              alarmSettings: alarmSettings.copyWith(
+                dateTime: alarmSettings.nextSnoozeDateTime(),
+              ),
             );
             break;
 
@@ -392,7 +394,9 @@ class AndroidAlarm {
   }) async {
     await AlarmStorage.saveAlarm(alarmSettings);
 
-    port.send('[ANDROID_ALARM] Trying to reschedule alarm: $alarmSettings');
+    port.send(
+      '[${DateTime.now()}] [ANDROID_ALARM] Trying to reschedule alarm: $alarmSettings',
+    );
     final success = await AndroidAlarmManager.oneShotAt(
       alarmSettings.dateTime,
       alarmSettings.id,
@@ -404,7 +408,15 @@ class AndroidAlarm {
       wakeup: true,
       params: alarmSettings.toJson(),
     );
-    port.send('[ANDROID_ALARM] + alarm rescheduled: $success');
+    if (success) {
+      port.send(
+        '[${DateTime.now()}] [ANDROID_ALARM] + alarm ${alarmSettings.id} rescheduled at ${alarmSettings.dateTime}',
+      );
+    } else {
+      port.send(
+        '[${DateTime.now()}] [ANDROID_ALARM] + FAILED to reschedule alarm ${alarmSettings.id}',
+      );
+    }
 
     // Avoid registering a port for the isolate inside the notification if one
     // is already registered to ensure the UI will receive callbacks.

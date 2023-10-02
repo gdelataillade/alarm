@@ -82,7 +82,9 @@ class Alarm {
     AlarmNotification.bedtimeNotificationStream.stream
         .listen(_onBedtimeNotificationEvent);
 
-    await checkAlarm(nowAtStartup);
+    if (iOS) {
+      await checkAlarmIos(nowAtStartup);
+    }
     _initialized = true;
   }
 
@@ -106,7 +108,7 @@ class Alarm {
 
   /// Checks if some alarms were set on previous session.
   /// If it's the case then reschedules them.
-  static Future<void> checkAlarm([DateTime? nowAtStartup]) async {
+  static Future<void> checkAlarmIos([DateTime? nowAtStartup]) async {
     nowAtStartup ??= DateTime.now();
     final launchedByNotification =
         await AlarmNotification.checkNotificationLaunchedApp();
@@ -149,6 +151,7 @@ class Alarm {
       );
     }
 
+    // If the same alarm was already set, clear it first
     for (final alarm in await Alarm.getAlarms()) {
       if (alarm.id == alarmSettings.id ||
           (alarm.dateTime.day == alarmSettings.dateTime.day &&

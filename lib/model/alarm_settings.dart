@@ -318,8 +318,8 @@ class AlarmSettings {
           mapEquals(extra, other.extra);
 
   /// Returns the next [DateTime] when the alarm should be set. If the time
-  /// has passed today, it will return the [DateTime] for tomorrow at the time
-  /// and minute this alarm was originally scheduled for.
+  /// has passed today, it will return the [DateTime] for tomorrow at the same
+  /// hour and minute this alarm was originally scheduled for.
   DateTime nextDateTime() {
     final now = DateTime.now();
     var result = DateTime(
@@ -328,6 +328,34 @@ class AlarmSettings {
       now.day,
       originalTime.hour,
       originalTime.minute,
+    );
+
+    if (result.isBefore(now)) {
+      result = result.add(const Duration(days: 1));
+    }
+
+    return result;
+  }
+
+  /// Returns the next [DateTime] when the alarm should be set if requested
+  /// to snooze the alarm. The alarm will trigger after [snoozeDuration].
+  DateTime nextSnoozeDateTime() => DateTime.now().add(snoozeDuration);
+
+  /// Returns the next [DateTime] when the bedtime should be set. If the time
+  /// has passed today, it will return the [DateTime] for tomorrow at the same
+  /// hour and minute the bedtime was originally scheduled for.
+  DateTime? nextBedtime() {
+    if (bedtime == null) {
+      return null;
+    }
+
+    final now = DateTime.now();
+    var result = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      bedtime!.hour,
+      bedtime!.minute,
     );
 
     if (result.isBefore(now)) {

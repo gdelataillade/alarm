@@ -452,7 +452,7 @@ class AlarmNotification {
         ).serialize(),
       );
       alarmPrint(
-        'Notification with id $id scheduled successfuly at $zdt (GMT - Zulu time)',
+        '${type.name} Notification with id $id scheduled successfuly at ${DateTime.fromMillisecondsSinceEpoch(zdt.millisecondsSinceEpoch)}',
       );
     } catch (e) {
       throw AlarmException('Schedule notification with id $id error: $e');
@@ -468,7 +468,7 @@ class AlarmNotification {
 
   /// Attempt to proxy the log to the main app or default to console
   static bgLogPrint(SendPort? port, String message) => (port != null)
-      ? port.send(PortMessage.log(message).serialize())
+      ? port.send(PortMessage.log('[${DateTime.now()}] $message').serialize())
       : alarmPrint('[NOTIFICATION] $message');
 
   /// Register port to communicate with [Isolate] when a notification is
