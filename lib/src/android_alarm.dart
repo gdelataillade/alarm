@@ -70,13 +70,11 @@ class AndroidAlarm {
       throw AlarmException('Isolate error: $e');
     }
 
-    if (dateTime.difference(DateTime.now()).inSeconds <= 1) {
+    if (settings.dateTime.difference(DateTime.now()).inSeconds <= 1) {
       await playAlarm(id, {
-        "assetAudioPath": assetAudioPath,
-        "loopAudio": loopAudio,
-        "vibrate": vibrate,
-        "fadeDuration": fadeDuration.toInt(),
-        "enableNotificationOnKill": enableNotificationOnKill,
+        "assetAudioPath": settings.assetAudioPath,
+        "loopAudio": settings.loopAudio,
+        "fadeDuration": settings.fadeDuration.toInt(),
       });
       return true;
     }
