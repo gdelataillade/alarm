@@ -103,25 +103,13 @@ class Alarm {
 
     if (iOS) {
       return IOSAlarm.setAlarm(
-        alarmSettings.id,
-        alarmSettings.dateTime,
+        alarmSettings,
         () => ringStream.add(alarmSettings),
-        alarmSettings.assetAudioPath,
-        alarmSettings.loopAudio,
-        alarmSettings.vibrate,
-        alarmSettings.fadeDuration,
-        alarmSettings.enableNotificationOnKill,
       );
     } else if (android) {
       return await AndroidAlarm.set(
-        alarmSettings.id,
-        alarmSettings.dateTime,
+        alarmSettings,
         () => ringStream.add(alarmSettings),
-        alarmSettings.assetAudioPath,
-        alarmSettings.loopAudio,
-        alarmSettings.vibrate,
-        alarmSettings.fadeDuration,
-        alarmSettings.enableNotificationOnKill,
       );
     }
 
@@ -161,7 +149,8 @@ class Alarm {
   }
 
   /// Whether the alarm is ringing.
-  static Future<bool> isRinging(int id) => IOSAlarm.checkIfRinging(id);
+  static Future<bool> isRinging(int id) async =>
+      iOS ? await IOSAlarm.checkIfRinging(id) : AndroidAlarm.isRinging;
 
   /// Whether an alarm is set.
   static bool hasAlarm() => AlarmStorage.hasAlarm();

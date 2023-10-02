@@ -5,86 +5,20 @@
 
 [![alarm](https://github.com/gdelataillade/alarm/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/gdelataillade/alarm/actions/workflows/main.yml)
 
-Support our mission to improve this plugin. [Vote for it on OnePub](https://onepub.dev/packages/alarm/).
+🏆 Winner of the [2023 OnePub Community Choice Awards](https://onepub.dev/Competition).
 
 # Alarm plugin for iOS and Android
 
 This Flutter plugin provides a simple and easy-to-use interface for setting and canceling alarms on iOS and Android devices. It utilizes the `android_alarm_manager_plus` plugin for Android and the native iOS `AVAudioPlayer` class.
 
-## Why this plugin ?
+## 🔧 Installation steps
 
-As a Flutter developer at [Evolum](https://evolum.co), my CTO and I needed to develop an alarm feature for the new version of our app.
+Please carefully follow these installation steps. They have been updated for plugin version `2.0.0`.
 
-An alarm feature is a great way to increase users engagement.
+### [iOS Setup](https://github.com/gdelataillade/alarm/blob/feat/ios-background-fetch/help/INSTALL-IOS.md)
+### [Android Setup](https://github.com/gdelataillade/alarm/blob/feat/ios-background-fetch/help/INSTALL-ANDROID.md)
 
-For the Android part, we used `android_alarm_manager_plus` plugin, but to be honest it was not very intuitive and incomplete.
-
-Then, for the iOS part, we couldn't find any plugin or tutorial to add this feature.
-
-Another issue we found is that when a user kills the app, all processes are terminated so the alarm may not ring. The workaround we thought about was to show a notification when the user kills the app to warn him that the alarm may not ring. Then, he just has to reopen the app to reschedule the alarm.
-
-Therefore, we decided to write our own plugin to wrap everything and make it easy for everybody.
-
-## Under the hood
-
-### Android
-Uses `oneShotAt` from the `android_alarm_manager_plus` plugin with a two-way communication isolated callback to start/stop the alarm.
-
-### iOS
-Implements `invokeMethod` to play the alarm audio using `AVAudioPlayer`. Due to the suspension of asynchronous native code when the app is in the background, we listen for app state changes and check if the player is playing when the app returns to the foreground. If it's the case, it means the alarm is ringing, and it's time to trigger your `onRing` callback.
-
-## Getting Started
-
-### iOS installation steps
-
-In order to play audio in background, open your project in Xcode, select your Runner and select the Capabilities tab. Under the Capabilities tab, set the Background Modes switch to ON and select the “Audio, AirPlay, and Picture in Picture” option under the list of available modes.
-
-### Android installation steps
-
-In your `android/app/build.gradle`, make sure you have the following config:
-```Gradle
-android {
-  compileSdkVersion 33
-  [...]
-  defaultConfig {
-    [...]
-    multiDexEnabled true
-  }
-}
-```
-
-After that, add the following to your `AndroidManifest.xml` within the `<manifest></manifest>` tags:
-
-```xml
-<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-<uses-permission android:name="android.permission.WAKE_LOCK"/>
-<!-- For apps with targetSDK=31 (Android 12) -->
-<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
-```
-
-Next, within the `<application></application>` tags, add:
-
-```xml
-<service
-    android:name="dev.fluttercommunity.plus.androidalarmmanager.AlarmService"
-    android:permission="android.permission.BIND_JOB_SERVICE"
-    android:exported="false"/>
-<receiver
-    android:name="dev.fluttercommunity.plus.androidalarmmanager.AlarmBroadcastReceiver"
-    android:exported="false"/>
-<receiver
-    android:name="dev.fluttercommunity.plus.androidalarmmanager.RebootBroadcastReceiver"
-    android:enabled="false"
-    android:exported="false">
-    <intent-filter>
-        <action android:name="android.intent.action.BOOT_COMPLETED" />
-    </intent-filter>
-</receiver>
-```
-
-Finally, add your audio asset(s) to your project like usual.
-
-## How to use
+## 📖 How to use
 
 Add to your pubspec.yaml:
 ```Bash
@@ -104,6 +38,7 @@ final alarmSettings = AlarmSettings(
   assetAudioPath: 'assets/alarm.mp3',
   loopAudio: true,
   vibrate: true,
+  volumeMax: true,
   fadeDuration: 3.0,
   notificationTitle: 'This is the title',
   notificationBody: 'This is the body',
@@ -113,7 +48,7 @@ final alarmSettings = AlarmSettings(
 
 And finally set the alarm:
 ```Dart
-await Alarm.set(settings: alarmSettings)
+await Alarm.set(alarmSettings: alarmSettings)
 ```
 
 Property |   Type     | Description
@@ -123,6 +58,7 @@ alarmDateTime |   `DateTime`     | The date and time you want your alarm to ring
 assetAudio |   `String`     | The path to you audio asset you want to use as ringtone. Can be a path in your assets folder or a downloaded local file path.
 loopAudio |   `bool`     | If true, audio will repeat indefinitely until alarm is stopped.
 vibrate |   `bool`     | If true, device will vibrate indefinitely until alarm is stopped. If [loopAudio] is set to false, vibrations will stop when audio ends.
+volumeMax |   `bool`     | If true, set system volume to maximum when [dateTime] is reached. Set back to previous volume when alarm is stopped.
 fadeDuration |   `double`     | Duration, in seconds, over which to fade the alarm volume. Set to 0 by default, which means no fade.
 notificationTitle |   `String`     | The title of the notification triggered when alarm rings if app is on background.
 notificationBody | `String` | The body of the notification.
@@ -148,42 +84,61 @@ Alarm.ringStream.stream.listen((_) => yourOnRingCallback());
 
 To avoid unexpected behaviors, if you set an alarm for the same time as an existing one, the new alarm will replace the existing one.
 
-## Example app
+## 📱 Example app
 
 Don't hesitate to check out the example's code, and take a look at the app:
 
-![alarm_example_1](https://user-images.githubusercontent.com/32983806/230773695-915860d5-fb3d-47ee-b990-805ff33ed0c3.png)
-![alarm_example_2](https://user-images.githubusercontent.com/32983806/230773701-f77a042d-a493-4b9c-a9d0-41509fe227fd.png)
+![home](https://github.com/gdelataillade/alarm/assets/32983806/695736aa-b55f-4050-8b0d-274b0d46714a)
+![edit](https://github.com/gdelataillade/alarm/assets/32983806/05329836-9fbe-462c-aa1e-dce0fa70f455)
 
-## Alarm behaviour
+## ⏰ Alarm behaviour
 
-|                          | Sound | Vibrate | Notification
-| ------------------------ | ----- | ------- | -------
-| Locked screen            |  ✅   | ✅       | ✅
-| Silent / Mute            |  ✅   | ✅       | ✅
-| Do not disturb           |  ✅   | ✅       | Silenced
-| Sleep mode               |  ✅   | ✅       | Silenced
-| While playing other media|  ✅   | ✅       | ✅
-| App killed               |  ❌   | ❌       | ✅
+|                          | Sound | Vibrate | Volume max | Notification
+| ------------------------ | ----- | ------- | ---------- | -------
+| Locked screen            |  ✅   | ✅       | ✅          | ✅
+| Silent / Mute            |  ✅   | ✅       | ✅          | ✅
+| Do not disturb           |  ✅   | ✅       | ✅          | Silenced
+| Sleep mode               |  ✅   | ✅       | ✅          | Silenced
+| While playing other media|  ✅   | ✅       | ✅          | ✅
+| App killed               |  ❌   | ❌       | ❌          | ✅
 
-*Silenced: Means that the notification is not shown directly on the top of the screen. You have to go to your notification center to see it.*
+*Silenced: Means that the notification is not shown directly on the top of the screen. You have to go in your notification center to see it.*
 
-## FAQ
+## ❓ FAQ
+
+### Why didn't my alarm fire on iOS?
+
+Several factors could prevent your alarm from ringing:
+- Your iPhone was restarted (either from a manual reboot or due to an iOS update).
+- The app was either manually terminated or was closed because of memory constraints.
 
 ### My alarm is not firing on a specific Android device
 
-Some Android manufacturers prefer battery life over proper functionality of your apps. Check out [dontkillmyapp.com](https://dontkillmyapp.com) to find out about more about optimizations done by different vendors, and potential workarounds. 
-*Source: [https://pub.dev/packages/android_alarm_manager_plus#faq](https://pub.dev/packages/android_alarm_manager_plus#faq)*
+Some Android manufacturers prefer battery life over proper functionality of your apps. Check out [dontkillmyapp.com](https://dontkillmyapp.com) to find out about more about optimizations done by different vendors, and potential workarounds.
+Most common solution is to educate users to disable **battery optimization** settings.
+*Source: [android_alarm_manager_plus FAQ](https://pub.dev/packages/android_alarm_manager_plus#faq)*
 
-### Why isn't my alarm ringing when the device volume is off?
+### How can I increase the reliability of the alarm ringing?
 
-iOS prevents third-party apps from modifying volumes. If media volume is off, then the alarm is muted. To ensure the alarm rings, users should turn on media volume before setting the alarm. For consistency, we don't add volume checks for Android, maintaining a uniform user experience on both platforms. Feel free to add one in your app is desired.
+The more time the app spends in the background, the higher the chance the OS might stop it from running due to memory or battery optimizations. Here's how you can optimize:
 
-## Feature request
+- **Regular App Usage**: Encourage users to open the app at least once a day.
+- **Leverage Background Modes**: Engage in activities like weather API calls that keep the app active in the background.
+- **User Settings**: Educate users to refrain from using 'Do Not Disturb' (DnD) and 'Low Power Mode' when they're expecting the alarm to ring.
+
+## ⚙️ Under the hood
+
+### Android
+Uses `oneShotAt` from the `android_alarm_manager_plus` plugin with a two-way communication isolated callback to start/stop the alarm.
+
+### iOS
+Keeps the app awake using a silent `AVAudioPlayer` until alarm rings. When in the background, it also uses `Background App Refresh` to periodically ensure the app is still active.
+
+## ✉️ Feature request
 
 If you have a feature request, just open an issue explaining clearly what you want and if you convince me I will develop it for you.
 
-## Contributing
+## 💙 Contributing
 
 We welcome contributions to this plugin! If you would like to make a change or add a new feature, please follow these steps:
 
@@ -196,7 +151,7 @@ These are some features that I have in mind that could be useful:
 - Use `ffigen` and `jnigen` binding generators to call native code more efficiently instead of using method channels.
 - [Notification actions](https://pub.dev/packages/flutter_local_notifications#notification-actions): stop and snooze.
 - Stop alarm sound when notification is dismissed.
-- Add macOS, Windows, Linux and web support.
+- Make alarm ring even if app was terminated.
 
 Thank you for considering contributing to this plugin. Your help is greatly appreciated!
 

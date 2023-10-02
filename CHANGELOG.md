@@ -1,3 +1,49 @@
+## 2.0.1
+* Update README.
+* Fix example app's ring now button.
+* Refactor set alarm methods.
+
+## 2.0.0
+**Breaking Changes**
+* Installation steps were updated in the README. Please make sure to follow them.
+* [iOS] Add Background Fetch to periodically make sure alarms are still active in the background.
+
+## 2.0.0-release-candidate-1
+* Add minor improvements.
+
+## 2.0.0-dev.5
+* [iOS] Move background fetch to native.
+* [Android] Fix build errors.
+
+## 2.0.0-dev.4
+* [iOS] Improve background fetch & audio interruptions
+
+## 2.0.0-dev.3
+* [iOS] Improve alarm reliability.
+
+## 2.0.0-dev.2
+* [iOS] Improve silent audio interruption handling.
+* Add a shortcut button in example app.
+
+## 2.0.0-dev.1
+* [iOS] Play silent audio until alarm rings to keep app active.
+* [iOS] Add Background Fetch to periodically check if app is still active.
+* [iOS] Add new installation steps.
+
+## 1.2.2
+* Upgrade plugin's dependencies.
+* Prove plugin ownership for winning OnePub competition: 961eace7-3bbb-11ee-ade6-42010ab60008
+
+## 1.2.1
+* Fix fromJson error on plugin init.
+
+## 1.2.0
+* Add [volumeMax] parameter.
+* [iOS] Keep app active in background by playing silent sound in a loop.
+
+## 1.1.8
+* [Android] Add missing isRinging method.
+
 ## 1.1.7
 * [iOS] Fix alarm stop.
 

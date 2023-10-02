@@ -8,6 +8,7 @@ import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:vibration/vibration.dart';
+import 'package:volume_controller/volume_controller.dart';
 
 /// For Android support, [AndroidAlarmManager] is used to trigger a callback
 /// when the given time is reached. The callback will run in an isolate if app
@@ -19,8 +20,11 @@ class AndroidAlarm {
   static const platform =
       MethodChannel('com.gdelataillade.alarm/notifOnAppKill');
 
+  static bool ringing = false;
   static bool vibrationsActive = false;
+  static double? previousVolume;
 
+  static bool get isRinging => ringing;
   static bool get hasOtherAlarms => AlarmStorage.getSavedAlarms().length > 1;
 
   /// Initializes AndroidAlarmManager dependency.
@@ -28,15 +32,10 @@ class AndroidAlarm {
 
   /// Creates isolate communication channel and set alarm at given [dateTime].
   static Future<bool> set(
-    int id,
-    DateTime dateTime,
+    AlarmSettings settings,
     void Function()? onRing,
-    String assetAudioPath,
-    bool loopAudio,
-    bool vibrate,
-    double fadeDuration,
-    bool enableNotificationOnKill,
   ) async {
+    final id = settings.id;
     try {
       final port = ReceivePort();
       final success = IsolateNameServer.registerPortWithName(
@@ -51,14 +50,18 @@ class AndroidAlarm {
       port.listen((message) {
         alarmPrint('$message');
         if (message == 'ring') {
+          ringing = true;
+          if (settings.volumeMax) setMaximumVolume();
           onRing?.call();
         } else {
-          if (vibrate && message is String && message.startsWith('vibrate')) {
+          if (settings.vibrate &&
+              message is String &&
+              message.startsWith('vibrate')) {
             final audioDuration = message.split('-').last;
 
             if (int.tryParse(audioDuration) != null) {
               final duration = Duration(seconds: int.parse(audioDuration));
-              triggerVibrations(duration: loopAudio ? null : duration);
+              triggerVibrations(duration: settings.loopAudio ? null : duration);
             }
           }
         }
@@ -79,25 +82,26 @@ class AndroidAlarm {
     }
 
     final res = await AndroidAlarmManager.oneShotAt(
-      dateTime,
+      settings.dateTime,
       id,
       AndroidAlarm.playAlarm,
       alarmClock: true,
       allowWhileIdle: true,
       exact: true,
       rescheduleOnReboot: true,
+      wakeup: true,
       params: {
-        'assetAudioPath': assetAudioPath,
-        'loopAudio': loopAudio,
-        'fadeDuration': fadeDuration,
+        'assetAudioPath': settings.assetAudioPath,
+        'loopAudio': settings.loopAudio,
+        'fadeDuration': settings.fadeDuration,
       },
     );
 
     alarmPrint(
-      'Alarm with id $id scheduled ${res ? 'successfully' : 'failed'} at $dateTime',
+      'Alarm with id $id scheduled ${res ? 'successfully' : 'failed'} at ${settings.dateTime}',
     );
 
-    if (enableNotificationOnKill && !hasOtherAlarms) {
+    if (settings.enableNotificationOnKill && !hasOtherAlarms) {
       try {
         await platform.invokeMethod(
           'setNotificationOnKillService',
@@ -148,9 +152,10 @@ class AndroidAlarm {
       final loopAudio = data['loopAudio'];
       if (loopAudio) audioPlayer.setLoopMode(LoopMode.all);
 
-      send.send('Alarm fadeDuration: ${data.toString()}');
+      send.send('Alarm data received in isolate: $data');
 
       final fadeDuration = (data['fadeDuration'] as int).toDouble();
+      send.send('Alarm fadeDuration: $fadeDuration seconds');
 
       if (fadeDuration > 0.0) {
         int counter = 0;
@@ -231,9 +236,16 @@ class AndroidAlarm {
     }
   }
 
+  /// Sets the device volume to the maximum.
+  static Future<void> setMaximumVolume() async {
+    previousVolume = await VolumeController().getVolume();
+    VolumeController().setVolume(1.0, showSystemUI: true);
+  }
+
   /// Sends the message `stop` to the isolate so the audio player
   /// can stop playing and dispose.
   static Future<bool> stop(int id) async {
+    ringing = false;
     vibrationsActive = false;
 
     final send = IsolateNameServer.lookupPortByName(stopPort);
@@ -241,6 +253,11 @@ class AndroidAlarm {
     if (send != null) {
       send.send('stop');
       alarmPrint('Alarm with id $id stopped');
+    }
+
+    if (previousVolume != null) {
+      VolumeController().setVolume(previousVolume!, showSystemUI: true);
+      previousVolume = null;
     }
 
     if (!hasOtherAlarms) stopNotificationOnKillService();

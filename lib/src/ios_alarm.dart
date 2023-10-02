@@ -17,28 +17,25 @@ class IOSAlarm {
   /// Also set periodic timer and listens for app state changes to trigger
   /// the alarm ring callback at the right time.
   static Future<bool> setAlarm(
-    int id,
-    DateTime dateTime,
+    AlarmSettings settings,
     void Function()? onRing,
-    String assetAudio,
-    bool loopAudio,
-    bool vibrate,
-    double fadeDuration,
-    bool enableNotificationOnKill,
   ) async {
+    final id = settings.id;
     try {
-      final delay = dateTime.difference(DateTime.now());
+      final delay = settings.dateTime.difference(DateTime.now());
 
       final res = await methodChannel.invokeMethod<bool?>(
             'setAlarm',
             {
               'id': id,
-              'assetAudio': assetAudio,
+              'assetAudio': settings.assetAudioPath,
               'delayInSeconds': delay.inSeconds.abs().toDouble(),
-              'loopAudio': loopAudio,
-              'fadeDuration': fadeDuration >= 0 ? fadeDuration : 0,
-              'vibrate': vibrate,
-              'notifOnKillEnabled': enableNotificationOnKill,
+              'loopAudio': settings.loopAudio,
+              'fadeDuration':
+                  settings.fadeDuration >= 0 ? settings.fadeDuration : 0,
+              'vibrate': settings.vibrate,
+              'volumeMax': settings.volumeMax,
+              'notifOnKillEnabled': settings.enableNotificationOnKill,
               'notifTitleOnAppKill':
                   AlarmStorage.getNotificationOnAppKillTitle(),
               'notifDescriptionOnAppKill':
@@ -48,7 +45,7 @@ class IOSAlarm {
           false;
 
       alarmPrint(
-        'Alarm with id $id scheduled ${res ? 'successfully' : 'failed'} at $dateTime',
+        'Alarm with id $id scheduled ${res ? 'successfully' : 'failed'} at ${settings.dateTime}',
       );
 
       if (!res) return false;
@@ -58,7 +55,7 @@ class IOSAlarm {
     }
 
     if (timers[id] != null && timers[id]!.isActive) timers[id]!.cancel();
-    timers[id] = periodicTimer(onRing, dateTime, id);
+    timers[id] = periodicTimer(onRing, settings.dateTime, id);
 
     listenAppStateChange(
       id: id,
@@ -73,7 +70,7 @@ class IOSAlarm {
           onRing?.call();
         } else {
           if (timers[id] != null && timers[id]!.isActive) timers[id]!.cancel();
-          timers[id] = periodicTimer(onRing, dateTime, id);
+          timers[id] = periodicTimer(onRing, settings.dateTime, id);
         }
       },
     );
