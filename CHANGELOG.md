@@ -1,3 +1,7 @@
+## 2.1.0
+* [Android] Add parameter [androidFullScreenIntent] that turns screen on when alarm notification is triggered.
+* Disable [stopOnNotificationOpen] by default.
+
 ## 2.0.1
 * Update README.
 * Fix example app's ring now button.

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:alarm/alarm.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -40,7 +42,8 @@ class AlarmNotification {
 
   // Callback to stop the alarm when the notification is opened.
   static onSelectNotification(NotificationResponse notificationResponse) async {
-    await stopAlarm(notificationResponse.id);
+    if (notificationResponse.id == null) return;
+    await stopAlarm(notificationResponse.id!);
   }
 
   // Callback to stop the alarm when the notification is opened for iOS versions older than 10.
@@ -49,13 +52,13 @@ class AlarmNotification {
     String? _,
     String? __,
     String? ___,
-  ) async =>
-      await stopAlarm(id);
+  ) async {
+    if (id != null) await stopAlarm(id);
+  }
 
   /// Stops the alarm.
-  static Future<void> stopAlarm(int? id) async {
-    if (id != null &&
-        Alarm.getAlarm(id)?.stopOnNotificationOpen != null &&
+  static Future<void> stopAlarm(int id) async {
+    if (Alarm.getAlarm(id)?.stopOnNotificationOpen != null &&
         Alarm.getAlarm(id)!.stopOnNotificationOpen) {
       await Alarm.stop(id);
     }
@@ -94,6 +97,7 @@ class AlarmNotification {
     required DateTime dateTime,
     required String title,
     required String body,
+    required bool fullScreenIntent,
   }) async {
     const iOSPlatformChannelSpecifics = DarwinNotificationDetails(
       presentAlert: true,
@@ -101,7 +105,7 @@ class AlarmNotification {
       presentSound: false,
     );
 
-    const androidPlatformChannelSpecifics = AndroidNotificationDetails(
+    final androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'alarm',
       'alarm_plugin',
       channelDescription: 'Alarm plugin',
@@ -109,9 +113,10 @@ class AlarmNotification {
       priority: Priority.max,
       playSound: false,
       enableLights: true,
+      fullScreenIntent: fullScreenIntent,
     );
 
-    const platformChannelSpecifics = NotificationDetails(
+    final platformChannelSpecifics = NotificationDetails(
       android: androidPlatformChannelSpecifics,
       iOS: iOSPlatformChannelSpecifics,
     );

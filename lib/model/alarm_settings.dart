@@ -44,6 +44,11 @@ class AlarmSettings {
   /// Stops the alarm on opened notification.
   final bool stopOnNotificationOpen;
 
+  /// Whether to turn screen on when android alarm notification is triggered. Enabled by default.
+  ///
+  /// [notificationTitle] and [notificationBody] must not be null nor empty.
+  final bool androidFullScreenIntent;
+
   /// Returns a hash code for this `AlarmSettings` instance using Jenkins hash function.
   @override
   int get hashCode {
@@ -81,7 +86,8 @@ class AlarmSettings {
     this.notificationTitle,
     this.notificationBody,
     this.enableNotificationOnKill = true,
-    this.stopOnNotificationOpen = true,
+    this.stopOnNotificationOpen = false,
+    this.androidFullScreenIntent = true,
   });
 
   /// Constructs an `AlarmSettings` instance from the given JSON data.
@@ -97,6 +103,7 @@ class AlarmSettings {
         notificationBody: json['notificationBody'] as String?,
         enableNotificationOnKill: json['enableNotificationOnKill'] as bool,
         stopOnNotificationOpen: json['stopOnNotificationOpen'] as bool,
+        androidFullScreenIntent: json['androidFullScreenIntent'] as bool,
       );
 
   /// Creates a copy of `AlarmSettings` but with the given fields replaced with
@@ -113,6 +120,7 @@ class AlarmSettings {
     String? notificationBody,
     bool? enableNotificationOnKill,
     bool? stopOnNotificationOpen,
+    bool? androidFullScreenIntent,
   }) {
     return AlarmSettings(
       id: id ?? this.id,
@@ -128,6 +136,8 @@ class AlarmSettings {
           enableNotificationOnKill ?? this.enableNotificationOnKill,
       stopOnNotificationOpen:
           stopOnNotificationOpen ?? this.stopOnNotificationOpen,
+      androidFullScreenIntent:
+          androidFullScreenIntent ?? this.androidFullScreenIntent,
     );
   }
 
@@ -144,6 +154,7 @@ class AlarmSettings {
         'notificationBody': notificationBody,
         'enableNotificationOnKill': enableNotificationOnKill,
         'stopOnNotificationOpen': stopOnNotificationOpen,
+        'androidFullScreenIntent': androidFullScreenIntent,
       };
 
   /// Returns all the properties of `AlarmSettings` for debug purposes.
@@ -171,5 +182,6 @@ class AlarmSettings {
           notificationTitle == other.notificationTitle &&
           notificationBody == other.notificationBody &&
           enableNotificationOnKill == other.enableNotificationOnKill &&
-          stopOnNotificationOpen == other.stopOnNotificationOpen;
+          stopOnNotificationOpen == other.stopOnNotificationOpen &&
+          androidFullScreenIntent == other.androidFullScreenIntent;
 }
