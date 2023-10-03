@@ -8,12 +8,7 @@ class AlarmSettings {
   /// Path to audio asset to be used as the alarm ringtone. Accepted formats:
   ///
   /// * Project asset: `assets/your_audio.mp3`.
-  ///
   /// * Local asset: `/path/to/your/audio.mp3`, which is your `File.path`.
-  ///
-  /// For iOS, you need to drag and drop your asset(s) to your `Runner` folder
-  /// in Xcode and make sure 'Copy items if needed' is checked.
-  /// Check out README.md for more informations.
   final String assetAudioPath;
 
   /// If true, [assetAudioPath] will repeat indefinitely until alarm is stopped.
@@ -95,8 +90,8 @@ class AlarmSettings {
         dateTime: DateTime.fromMicrosecondsSinceEpoch(json['dateTime'] as int),
         assetAudioPath: json['assetAudioPath'] as String,
         loopAudio: json['loopAudio'] as bool,
-        vibrate: json['vibrate'] != null ? json['vibrate'] as bool : true,
-        volumeMax: json['volumeMax'] != null ? json['volumeMax'] as bool : true,
+        vibrate: json['vibrate'] as bool,
+        volumeMax: json['volumeMax'] as bool,
         fadeDuration: json['fadeDuration'] as double,
         notificationTitle: json['notificationTitle'] as String?,
         notificationBody: json['notificationBody'] as String?,

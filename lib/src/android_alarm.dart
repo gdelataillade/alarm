@@ -74,7 +74,7 @@ class AndroidAlarm {
       await playAlarm(id, {
         "assetAudioPath": settings.assetAudioPath,
         "loopAudio": settings.loopAudio,
-        "fadeDuration": settings.fadeDuration.toInt(),
+        "fadeDuration": settings.fadeDuration,
       });
       return true;
     }
@@ -147,12 +147,13 @@ class AndroidAlarm {
 
       send.send('vibrate-${audioDuration?.inSeconds}');
 
-      final loopAudio = data['loopAudio'];
+      final loopAudio = data['loopAudio'] as bool;
       if (loopAudio) audioPlayer.setLoopMode(LoopMode.all);
 
       send.send('Alarm data received in isolate: $data');
 
-      final fadeDuration = (data['fadeDuration'] as int).toDouble();
+      final fadeDuration = data['fadeDuration'];
+
       send.send('Alarm fadeDuration: $fadeDuration seconds');
 
       if (fadeDuration > 0.0) {
