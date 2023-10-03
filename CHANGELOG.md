@@ -1,5 +1,8 @@
 ## 2.1.0
+**Android installation steps were updated.**
 * [Android] Add parameter [androidFullScreenIntent] that turns screen on when alarm notification is triggered.
+* [Android] Fix 'ring now' alarm delay.
+* [Android] Fix fadeDuration cast error.
 * Disable [stopOnNotificationOpen] by default.
 
 ## 2.0.1
