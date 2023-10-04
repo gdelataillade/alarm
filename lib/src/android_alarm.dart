@@ -58,11 +58,7 @@ class AndroidAlarm {
     }
 
     if (settings.dateTime.difference(DateTime.now()).inSeconds <= 1) {
-      await playAlarm(id, {
-        "assetAudioPath": settings.assetAudioPath,
-        "loopAudio": settings.loopAudio,
-        "fadeDuration": settings.fadeDuration,
-      });
+      await ringAlarm(settings);
       return true;
     }
 
