@@ -49,6 +49,9 @@ class AlarmSettings {
   /// [notificationTitle] and [notificationBody] must not be null nor empty.
   final bool androidFullScreenIntent;
 
+  /// Whether to show system volume UI when [volume] is set. Enabled by default.
+  final bool showVolumeSystemUI;
+
   /// Returns a hash code for this `AlarmSettings` instance using Jenkins hash function.
   @override
   int get hashCode {
@@ -65,6 +68,8 @@ class AlarmSettings {
     hash = hash ^ (notificationBody?.hashCode ?? 0);
     hash = hash ^ enableNotificationOnKill.hashCode;
     hash = hash ^ stopOnNotificationOpen.hashCode;
+    hash = hash ^ androidFullScreenIntent.hashCode;
+    hash = hash ^ showVolumeSystemUI.hashCode;
     hash = hash & 0x3fffffff;
 
     return hash;
@@ -88,6 +93,7 @@ class AlarmSettings {
     this.enableNotificationOnKill = true,
     this.stopOnNotificationOpen = false,
     this.androidFullScreenIntent = true,
+    this.showVolumeSystemUI = true,
   });
 
   /// Constructs an `AlarmSettings` instance from the given JSON data.
@@ -104,6 +110,7 @@ class AlarmSettings {
         enableNotificationOnKill: json['enableNotificationOnKill'] as bool,
         stopOnNotificationOpen: json['stopOnNotificationOpen'] as bool,
         androidFullScreenIntent: json['androidFullScreenIntent'] as bool,
+        showVolumeSystemUI: json['showVolumeSystemUI'] as bool,
       );
 
   /// Creates a copy of `AlarmSettings` but with the given fields replaced with
@@ -121,6 +128,7 @@ class AlarmSettings {
     bool? enableNotificationOnKill,
     bool? stopOnNotificationOpen,
     bool? androidFullScreenIntent,
+    bool? showVolumeSystemUI,
   }) {
     return AlarmSettings(
       id: id ?? this.id,
@@ -138,6 +146,7 @@ class AlarmSettings {
           stopOnNotificationOpen ?? this.stopOnNotificationOpen,
       androidFullScreenIntent:
           androidFullScreenIntent ?? this.androidFullScreenIntent,
+      showVolumeSystemUI: showVolumeSystemUI ?? this.showVolumeSystemUI,
     );
   }
 
@@ -155,6 +164,7 @@ class AlarmSettings {
         'enableNotificationOnKill': enableNotificationOnKill,
         'stopOnNotificationOpen': stopOnNotificationOpen,
         'androidFullScreenIntent': androidFullScreenIntent,
+        'showVolumeSystemUI': showVolumeSystemUI,
       };
 
   /// Returns all the properties of `AlarmSettings` for debug purposes.
@@ -183,5 +193,6 @@ class AlarmSettings {
           notificationBody == other.notificationBody &&
           enableNotificationOnKill == other.enableNotificationOnKill &&
           stopOnNotificationOpen == other.stopOnNotificationOpen &&
-          androidFullScreenIntent == other.androidFullScreenIntent;
+          androidFullScreenIntent == other.androidFullScreenIntent &&
+          showVolumeSystemUI == other.showVolumeSystemUI;
 }

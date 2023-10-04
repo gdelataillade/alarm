@@ -133,11 +133,15 @@ class Alarm {
 
   /// Stops alarm.
   static Future<bool> stop(int id) async {
+    final settings = getAlarm(id);
+
     await AlarmStorage.unsaveAlarm(id);
 
     AlarmNotification.instance.cancel(id);
 
-    return iOS ? await IOSAlarm.stopAlarm(id) : await AndroidAlarm.stop(id);
+    return iOS
+        ? await IOSAlarm.stopAlarm(id)
+        : await AndroidAlarm.stop(id, settings?.showVolumeSystemUI ?? true);
   }
 
   /// Stops all the alarms.
