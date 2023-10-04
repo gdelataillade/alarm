@@ -15,11 +15,11 @@ import 'package:volume_controller/volume_controller.dart';
 /// is in background.
 class AndroidAlarm {
   static const ringPort = 'alarm-ring';
-  static const stopPort = 'alarm-stop';
 
   static const platform =
       MethodChannel('com.gdelataillade.alarm/notifOnAppKill');
 
+  static AudioPlayer audioPlayer = AudioPlayer();
   static bool ringing = false;
   static bool vibrationsActive = false;
   static double? previousVolume;
@@ -48,22 +48,9 @@ class AndroidAlarm {
         IsolateNameServer.registerPortWithName(port.sendPort, "$ringPort-$id");
       }
       port.listen((message) {
-        alarmPrint('$message');
         if (message == 'ring') {
-          ringing = true;
-          if (settings.volumeMax) setMaximumVolume();
+          ringAlarm(settings);
           onRing?.call();
-        } else {
-          if (settings.vibrate &&
-              message is String &&
-              message.startsWith('vibrate')) {
-            final audioDuration = message.split('-').last;
-
-            if (int.tryParse(audioDuration) != null) {
-              final duration = Duration(seconds: int.parse(audioDuration));
-              triggerVibrations(duration: settings.loopAudio ? null : duration);
-            }
-          }
         }
       });
     } catch (e) {
@@ -88,11 +75,6 @@ class AndroidAlarm {
       exact: true,
       rescheduleOnReboot: true,
       wakeup: true,
-      params: {
-        'assetAudioPath': settings.assetAudioPath,
-        'loopAudio': settings.loopAudio,
-        'fadeDuration': settings.fadeDuration,
-      },
     );
 
     alarmPrint(
@@ -100,72 +82,42 @@ class AndroidAlarm {
     );
 
     if (settings.enableNotificationOnKill && !hasOtherAlarms) {
-      try {
-        await platform.invokeMethod(
-          'setNotificationOnKillService',
-          {
-            'title': AlarmStorage.getNotificationOnAppKillTitle(),
-            'description': AlarmStorage.getNotificationOnAppKillBody(),
-          },
-        );
-        alarmPrint('NotificationOnKillService set with success');
-      } catch (e) {
-        throw AlarmException('NotificationOnKillService error: $e');
-      }
+      enableNotificationOnKill();
     }
 
     return res;
   }
 
-  /// Callback triggered when alarmDateTime is reached.
-  /// The message `ring` is sent to the main thread in order to
-  /// tell the device that the alarm is starting to ring.
-  /// Alarm is played with AudioPlayer and stopped when the message `stop`
-  /// is received from the main thread.
-  @pragma('vm:entry-point')
-  static Future<void> playAlarm(int id, Map<String, dynamic> data) async {
-    final audioPlayer = AudioPlayer();
+  static Future<void> ringAlarm(AlarmSettings settings) async {
+    ringing = true;
 
-    final res = IsolateNameServer.lookupPortByName("$ringPort-$id");
-    if (res == null) throw const AlarmException('Isolate port not found');
-
-    final send = res;
-    send.send('ring');
+    if (settings.volumeMax) setMaximumVolume();
 
     try {
-      final assetAudioPath = data['assetAudioPath'] as String;
       Duration? audioDuration;
 
-      if (assetAudioPath.startsWith('http')) {
-        send.send('Network URL not supported. Please provide local asset.');
-        return;
+      if (settings.assetAudioPath.startsWith('http')) {
+        throw const AlarmException(
+          'Network URLs are not supported. Please provide local asset.',
+        );
       }
 
-      audioDuration = assetAudioPath.startsWith('assets/')
-          ? await audioPlayer.setAsset(assetAudioPath)
-          : await audioPlayer.setFilePath(assetAudioPath);
+      audioDuration = settings.assetAudioPath.startsWith('assets/')
+          ? await audioPlayer.setAsset(settings.assetAudioPath)
+          : await audioPlayer.setFilePath(settings.assetAudioPath);
 
-      send.send('vibrate-${audioDuration?.inSeconds}');
+      triggerVibrations(duration: audioDuration);
 
-      final loopAudio = data['loopAudio'] as bool;
-      if (loopAudio) audioPlayer.setLoopMode(LoopMode.all);
+      if (settings.loopAudio) audioPlayer.setLoopMode(LoopMode.all);
 
-      send.send('Alarm data received in isolate: $data');
-
-      final fadeDuration = data['fadeDuration'];
-
-      send.send('Alarm fadeDuration: $fadeDuration seconds');
-
-      if (fadeDuration > 0.0) {
+      if (settings.fadeDuration > 0.0) {
         int counter = 0;
 
-        audioPlayer.setVolume(0.1);
+        await audioPlayer.setVolume(0.1);
         audioPlayer.play();
 
-        send.send('Alarm playing with fadeDuration ${fadeDuration}s');
-
         Timer.periodic(
-          Duration(milliseconds: fadeDuration * 1000 ~/ 10),
+          Duration(milliseconds: settings.fadeDuration * 1000 ~/ 10),
           (timer) {
             counter++;
             audioPlayer.setVolume(counter / 10);
@@ -174,37 +126,23 @@ class AndroidAlarm {
         );
       } else {
         audioPlayer.play();
-        send.send('Alarm with id $id starts playing.');
       }
     } catch (e) {
       await AudioPlayer.clearAssetCache();
-      send.send('Asset cache reset. Please try again.');
       throw AlarmException(
-        "Alarm with id $id and asset path '${data['assetAudioPath']}' error: $e",
+        "Alarm with id ${settings.id} and asset path '${settings.assetAudioPath}' error: $e",
       );
     }
+  }
 
-    try {
-      final port = ReceivePort();
-      final success =
-          IsolateNameServer.registerPortWithName(port.sendPort, stopPort);
-
-      if (!success) {
-        IsolateNameServer.removePortNameMapping(stopPort);
-        IsolateNameServer.registerPortWithName(port.sendPort, stopPort);
-      }
-
-      port.listen((message) async {
-        send.send('(isolate) received: $message');
-        if (message == 'stop') {
-          await audioPlayer.stop();
-          await audioPlayer.dispose();
-          port.close();
-        }
-      });
-    } catch (e) {
-      throw AlarmException('Isolate error: $e');
-    }
+  /// Callback triggered when [dateTime] is reached.
+  /// The message `ring` is sent to the main thread in order to
+  /// tell the device that the alarm is starting to ring.
+  @pragma('vm:entry-point')
+  static Future<void> playAlarm(int id, Map<String, dynamic> data) async {
+    final sendPort = IsolateNameServer.lookupPortByName("$ringPort-$id");
+    if (sendPort == null) throw const AlarmException('Isolate port not found');
+    sendPort.send('ring');
   }
 
   /// Triggers vibrations when alarm is ringing if [vibrationsActive] is true.
@@ -247,24 +185,37 @@ class AndroidAlarm {
     ringing = false;
     vibrationsActive = false;
 
-    final send = IsolateNameServer.lookupPortByName(stopPort);
-
-    if (send != null) {
-      send.send('stop');
-      alarmPrint('Alarm with id $id stopped');
-    }
+    await audioPlayer.stop();
+    await audioPlayer.dispose();
 
     if (previousVolume != null) {
       VolumeController().setVolume(previousVolume!, showSystemUI: true);
       previousVolume = null;
     }
 
-    if (!hasOtherAlarms) stopNotificationOnKillService();
+    if (!hasOtherAlarms) disableNotificationOnKillService();
 
     return await AndroidAlarmManager.cancel(id);
   }
 
-  static Future<void> stopNotificationOnKillService() async {
+  /// Enables the notification on kill service.
+  static Future<void> enableNotificationOnKill() async {
+    try {
+      await platform.invokeMethod(
+        'setNotificationOnKillService',
+        {
+          'title': AlarmStorage.getNotificationOnAppKillTitle(),
+          'description': AlarmStorage.getNotificationOnAppKillBody(),
+        },
+      );
+      alarmPrint('NotificationOnKillService set with success');
+    } catch (e) {
+      throw AlarmException('NotificationOnKillService error: $e');
+    }
+  }
+
+  /// Disables the notification on kill service.
+  static Future<void> disableNotificationOnKillService() async {
     try {
       await platform.invokeMethod('stopNotificationOnKillService');
       alarmPrint('NotificationOnKillService stopped with success');
