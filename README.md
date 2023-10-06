@@ -68,7 +68,7 @@ androidFullScreenIntent |   `bool`     | Whether to turn screen on when android 
 
 The notification shown on alarm ring can be disabled simply by ignoring the parameters `notificationTitle` and `notificationBody`. However, if you want a notification to be triggered, you will have to provide **both of them**.
 
-If you enabled `enableNotificationOnKill`, you can chose your own notification title and body by using this method:
+If you enabled `enableNotificationOnKill`, you can chose your own notification title and body by using this method before setting your alarms:
 ```Dart
 await Alarm.setNotificationOnAppKillContent(title, body)
 ```
