@@ -61,7 +61,17 @@ class AlarmStorage {
           continue;
         }
 
-        alarms.add(AlarmSettings.fromJson(json.decode(res)));
+        try {
+          alarms.add(AlarmSettings.fromJson(json.decode(res)));
+        } catch (e) {
+          alarmPrint(
+            '[STORAGE] Failed to parse alarm $key: $res - removing alarm',
+          );
+          final id = int.tryParse(key.replaceAll(prefix, ''));
+          if (id != null) {
+            unsaveAlarm(id);
+          }
+        }
       }
     }
 
