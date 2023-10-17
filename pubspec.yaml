@@ -22,6 +22,7 @@ dependencies:
   freezed_annotation: 2.2.0
   json_annotation: 4.8.1
   rxdart: 0.27.7
+  permission_handler: 11.0.1
 
 dev_dependencies:
   flutter_test:

@@ -9,6 +9,7 @@ import 'package:alarm/service/storage.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:vibration/vibration.dart';
 import 'package:volume_controller/volume_controller.dart';
@@ -93,11 +94,24 @@ class AndroidAlarm {
   /// Creates isolate communication channel and set alarm at given [dateTime].
   static Future<bool> set(AlarmSettings settings) async {
     _registerPort(settings, registerIfTaken: true);
+    try {
+      final permission = await Permission.ignoreBatteryOptimizations.request();
+      if (permission.isDenied) {
+        alarmPrint(
+          'Permission to ignore battery optimization not granted. Alarm may trigger with up to 15 minute delay due to Android Doze optimization',
+        );
+      }
+    } catch (e) {
+      alarmPrint(
+        'Failed to request for permissions to ignore battery optimization. $e',
+      );
+    }
+
     final res = await AndroidAlarmManager.oneShotAt(
       settings.dateTime,
       settings.id,
       AndroidAlarm.playAlarm,
-      alarmClock: false,
+      alarmClock: true,
       allowWhileIdle: true,
       exact: true,
       rescheduleOnReboot: true,
@@ -401,7 +415,7 @@ class AndroidAlarm {
       alarmSettings.dateTime,
       alarmSettings.id,
       AndroidAlarm.playAlarm,
-      alarmClock: false,
+      alarmClock: true,
       allowWhileIdle: true,
       exact: true,
       rescheduleOnReboot: true,
