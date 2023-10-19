@@ -203,9 +203,10 @@ class AlarmNotification {
       return;
     }
 
-    if (!calledFromIsolate) {
-      // Only dismiss the alarm if not called from isolate. Isolate already
-      // handles that.
+    final action = NotificationAction.from(notificationResponse.actionId);
+    if (!calledFromIsolate && action != NotificationAction.select) {
+      // Only dismiss the alarm if requested and not called from isolate.
+      // Isolate already handles that.
       if (notificationResponse.id != null) {
         await Alarm.stop(notificationResponse.id!);
       } else {
@@ -216,7 +217,6 @@ class AlarmNotification {
     final settings = await Alarm.getAlarm(notificationResponse.id ?? 0);
     if (settings != null) {
       alarmPrint('[NOTIFICATION] + broadcasting alarm: $settings');
-      final action = NotificationAction.from(notificationResponse.actionId);
       final event = NotificationEvent(settings, action);
       alarmNotificationStream.add(event);
     }
