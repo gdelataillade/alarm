@@ -35,6 +35,31 @@ class AndroidAlarm {
     AlarmSettings settings,
     void Function()? onRing,
   ) async {
+    try {
+      final delay = settings.dateTime.difference(DateTime.now());
+
+      final res = await platform.invokeMethod(
+        'setAlarm',
+        {
+          'id': settings.id,
+          'delayInSeconds': delay.inSeconds,
+          'assetAudioPath': settings.assetAudioPath,
+          'loopAudio': settings.loopAudio,
+          'vibrate': settings.vibrate,
+          'volume': 1.0,
+          // 'volume': settings.volumeMax ? 1.0 : -1.0,
+          'fadeDuration': settings.fadeDuration,
+          'notificationTitle': settings.notificationTitle,
+          'notificationBody': settings.notificationBody,
+        },
+      );
+      alarmPrint('[DEV] setAlarm method channel invoked, returned: $res');
+    } catch (e) {
+      throw AlarmException('nativeAndroidAlarm error: $e');
+    }
+
+    return true;
+
     final id = settings.id;
     try {
       final port = ReceivePort();

@@ -31,7 +31,7 @@ class _ExampleAlarmHomeShortcutButtonState
       id: DateTime.now().millisecondsSinceEpoch % 10000,
       dateTime: dateTime,
       assetAudioPath: 'assets/marimba.mp3',
-      volumeMax: true,
+      volumeMax: false,
     );
 
     await Alarm.set(alarmSettings: alarmSettings);

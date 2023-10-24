@@ -28,6 +28,7 @@ dev_dependencies:
 flutter:
   assets:
     - assets/long_blank.mp3
+    - assets/not_blank.mp3
 
   plugin:
     platforms:

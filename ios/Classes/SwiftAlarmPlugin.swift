@@ -72,7 +72,11 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
         if notifOnKillEnabled && !observerAdded {
             observerAdded = true
-            NotificationCenter.default.addObserver(self, selector: #selector(applicationWillTerminate(_:)), name: UIApplication.willTerminateNotification, object: nil)
+            do {
+                NotificationCenter.default.addObserver(self, selector: #selector(applicationWillTerminate(_:)), name: UIApplication.willTerminateNotification, object: nil)
+            } catch {
+                NSLog("SwiftAlarmPlugin: Failed to register observer for UIApplication.willTerminateNotification: \(error)")
+            }
         }
 
         let id = args["id"] as! Int

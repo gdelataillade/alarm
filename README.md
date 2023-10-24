@@ -9,7 +9,7 @@
 
 # Alarm plugin for iOS and Android
 
-This Flutter plugin provides a simple and easy-to-use interface for setting and canceling alarms on iOS and Android devices. It utilizes the `android_alarm_manager_plus` plugin for Android and the native iOS `AVAudioPlayer` class.
+This plugin offers a straightforward interface to set and cancel alarms on both iOS and Android devices. Using native code, it handles audio playback, vibrations, system volume, and notifications seamlessly.
 
 ## 🔧 Installation steps
 
@@ -155,5 +155,9 @@ These are some features that I have in mind that could be useful:
 - Make alarm ring even if app was terminated.
 
 Thank you for considering contributing to this plugin. Your help is greatly appreciated!
+
+🙏 Special thanks to the main contributors 🇫🇷
+- [evolum](https://evolum.co)
+- [WayUp](https://wayuphealth.fr)
 
 ❤️ Let me know if you like the plugin by liking it on [pub.dev](https://pub.dev/packages/alarm) and starring the repo on [Github](https://github.com/gdelataillade/alarm) 🙂
