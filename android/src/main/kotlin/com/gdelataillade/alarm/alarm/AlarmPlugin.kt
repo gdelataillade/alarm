@@ -27,9 +27,10 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
             "setAlarm" -> {
                 val alarmIntent = Intent(context, AlarmReceiver::class.java)
 
+                val id = call.argument<Int>("id")
                 val delayInSeconds = call.argument<Int>("delayInSeconds")
 
-                alarmIntent.putExtra("id", call.argument<Int>("id"))
+                alarmIntent.putExtra("id", id)
                 alarmIntent.putExtra("assetAudioPath", call.argument<String>("assetAudioPath"))
                 alarmIntent.putExtra("loopAudio", call.argument<Boolean>("loopAudio"))
                 alarmIntent.putExtra("vibrate", call.argument<Boolean>("vibrate"))
@@ -39,12 +40,20 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
                 alarmIntent.putExtra("notificationBody", call.argument<String>("notificationBody"))
 
                 val triggerAtMillis = System.currentTimeMillis() + delayInSeconds!! * 1000
-                val pendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, 0)
+                val pendingIntent = PendingIntent.getBroadcast(context, id!!, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT)
                 val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
                 Log.d("AlarmService", "triggerAtMillis: $triggerAtMillis")
                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent)
 
+                result.success(true)
+            }
+            "stopAlarm" -> {
+                val id = call.argument<Int>("id")
+                val stopIntent = Intent(context, AlarmService::class.java)
+                stopIntent.action = "STOP_ALARM"
+                stopIntent.putExtra("id", id)
+                context.startService(stopIntent)
                 result.success(true)
             }
             "setNotificationOnKillService" -> {

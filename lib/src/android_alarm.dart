@@ -46,7 +46,7 @@ class AndroidAlarm {
           'assetAudioPath': settings.assetAudioPath,
           'loopAudio': settings.loopAudio,
           'vibrate': settings.vibrate,
-          'volume': 1.0,
+          'volume': -1.0,
           // 'volume': settings.volumeMax ? 1.0 : -1.0,
           'fadeDuration': settings.fadeDuration,
           'notificationTitle': settings.notificationTitle,
@@ -269,24 +269,9 @@ class AndroidAlarm {
   /// Sends the message `stop` to the isolate so the audio player
   /// can stop playing and dispose.
   static Future<bool> stop(int id) async {
-    ringing = false;
-    vibrationsActive = false;
-
-    final send = IsolateNameServer.lookupPortByName(stopPort);
-
-    if (send != null) {
-      send.send('stop');
-      alarmPrint('Alarm with id $id stopped');
-    }
-
-    if (previousVolume != null) {
-      VolumeController().setVolume(previousVolume!, showSystemUI: true);
-      previousVolume = null;
-    }
-
-    if (!hasOtherAlarms) stopNotificationOnKillService();
-
-    return await AndroidAlarmManager.cancel(id);
+    final res = await platform.invokeMethod('stopAlarm', {'id': id});
+    alarmPrint('[DEV] stopAlarm method channel invoked, returned: $res');
+    return res;
   }
 
   static Future<void> stopNotificationOnKillService() async {
