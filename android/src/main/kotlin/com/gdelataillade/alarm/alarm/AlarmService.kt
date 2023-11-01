@@ -6,14 +6,22 @@ import android.content.Intent
 import android.media.MediaPlayer
 import android.media.AudioManager
 import android.media.AudioManager.FLAG_SHOW_UI
+import android.provider.Settings
 import android.os.*
 import androidx.core.app.NotificationCompat
 import io.flutter.Log
+import io.flutter.plugin.common.MethodChannel
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.embedding.engine.dart.DartExecutor
 import kotlin.math.round
+import java.util.Timer
+import java.util.TimerTask
 
 class AlarmService : Service() {
     private val mediaPlayers = mutableMapOf<Int, MediaPlayer>()
     private var vibrator: Vibrator? = null
+    private var previousVolume: Int? = null
+    private var showSystemUI: Boolean = true
     private val CHANNEL_ID = "AlarmServiceChannel"
 
     override fun onCreate() {
@@ -39,7 +47,7 @@ class AlarmService : Service() {
         val fadeDuration = intent?.getDoubleExtra("fadeDuration", 0.0)
         val notificationTitle = intent?.getStringExtra("notificationTitle")
         val notificationBody = intent?.getStringExtra("notificationBody")
-        val showSystemUI = true
+        showSystemUI = intent?.getBooleanExtra("showSystemUI", true) ?: true
 
         Log.d("AlarmService", "id: $id")
         Log.d("AlarmService", "assetAudioPath: $assetAudioPath")
@@ -50,7 +58,28 @@ class AlarmService : Service() {
         Log.d("AlarmService", "notificationTitle: $notificationTitle")
         Log.d("AlarmService", "notificationBody: $notificationBody")
 
+        // Create a new FlutterEngine instance.
+        val flutterEngine = FlutterEngine(this)
+
+        // Start executing Dart code to prepare for method channel communication.
+        flutterEngine.dartExecutor.executeDartEntrypoint(
+            DartExecutor.DartEntrypoint.createDefault()
+        )
+
+        val flutterChannel = MethodChannel(flutterEngine?.dartExecutor, "com.gdelataillade.alarm/alarm")
+        flutterChannel.invokeMethod("alarmRinging", mapOf("id" to id))
+
         if (notificationTitle != null && notificationBody != null) {
+            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val areNotificationsEnabled = manager.areNotificationsEnabled()
+
+            if (!areNotificationsEnabled) {
+                val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                    putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                }
+                startActivity(intent)
+            }
+
             val iconResId = applicationContext.resources.getIdentifier("ic_launcher", "mipmap", applicationContext.packageName)
             val intent = applicationContext.packageManager.getLaunchIntentForPackage(applicationContext.packageName)
             val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
@@ -60,7 +89,7 @@ class AlarmService : Service() {
                 .setContentText(notificationBody)
                 .setSmallIcon(iconResId)
                 .setContentIntent(pendingIntent)
-                .setAutoCancel(true)  // Automatically remove the notification when tapped
+                .setAutoCancel(true)
                 .build()
 
             startForeground(id!!, notification)
@@ -70,8 +99,8 @@ class AlarmService : Service() {
 
         if (volume != -1.0) {
             val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+            previousVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC) // Save the previous volume
             val _volume = (round(volume * maxVolume)).toInt()
-
             audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, _volume, if (showSystemUI) FLAG_SHOW_UI else 0)
         }
 
@@ -96,6 +125,9 @@ class AlarmService : Service() {
             // Store MediaPlayer instance in map
             mediaPlayers[id] = mediaPlayer
 
+            if (fadeDuration != null && fadeDuration > 0) {
+                startFadeIn(mediaPlayer, fadeDuration)
+            }
         } catch (e: Exception) {
             // Handle exceptions related to asset loading or MediaPlayer
             e.printStackTrace()
@@ -119,23 +151,37 @@ class AlarmService : Service() {
             .newWakeLock(PowerManager.FULL_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP, "app:AlarmWakelockTag")
         wakeLock.acquire(5 * 60 * 1000L /*5 minutes*/)
 
+        Log.d("AlarmService => SET ALARM", "Current mediaPlayers keys: ${mediaPlayers.keys}")
+
         return START_STICKY
     }
 
     fun stopAlarm(id: Int) {
-        mediaPlayers[id]?.stop()
-        mediaPlayers[id]?.release()
-        mediaPlayers.remove(id)
+        Log.d("AlarmService => STOP ALARM", "id: $id")
+        Log.d("AlarmService => STOP ALARM", "Current mediaPlayers keys: ${mediaPlayers.keys}")
+        Log.d("AlarmService => STOP ALARM", "previousVolume: $previousVolume")
+        previousVolume?.let { prevVolume ->
+            val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, prevVolume, if (showSystemUI) FLAG_SHOW_UI else 0)
+            previousVolume = null // Reset the previous volume
+        }
 
-        // Abandon audio focus
-        val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        audioManager.abandonAudioFocus(null)
+        if (mediaPlayers.containsKey(id)) {
+            Log.d("AlarmService => STOP ALARM", "Stopping MediaPlayer with id: $id")
+            mediaPlayers[id]?.stop()
+            mediaPlayers[id]?.release()
+            mediaPlayers.remove(id)
 
-        // Check if there are no more active alarms
-        if (mediaPlayers.isEmpty()) {
-            vibrator?.cancel()
-            stopForeground(true)
-            stopSelf()
+            // Abandon audio focus
+            val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            audioManager.abandonAudioFocus(null)
+
+            // Check if there are no more active alarms
+            if (mediaPlayers.isEmpty()) {
+                vibrator?.cancel()
+                stopForeground(true)
+                stopSelf()
+            }
         }
     }
 
@@ -152,13 +198,52 @@ class AlarmService : Service() {
         }
     }
 
+    private fun startFadeIn(mediaPlayer: MediaPlayer, duration: Double) {
+        val maxVolume = 1.0f // Use 1.0f for MediaPlayer's max volume
+        val fadeDuration = (duration * 1000).toLong() // Convert seconds to milliseconds
+        val fadeInterval = 100L // Interval for volume increment
+        val numberOfSteps = fadeDuration / fadeInterval // Number of volume increments
+        val deltaVolume = maxVolume / numberOfSteps // Volume increment per step
+
+        val timer = Timer(true) // Use a daemon thread
+        var volume = 0.0f
+
+        val timerTask = object : TimerTask() {
+            override fun run() {
+                mediaPlayer.setVolume(volume, volume) // Set volume for both channels
+                volume += deltaVolume
+
+                if (volume >= maxVolume) {
+                    mediaPlayer.setVolume(maxVolume, maxVolume) // Ensure max volume is set
+                    this.cancel() // Cancel the timer
+                }
+            }
+        }
+
+        timer.schedule(timerTask, 0, fadeInterval)
+    }
+
     override fun onDestroy() {
+        // Clean up MediaPlayer resources
         mediaPlayers.values.forEach {
             it.stop()
             it.release()
         }
         mediaPlayers.clear()
+
+        // Cancel any ongoing vibration
         vibrator?.cancel()
+
+        // Restore system volume if it was changed
+        val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        previousVolume?.let { prevVolume ->
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, prevVolume, if (showSystemUI) FLAG_SHOW_UI else 0)
+        }
+
+        // Stop the foreground service and remove the notification
+        stopForeground(true)
+
+        // Call the superclass method
         super.onDestroy()
     }
 

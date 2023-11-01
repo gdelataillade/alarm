@@ -14,7 +14,7 @@ android {
 ```
 
 ## Step 2
-Then, add the following to your `AndroidManifest.xml` within the `<manifest></manifest>` tags:
+Then, add the following permissions to your `AndroidManifest.xml` within the `<manifest></manifest>` tags:
 
 ```xml
 <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>

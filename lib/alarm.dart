@@ -53,9 +53,8 @@ class Alarm {
       final now = DateTime.now();
       if (alarm.dateTime.isAfter(now)) {
         await set(alarmSettings: alarm);
-      } else {
-        await AlarmStorage.unsaveAlarm(alarm.id);
       }
+      // TODO: Fix this
     }
   }
 
@@ -151,7 +150,7 @@ class Alarm {
 
   /// Whether the alarm is ringing.
   static Future<bool> isRinging(int id) async =>
-      iOS ? await IOSAlarm.checkIfRinging(id) : AndroidAlarm.isRinging;
+      iOS ? await IOSAlarm.checkIfRinging(id) : false; // TODO: Android !
 
   /// Whether an alarm is set.
   static bool hasAlarm() => AlarmStorage.hasAlarm();

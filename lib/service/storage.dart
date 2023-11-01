@@ -50,6 +50,8 @@ class AlarmStorage {
       }
     }
 
+    print("Saved alarms: ${alarms.length}");
+
     return alarms;
   }
 

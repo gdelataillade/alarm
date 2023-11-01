@@ -18,7 +18,7 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         context = flutterPluginBinding.applicationContext
-        channel = MethodChannel(flutterPluginBinding.binaryMessenger, "com.gdelataillade.alarm/notifOnAppKill")
+        channel = MethodChannel(flutterPluginBinding.binaryMessenger, "com.gdelataillade.alarm/alarm")
         channel.setMethodCallHandler(this)
     }
 
@@ -50,10 +50,21 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
             }
             "stopAlarm" -> {
                 val id = call.argument<Int>("id")
+
+                // Intent to stop the alarm if it's currently ringing
                 val stopIntent = Intent(context, AlarmService::class.java)
                 stopIntent.action = "STOP_ALARM"
                 stopIntent.putExtra("id", id)
                 context.startService(stopIntent)
+
+                // Intent to cancel the future alarm if it's set
+                val alarmIntent = Intent(context, AlarmReceiver::class.java)
+                val pendingIntent = PendingIntent.getBroadcast(context, id!!, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+
+                // Cancel the future alarm using AlarmManager
+                val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                alarmManager.cancel(pendingIntent)
+
                 result.success(true)
             }
             "setNotificationOnKillService" -> {

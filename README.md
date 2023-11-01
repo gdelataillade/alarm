@@ -101,9 +101,11 @@ Don't hesitate to check out the example's code, and take a look at the app:
 | Do not disturb           |  ✅   | ✅       | ✅          | Silenced
 | Sleep mode               |  ✅   | ✅       | ✅          | Silenced
 | While playing other media|  ✅   | ✅       | ✅          | ✅
-| App killed               |  ❌   | ❌       | ❌          | ✅
+| App killed               |  🤖   | 🤖       | 🤖          | ✅
 
-*Silenced: Means that the notification is not shown directly on the top of the screen. You have to go in your notification center to see it.*
+✅ : iOS and Android
+🤖 : Android only.
+Silenced: Means that the notification is not shown directly on the top of the screen. You have to go in your notification center to see it.
 
 ## ❓ FAQ
 
@@ -125,12 +127,12 @@ The more time the app spends in the background, the higher the chance the OS mig
 
 - **Regular App Usage**: Encourage users to open the app at least once a day.
 - **Leverage Background Modes**: Engage in activities like weather API calls that keep the app active in the background.
-- **User Settings**: Educate users to refrain from using 'Do Not Disturb' (DnD) and 'Low Power Mode' when they're expecting the alarm to ring.
+- **User Settings**: Educate users to refrain from using 'Do Not Disturb' and 'Low Power Mode' when they're expecting the alarm to ring.
 
 ## ⚙️ Under the hood
 
 ### Android
-Uses `oneShotAt` from the `android_alarm_manager_plus` plugin with a two-way communication isolated callback to start/stop the alarm.
+Leverages a foreground service with AlarmManager scheduling to ensure alarm reliability, even if the app is terminated. Utilizes AudioManager for robust alarm sound management.
 
 ### iOS
 Keeps the app awake using a silent `AVAudioPlayer` until alarm rings. When in the background, it also uses `Background App Refresh` to periodically ensure the app is still active.
