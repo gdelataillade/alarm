@@ -1,3 +1,6 @@
+## 2.1.1
+* Fix AlarmSettings.fromJson method with missing [androidFullScreenIntent].
+
 ## 2.1.0
 **Android installation steps were updated.**
 * [Android] Add parameter [androidFullScreenIntent] that turns screen on when alarm notification is triggered.

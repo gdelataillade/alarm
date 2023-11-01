@@ -103,7 +103,8 @@ class AlarmSettings {
         notificationBody: json['notificationBody'] as String?,
         enableNotificationOnKill: json['enableNotificationOnKill'] as bool,
         stopOnNotificationOpen: json['stopOnNotificationOpen'] as bool,
-        androidFullScreenIntent: json['androidFullScreenIntent'] as bool,
+        androidFullScreenIntent:
+            json['androidFullScreenIntent'] as bool? ?? false,
       );
 
   /// Creates a copy of `AlarmSettings` but with the given fields replaced with
