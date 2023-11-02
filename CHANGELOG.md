@@ -1,3 +1,6 @@
+## 2.2.0
+* [Android] Move alarm service to native code.
+
 ## 2.1.1
 * Fix AlarmSettings.fromJson method with missing [androidFullScreenIntent].
 

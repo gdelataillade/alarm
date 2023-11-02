@@ -25,7 +25,7 @@ Then, add the following permissions to your `AndroidManifest.xml` within the `<m
 ```
 
 ## Step 3
-Finally, if you want your notifications to show in full screen even when the device is locked, add these attributes in `<activity>`:
+Finally, if you want your notifications to show in full screen even when the device is locked (`androidFullScreenIntent` parameter), add these attributes in `<activity>`:
 
 ```xml
 <activity
