@@ -29,6 +29,12 @@ class AlarmService : Service() {
         createNotificationChannel()
     }
 
+    companion object {
+        @JvmStatic
+        var isRinging: Boolean = false
+            private set
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d("AlarmService", "onStartCommand")
 
@@ -57,6 +63,8 @@ class AlarmService : Service() {
         Log.d("AlarmService", "fadeDuration: $fadeDuration")
         Log.d("AlarmService", "notificationTitle: $notificationTitle")
         Log.d("AlarmService", "notificationBody: $notificationBody")
+
+        isRinging = true
 
         // Create a new FlutterEngine instance.
         val flutterEngine = FlutterEngine(this)
@@ -160,6 +168,9 @@ class AlarmService : Service() {
         Log.d("AlarmService => STOP ALARM", "id: $id")
         Log.d("AlarmService => STOP ALARM", "Current mediaPlayers keys: ${mediaPlayers.keys}")
         Log.d("AlarmService => STOP ALARM", "previousVolume: $previousVolume")
+
+        isRinging = false
+
         previousVolume?.let { prevVolume ->
             val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
             audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, prevVolume, if (showSystemUI) FLAG_SHOW_UI else 0)
@@ -224,6 +235,8 @@ class AlarmService : Service() {
     }
 
     override fun onDestroy() {
+        isRinging = false
+
         // Clean up MediaPlayer resources
         mediaPlayers.values.forEach {
             it.stop()

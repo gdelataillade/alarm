@@ -67,6 +67,10 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
 
                 result.success(true)
             }
+            "isRinging" -> {
+                val isRinging = AlarmService.isRinging
+                result.success(isRinging)
+            }
             "setNotificationOnKillService" -> {
                 val title = call.argument<String>("title")
                 val description = call.argument<String>("description")

@@ -91,6 +91,12 @@ class AndroidAlarm {
     return res;
   }
 
+  static Future<bool> isRinging(int id) async {
+    final res = await platform.invokeMethod('isRinging', {'id': id});
+    alarmPrint('[DEV] isRinging method channel invoked, returned: $res');
+    return res;
+  }
+
   static Future<void> stopNotificationOnKillService() async {
     try {
       await platform.invokeMethod('stopNotificationOnKillService');
