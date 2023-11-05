@@ -102,7 +102,7 @@ class AlarmSettings {
         assetAudioPath: json['assetAudioPath'] as String,
         loopAudio: json['loopAudio'] as bool,
         vibrate: json['vibrate'] != null ? json['vibrate'] as bool : true,
-        volume: json['volume'] as double,
+        volume: json['volume'] as double?,
         fadeDuration: json['fadeDuration'] as double,
         notificationTitle: json['notificationTitle'] as String?,
         notificationBody: json['notificationBody'] as String?,

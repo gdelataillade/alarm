@@ -210,7 +210,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
     }
 
-    private func handleAlarmAfterDelay(id: Int, triggerTime: Date, fadeDuration: Double, vibrationsEnabled: Bool, audioLoop: Bool, volume: Float) {
+    private func handleAlarmAfterDelay(id: Int, triggerTime: Date, fadeDuration: Double, vibrationsEnabled: Bool, audioLoop: Bool, volume: Float?) {
         guard let audioPlayer = self.audioPlayers[id], let storedTriggerTime = triggerTimes[id], triggerTime == storedTriggerTime else {
             return
         }
@@ -231,12 +231,11 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             }
         }
 
+        if let volumeValue = volume {
+            self.setVolume(volume: volumeValue, enable: true)
+        }
         if fadeDuration > 0.0 {
-            if volume != nil {
-                self.setVolume(volume: volume, enable: true)
-            }
-        } else if volume {
-            self.setVolume(volume: volume, enable: true)
+            audioPlayer.setVolume(1.0, fadeDuration: fadeDuration)
         }
     }
 
