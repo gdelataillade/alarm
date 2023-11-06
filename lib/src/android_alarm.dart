@@ -51,7 +51,8 @@ class AndroidAlarm {
         alarmPrint('$message');
         if (message == 'ring') {
           ringing = true;
-          if (settings.volume != null) setSystemVolume(settings.volume!);
+          if (settings.systemVolume != null)
+            setSystemVolume(settings.systemVolume!);
           onRing?.call();
         } else {
           if (settings.vibrate &&
@@ -235,10 +236,10 @@ class AndroidAlarm {
     }
   }
 
-  /// Sets the device volume to [volume].
-  static Future<void> setSystemVolume(double volume) async {
+  /// Sets the device systemVolume to [systemVolume].
+  static Future<void> setSystemVolume(double systemVolume) async {
     previousVolume = await VolumeController().getVolume();
-    VolumeController().setVolume(volume, showSystemUI: true);
+    VolumeController().setVolume(systemVolume, showSystemUI: true);
   }
 
   /// Sends the message `stop` to the isolate so the audio player

@@ -18,11 +18,11 @@ class _ExampleAlarmHomeShortcutButtonState
 
   Future<void> onPressButton(int delayInHours) async {
     DateTime dateTime = DateTime.now().add(Duration(hours: delayInHours));
-    double? volume;
+    double? systemVolume;
 
     if (delayInHours != 0) {
       dateTime = dateTime.copyWith(second: 0, millisecond: 0);
-      volume = 0.5;
+      systemVolume = 0.5;
     }
 
     setState(() => showMenu = false);
@@ -33,7 +33,7 @@ class _ExampleAlarmHomeShortcutButtonState
       id: DateTime.now().millisecondsSinceEpoch % 10000,
       dateTime: dateTime,
       assetAudioPath: 'assets/marimba.mp3',
-      volume: volume,
+      systemVolume: systemVolume,
     );
 
     await Alarm.set(alarmSettings: alarmSettings);

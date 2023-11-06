@@ -38,7 +38,8 @@ final alarmSettings = AlarmSettings(
   assetAudioPath: 'assets/alarm.mp3',
   loopAudio: true,
   vibrate: true,
-  volume: 0.8,
+  systemVolume: 0.8,
+  audioVolume: 1.0,
   fadeDuration: 3.0,
   notificationTitle: 'This is the title',
   notificationBody: 'This is the body',
@@ -58,9 +59,11 @@ alarmDateTime |   `DateTime`     | The date and time you want your alarm to ring
 assetAudio |   `String`     | The path to you audio asset you want to use as ringtone. Can be a path in your assets folder or a downloaded local file path.
 loopAudio |   `bool`     | If true, audio will repeat indefinitely until alarm is stopped.
 vibrate |   `bool`     | If true, device will vibrate indefinitely until alarm is stopped. If [loopAudio] is set to false, vibrations will stop when audio ends.
-volume |   `double`     | Sets system volume level (0 to 1) at [dateTime]; reverts on alarm stop. Defaults to current volume if null.
+systemVolume |   `double`     | Sets system volume level (0 to 1) at [dateTime]; reverts on alarm stop. Defaults to current systemVolume if null.
 when alarm is stopped.
-fadeDuration |   `double`     | Duration, in seconds, over which to fade the alarm volume. Set to 0 by default, which means no fade.
+audioVolume |   `double`     | Sets audio volume level (0 to 1) at [dateTime]; Defaults to 1.0
+when alarm is stopped.
+fadeDuration |   `double`     | Duration, in seconds, over which to fade the alarm systemVolume. Set to 0 by default, which means no fade.
 notificationTitle |   `String`     | The title of the notification triggered when alarm rings if app is on background.
 notificationBody | `String` | The body of the notification.
 enableNotificationOnKill |   `bool`     | Whether to show a notification when application is killed to warn the user that the alarm he set may not ring. Enabled by default.
