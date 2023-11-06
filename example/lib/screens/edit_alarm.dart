@@ -248,6 +248,34 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
               ),
             ],
           ),
+          Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Audio volume',
+                style: Theme.of(context).textTheme.titleMedium,
+              )),
+          SizedBox(
+              height: 30,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Icon(
+                    audioVolume > 0.7
+                        ? Icons.volume_up_rounded
+                        : audioVolume > 0.1
+                            ? Icons.volume_down_rounded
+                            : Icons.volume_mute_rounded,
+                  ),
+                  Expanded(
+                    child: Slider(
+                      value: audioVolume,
+                      onChanged: (value) {
+                        setState(() => audioVolume = value);
+                      },
+                    ),
+                  ),
+                ],
+              )),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
