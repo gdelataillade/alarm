@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:isolate';
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:alarm/alarm.dart';
@@ -51,8 +52,9 @@ class AndroidAlarm {
         alarmPrint('$message');
         if (message == 'ring') {
           ringing = true;
-          if (settings.systemVolume != null)
+          if (settings.systemVolume != null) {
             setSystemVolume(settings.systemVolume!);
+          }
           onRing?.call();
         } else {
           if (settings.vibrate &&
@@ -76,6 +78,7 @@ class AndroidAlarm {
         "assetAudioPath": settings.assetAudioPath,
         "loopAudio": settings.loopAudio,
         "fadeDuration": settings.fadeDuration,
+        "audioVolume": settings.audioVolume,
       });
       return true;
     }
@@ -93,6 +96,7 @@ class AndroidAlarm {
         'assetAudioPath': settings.assetAudioPath,
         'loopAudio': settings.loopAudio,
         'fadeDuration': settings.fadeDuration,
+        'audioVolume': settings.audioVolume,
       },
     );
 
@@ -154,6 +158,7 @@ class AndroidAlarm {
       send.send('Alarm data received in isolate: $data');
 
       final fadeDuration = data['fadeDuration'];
+      final audioVolume = min(data['audioVolume'] as double, 1.0);
 
       send.send('Alarm fadeDuration: $fadeDuration seconds');
 
@@ -169,11 +174,13 @@ class AndroidAlarm {
           Duration(milliseconds: fadeDuration * 1000 ~/ 10),
           (timer) {
             counter++;
-            audioPlayer.setVolume(counter / 10);
-            if (counter >= 10) timer.cancel();
+            final newVolume = min(audioVolume, counter / 10);
+            audioPlayer.setVolume(newVolume);
+            if (newVolume >= audioVolume || counter >= 10) timer.cancel();
           },
         );
       } else {
+        audioPlayer.setVolume(audioVolume);
         audioPlayer.play();
         send.send('Alarm with id $id starts playing.');
       }

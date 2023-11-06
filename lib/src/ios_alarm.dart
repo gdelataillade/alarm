@@ -35,6 +35,7 @@ class IOSAlarm {
                   settings.fadeDuration >= 0 ? settings.fadeDuration : 0,
               'vibrate': settings.vibrate,
               'systemVolume': settings.systemVolume,
+              'audioVolume': settings.audioVolume,
               'notifOnKillEnabled': settings.enableNotificationOnKill,
               'notifTitleOnAppKill':
                   AlarmStorage.getNotificationOnAppKillTitle(),

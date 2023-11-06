@@ -19,6 +19,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
   late bool loopAudio;
   late bool vibrate;
   late double? systemVolume;
+  late double audioVolume;
   late bool showNotification;
   late String assetAudio;
 
@@ -33,6 +34,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       loopAudio = true;
       vibrate = true;
       systemVolume = null;
+      audioVolume = 1.0;
       showNotification = true;
       assetAudio = 'assets/marimba.mp3';
     } else {
@@ -40,6 +42,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       loopAudio = widget.alarmSettings!.loopAudio;
       vibrate = widget.alarmSettings!.vibrate;
       systemVolume = widget.alarmSettings!.systemVolume;
+      audioVolume = widget.alarmSettings!.audioVolume;
       showNotification = widget.alarmSettings!.notificationTitle != null &&
           widget.alarmSettings!.notificationTitle!.isNotEmpty &&
           widget.alarmSettings!.notificationBody != null &&
@@ -94,6 +97,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       loopAudio: loopAudio,
       vibrate: vibrate,
       systemVolume: systemVolume,
+      audioVolume: audioVolume,
       notificationTitle: showNotification ? 'Alarm example' : null,
       notificationBody: showNotification ? 'Your alarm ($id) is ringing' : null,
       assetAudioPath: assetAudio,
