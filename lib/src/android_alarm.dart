@@ -158,7 +158,7 @@ class AndroidAlarm {
       send.send('Alarm data received in isolate: $data');
 
       final fadeDuration = data['fadeDuration'];
-      final audioVolume = min(data['audioVolume'] as double, 1.0);
+      final audioVolume = min((data['audioVolume'] * 1.0) as double, 1.0);
 
       send.send('Alarm fadeDuration: $fadeDuration seconds');
 
