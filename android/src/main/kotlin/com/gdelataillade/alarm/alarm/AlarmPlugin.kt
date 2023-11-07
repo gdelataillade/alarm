@@ -1,5 +1,6 @@
 package com.gdelataillade.alarm.alarm
 
+import android.os.Build
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
@@ -43,7 +44,6 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
                 val pendingIntent = PendingIntent.getBroadcast(context, id!!, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT)
                 val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-                Log.d("AlarmService", "triggerAtMillis: $triggerAtMillis")
                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent)
 
                 result.success(true)

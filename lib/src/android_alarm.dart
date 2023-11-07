@@ -51,7 +51,7 @@ class AndroidAlarm {
           'delayInSeconds': delay.inSeconds,
           'assetAudioPath': settings.assetAudioPath,
           'loopAudio': settings.loopAudio,
-          'vibrate': settings.vibrate,
+          'vibrate': false, // settings.vibrate,
           'volume': -1.0,
           // 'volume': settings.volumeMax ? 1.0 : -1.0,
           'fadeDuration': settings.fadeDuration,

@@ -90,17 +90,19 @@ class AlarmService : Service() {
 
             val iconResId = applicationContext.resources.getIdentifier("ic_launcher", "mipmap", applicationContext.packageName)
             val intent = applicationContext.packageManager.getLaunchIntentForPackage(applicationContext.packageName)
-            val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+            val pendingIntent = PendingIntent.getActivity(this, id!!, intent, PendingIntent.FLAG_UPDATE_CURRENT)
 
-            val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+            val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
+                .setSmallIcon(iconResId)
                 .setContentTitle(notificationTitle)
                 .setContentText(notificationBody)
-                .setSmallIcon(iconResId)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
-                .build()
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
 
-            startForeground(id!!, notification)
+            startForeground(id!!, notificationBuilder.build())
         }
 
         val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -201,7 +203,7 @@ class AlarmService : Service() {
             val serviceChannel = NotificationChannel(
                 CHANNEL_ID,
                 "Alarm Service Channel",
-                NotificationManager.IMPORTANCE_DEFAULT
+                NotificationManager.IMPORTANCE_MAX
             )
 
             val manager = getSystemService(NotificationManager::class.java)
