@@ -8,9 +8,7 @@ import android.media.AudioManager
 import android.media.AudioManager.FLAG_SHOW_UI
 import android.provider.Settings
 import android.os.*
-import androidx.core.app.NotificationCompat
 import io.flutter.Log
-import io.flutter.plugin.common.MethodChannel
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.dart.DartExecutor
 import kotlin.math.round
@@ -22,11 +20,9 @@ class AlarmService : Service() {
     private var vibrator: Vibrator? = null
     private var previousVolume: Int? = null
     private var showSystemUI: Boolean = true
-    private val CHANNEL_ID = "AlarmServiceChannel"
 
     override fun onCreate() {
         super.onCreate()
-        createNotificationChannel()
     }
 
     companion object {
@@ -51,8 +47,6 @@ class AlarmService : Service() {
         val vibrate = intent?.getBooleanExtra("vibrate", true)
         val volume = intent?.getDoubleExtra("volume", -1.0) ?: -1.0
         val fadeDuration = intent?.getDoubleExtra("fadeDuration", 0.0)
-        val notificationTitle = intent?.getStringExtra("notificationTitle")
-        val notificationBody = intent?.getStringExtra("notificationBody")
         showSystemUI = intent?.getBooleanExtra("showSystemUI", true) ?: true
 
         Log.d("AlarmService", "id: $id")
@@ -61,49 +55,8 @@ class AlarmService : Service() {
         Log.d("AlarmService", "vibrate: $vibrate")
         Log.d("AlarmService", "volume: $volume")
         Log.d("AlarmService", "fadeDuration: $fadeDuration")
-        Log.d("AlarmService", "notificationTitle: $notificationTitle")
-        Log.d("AlarmService", "notificationBody: $notificationBody")
 
         isRinging = true
-
-        // Create a new FlutterEngine instance.
-        val flutterEngine = FlutterEngine(this)
-
-        // Start executing Dart code to prepare for method channel communication.
-        flutterEngine.dartExecutor.executeDartEntrypoint(
-            DartExecutor.DartEntrypoint.createDefault()
-        )
-
-        val flutterChannel = MethodChannel(flutterEngine?.dartExecutor, "com.gdelataillade.alarm/alarm")
-        flutterChannel.invokeMethod("alarmRinging", mapOf("id" to id))
-
-        if (notificationTitle != null && notificationBody != null) {
-            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            val areNotificationsEnabled = manager.areNotificationsEnabled()
-
-            if (!areNotificationsEnabled) {
-                val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
-                    putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
-                }
-                startActivity(intent)
-            }
-
-            val iconResId = applicationContext.resources.getIdentifier("ic_launcher", "mipmap", applicationContext.packageName)
-            val intent = applicationContext.packageManager.getLaunchIntentForPackage(applicationContext.packageName)
-            val pendingIntent = PendingIntent.getActivity(this, id!!, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-
-            val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(iconResId)
-                .setContentTitle(notificationTitle)
-                .setContentText(notificationBody)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setCategory(NotificationCompat.CATEGORY_ALARM)
-                .setContentIntent(pendingIntent)
-                .setAutoCancel(true)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-
-            startForeground(id!!, notificationBuilder.build())
-        }
 
         val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
@@ -195,19 +148,6 @@ class AlarmService : Service() {
                 stopForeground(true)
                 stopSelf()
             }
-        }
-    }
-
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val serviceChannel = NotificationChannel(
-                CHANNEL_ID,
-                "Alarm Service Channel",
-                NotificationManager.IMPORTANCE_MAX
-            )
-
-            val manager = getSystemService(NotificationManager::class.java)
-            manager.createNotificationChannel(serviceChannel)
         }
     }
 

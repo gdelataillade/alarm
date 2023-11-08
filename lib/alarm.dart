@@ -54,7 +54,6 @@ class Alarm {
       if (alarm.dateTime.isAfter(now)) {
         await set(alarmSettings: alarm);
       }
-      // TODO: test else here
     }
   }
 
@@ -83,19 +82,19 @@ class Alarm {
 
     await AlarmStorage.saveAlarm(alarmSettings);
 
-    // if (alarmSettings.notificationTitle != null &&
-    //     alarmSettings.notificationBody != null) {
-    //   if (alarmSettings.notificationTitle!.isNotEmpty &&
-    //       alarmSettings.notificationBody!.isNotEmpty) {
-    //     await AlarmNotification.instance.scheduleAlarmNotif(
-    //       id: alarmSettings.id,
-    //       dateTime: alarmSettings.dateTime,
-    //       title: alarmSettings.notificationTitle!,
-    //       body: alarmSettings.notificationBody!,
-    //       fullScreenIntent: alarmSettings.androidFullScreenIntent,
-    //     );
-    //   }
-    // }
+    if (alarmSettings.notificationTitle != null &&
+        alarmSettings.notificationBody != null) {
+      if (alarmSettings.notificationTitle!.isNotEmpty &&
+          alarmSettings.notificationBody!.isNotEmpty) {
+        await AlarmNotification.instance.scheduleAlarmNotif(
+          id: alarmSettings.id,
+          dateTime: alarmSettings.dateTime,
+          title: alarmSettings.notificationTitle!,
+          body: alarmSettings.notificationBody!,
+          fullScreenIntent: alarmSettings.androidFullScreenIntent,
+        );
+      }
+    }
 
     if (alarmSettings.enableNotificationOnKill) {
       await AlarmNotification.instance.requestPermission();

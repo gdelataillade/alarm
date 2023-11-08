@@ -37,14 +37,12 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
                 alarmIntent.putExtra("vibrate", call.argument<Boolean>("vibrate"))
                 alarmIntent.putExtra("volume", call.argument<Boolean>("volume"))
                 alarmIntent.putExtra("fadeDuration", call.argument<Double>("fadeDuration"))
-                alarmIntent.putExtra("notificationTitle", call.argument<String>("notificationTitle"))
-                alarmIntent.putExtra("notificationBody", call.argument<String>("notificationBody"))
 
-                val triggerAtMillis = System.currentTimeMillis() + delayInSeconds!! * 1000
+                val triggerTime = System.currentTimeMillis() + delayInSeconds!! * 1000 // in milliseconds
                 val pendingIntent = PendingIntent.getBroadcast(context, id!!, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT)
                 val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent)
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
 
                 result.success(true)
             }

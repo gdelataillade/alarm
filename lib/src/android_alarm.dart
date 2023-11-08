@@ -55,8 +55,6 @@ class AndroidAlarm {
           'volume': -1.0,
           // 'volume': settings.volumeMax ? 1.0 : -1.0,
           'fadeDuration': settings.fadeDuration,
-          'notificationTitle': settings.notificationTitle,
-          'notificationBody': settings.notificationBody,
         },
       );
       alarmPrint('[DEV] setAlarm method channel invoked, returned: $res');
