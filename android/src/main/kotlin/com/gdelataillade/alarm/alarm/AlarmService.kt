@@ -10,12 +10,15 @@ import android.content.Context
 import android.os.IBinder
 import android.os.PowerManager
 import io.flutter.Log
+import io.flutter.plugin.common.MethodChannel
+import io.flutter.embedding.engine.dart.DartExecutor
+import io.flutter.embedding.engine.FlutterEngine
 
 class AlarmService : Service() {
+    private var channel: MethodChannel? = null
     private var audioService: AudioService? = null
     private var vibrationService: VibrationService? = null
     private var volumeService: VolumeService? = null
-
     private var showSystemUI: Boolean = true
 
     companion object {
@@ -25,6 +28,11 @@ class AlarmService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+
+        val messenger = AlarmPlugin.binaryMessenger
+        if (messenger != null) {
+            channel = MethodChannel(messenger, "com.gdelataillade.alarm/alarm")
+        }
 
         audioService = AudioService(this)
         vibrationService = VibrationService(this)
@@ -49,12 +57,14 @@ class AlarmService : Service() {
         val fadeDuration = intent?.getDoubleExtra("fadeDuration", 0.0)
         showSystemUI = intent?.getBooleanExtra("showSystemUI", true) ?: true
 
-        Log.d("AlarmService", "id: $id")
-        Log.d("AlarmService", "assetAudioPath: $assetAudioPath")
-        Log.d("AlarmService", "loopAudio: $loopAudio")
-        Log.d("AlarmService", "vibrate: $vibrate")
-        Log.d("AlarmService", "volume: $volume")
-        Log.d("AlarmService", "fadeDuration: $fadeDuration")
+        // Log.d("AlarmService", "id: $id")
+        // Log.d("AlarmService", "assetAudioPath: $assetAudioPath")
+        // Log.d("AlarmService", "loopAudio: $loopAudio")
+        // Log.d("AlarmService", "vibrate: $vibrate")
+        // Log.d("AlarmService", "volume: $volume")
+        // Log.d("AlarmService", "fadeDuration: $fadeDuration")
+
+        channel?.invokeMethod("alarmRinging", mapOf("id" to id))
 
         if (volume != -1.0) {
             volumeService?.setVolume(volume, showSystemUI)

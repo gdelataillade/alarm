@@ -84,6 +84,18 @@ class AlarmNotification {
     return false;
   }
 
+  Future<bool> requestExactAlarmsPermission() async {
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      final res = await localNotif
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.requestExactAlarmsPermission();
+
+      return res ?? false;
+    }
+    return true;
+  }
+
   tz.TZDateTime nextInstanceOfTime(DateTime dateTime) {
     final now = DateTime.now();
 
@@ -127,10 +139,14 @@ class AlarmNotification {
 
     final zdt = nextInstanceOfTime(dateTime);
 
-    final hasPermission = await requestNotificationPermission();
-    if (!hasPermission) {
+    final hasNotificationPermission = await requestNotificationPermission();
+    if (!hasNotificationPermission) {
       alarmPrint('Notification permission not granted');
-      return;
+    }
+
+    final hasExactAlarmPermission = await requestExactAlarmsPermission();
+    if (!hasExactAlarmPermission) {
+      alarmPrint('Exact alarm permission not granted');
     }
 
     try {

@@ -13,16 +13,23 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
+import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.Log
 
 class AlarmPlugin: FlutterPlugin, MethodCallHandler {
     private lateinit var context: Context
     private lateinit var channel : MethodChannel
 
+    companion object {
+        @JvmStatic
+        var binaryMessenger: BinaryMessenger? = null
+    }
+
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         context = flutterPluginBinding.applicationContext
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "com.gdelataillade.alarm/alarm")
         channel.setMethodCallHandler(this)
+        binaryMessenger = flutterPluginBinding.binaryMessenger
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
@@ -68,7 +75,9 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
                 result.success(true)
             }
             "isRinging" -> {
-                val isRinging = AlarmService.isRinging
+                val id = call.argument<Int>("id")
+                val ringingAlarmIds = AlarmService.ringingAlarmIds
+                val isRinging = ringingAlarmIds.contains(id)
                 result.success(isRinging)
             }
             "setNotificationOnKillService" -> {

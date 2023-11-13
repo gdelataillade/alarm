@@ -17,22 +17,13 @@ class AndroidAlarm {
 
   static Future<dynamic> handleMethodCall(MethodCall call) async {
     try {
-      switch (call.method) {
-        case 'alarmRinging':
-          int id = call.arguments['id'];
-          print('Alarm with ID $id is ringing!');
-          // WidgetsBinding.instance.addPostFrameCallback((_) async {
-          //   final settings = Alarm.getAlarm(id);
-          //   print('Alarm settings: $settings');
-          //   if (settings != null) Alarm.ringStream.add(settings);
-          // });
-          break;
-        default:
-          print('Unrecognized method: ${call.method}');
-          break;
+      if (call.method == 'alarmRinging') {
+        int id = call.arguments['id'];
+        final settings = Alarm.getAlarm(id);
+        if (settings != null) Alarm.ringStream.add(settings);
       }
     } catch (e) {
-      print('Error: $e');
+      alarmPrint('[DEV] Handle method call "${call.method}" error: $e');
     }
   }
 

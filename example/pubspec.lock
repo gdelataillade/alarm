@@ -7,15 +7,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "2.1.1"
-  android_alarm_manager_plus:
-    dependency: transitive
-    description:
-      name: android_alarm_manager_plus
-      sha256: c20d91a9096596f66274bf8172321c278f9cba8091638f80205fe66d31587fa5
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.2"
+    version: "2.2.0"
   args:
     dependency: transitive
     description:
@@ -129,10 +121,10 @@ packages:
     dependency: transitive
     description:
       name: flutter_local_notifications
-      sha256: "501ed9d54f1c8c0535b7991bade36f9e7e3b45a2346401f03775c1ec7a3c06ae"
+      sha256: "6d11ea777496061e583623aaf31923f93a9409ef8fcaeeefdd6cd78bf4fe5bb3"
       url: "https://pub.dev"
     source: hosted
-    version: "15.1.2"
+    version: "16.1.0"
   flutter_local_notifications_linux:
     dependency: transitive
     description:
