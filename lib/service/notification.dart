@@ -156,7 +156,7 @@ class AlarmNotification {
         body,
         tz.TZDateTime.from(zdt.toUtc(), tz.UTC),
         platformChannelSpecifics,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: AndroidScheduleMode.alarmClock,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
       );

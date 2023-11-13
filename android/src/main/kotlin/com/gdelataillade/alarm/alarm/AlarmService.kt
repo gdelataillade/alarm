@@ -57,12 +57,12 @@ class AlarmService : Service() {
         val fadeDuration = intent?.getDoubleExtra("fadeDuration", 0.0)
         showSystemUI = intent?.getBooleanExtra("showSystemUI", true) ?: true
 
-        // Log.d("AlarmService", "id: $id")
-        // Log.d("AlarmService", "assetAudioPath: $assetAudioPath")
-        // Log.d("AlarmService", "loopAudio: $loopAudio")
-        // Log.d("AlarmService", "vibrate: $vibrate")
-        // Log.d("AlarmService", "volume: $volume")
-        // Log.d("AlarmService", "fadeDuration: $fadeDuration")
+        Log.d("AlarmService", "id: $id")
+        Log.d("AlarmService", "assetAudioPath: $assetAudioPath")
+        Log.d("AlarmService", "loopAudio: $loopAudio")
+        Log.d("AlarmService", "vibrate: $vibrate")
+        Log.d("AlarmService", "volume: $volume")
+        Log.d("AlarmService", "fadeDuration: $fadeDuration")
 
         channel?.invokeMethod("alarmRinging", mapOf("id" to id))
 

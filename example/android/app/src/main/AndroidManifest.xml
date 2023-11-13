@@ -21,6 +21,7 @@
                 <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
             </intent-filter>
         </receiver>
+        <service android:name="com.gdelataillade.alarm.services.NotificationOnKillService" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

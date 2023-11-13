@@ -89,11 +89,7 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
                 serviceIntent.putExtra("title", title)
                 serviceIntent.putExtra("description", description)
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    context.startForegroundService(serviceIntent)
-                } else {
-                    context.startService(serviceIntent)
-                }
+                context.startService(serviceIntent)
 
                 result.success(true)
             }

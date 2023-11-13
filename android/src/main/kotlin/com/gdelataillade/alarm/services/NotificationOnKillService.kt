@@ -17,11 +17,13 @@ import io.flutter.Log
 class NotificationOnKillService: Service() {
     private lateinit var title: String
     private lateinit var description: String
+    private val NOTIFICATION_ID = 88888
+    private val CHANNEL_ID = "com.gdelataillade.alarm.alarm_channel"
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d("NotificationOnKillService", "HEEEEEEEY")
 
-        title = intent?.getStringExtra("title") ?: "Your alarms may not ring"
+        title = intent?.getStringExtra("title") ?: "Your alarms could not ring"
         description = intent?.getStringExtra("description") ?: "You killed the app. Please reopen so your alarms can be rescheduled."
 
         return START_STICKY
@@ -29,13 +31,11 @@ class NotificationOnKillService: Service() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onTaskRemoved(rootIntent: Intent?) {
-        Log.d("NotificationOnKillService", "HELLOOOOO")
-
         try {
             val notificationIntent = packageManager.getLaunchIntentForPackage(packageName)
             val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE)
 
-            val notificationBuilder = NotificationCompat.Builder(this, "com.gdelataillade.alarm.alarm")
+            val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(android.R.drawable.ic_notification_overlay)
                 .setContentTitle(title)
                 .setContentText(description)
@@ -45,19 +45,17 @@ class NotificationOnKillService: Service() {
                 .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
 
             val name = "Alarm notification service on application kill"
-            val descriptionText = "If an alarm was set and the app is killed, a notification will show to warn the user the alarm will not ring as long as the app is killed"
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
-            val channel = NotificationChannel("com.gdelataillade.alarm.alarm", name, importance).apply {
+            val descriptionText = "If an alarm was set and the app is killed, a notification will show to warn the user the alarm could not ring as long as the app is killed"
+            val importance = NotificationManager.IMPORTANCE_HIGH
+            val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
                 description = descriptionText
             }
-
-            Log.d("NotificationOnKillService", "HELLOOOOO")
 
             // Register the channel with the system
             val notificationManager: NotificationManager =
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
-            notificationManager.notify(123, notificationBuilder.build())
+            notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build())
         } catch (e: Exception) {
             Log.d("NotificationOnKillService", "Error showing notification", e)
         }
