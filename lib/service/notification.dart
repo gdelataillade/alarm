@@ -65,20 +65,23 @@ class AlarmNotification {
   }
 
   /// Shows notification permission request.
-  Future<bool> requestPermission() async {
-    bool? result;
+  Future<bool> requestNotificationPermission() async {
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      final res = await localNotif
+          .resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin>()
+          ?.requestPermissions(alert: true, badge: true, sound: true);
+      return res ?? false;
+    }
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      final res = await localNotif
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.requestNotificationsPermission();
 
-    result = defaultTargetPlatform == TargetPlatform.android
-        ? await localNotif
-            .resolvePlatformSpecificImplementation<
-                AndroidFlutterLocalNotificationsPlugin>()
-            ?.requestPermission()
-        : await localNotif
-            .resolvePlatformSpecificImplementation<
-                IOSFlutterLocalNotificationsPlugin>()
-            ?.requestPermissions(alert: true, badge: true, sound: true);
-
-    return result ?? false;
+      return res ?? false;
+    }
+    return false;
   }
 
   tz.TZDateTime nextInstanceOfTime(DateTime dateTime) {
@@ -114,6 +117,7 @@ class AlarmNotification {
       playSound: false,
       enableLights: true,
       fullScreenIntent: fullScreenIntent,
+      visibility: NotificationVisibility.public,
     );
 
     final platformChannelSpecifics = NotificationDetails(
@@ -123,7 +127,7 @@ class AlarmNotification {
 
     final zdt = nextInstanceOfTime(dateTime);
 
-    final hasPermission = await requestPermission();
+    final hasPermission = await requestNotificationPermission();
     if (!hasPermission) {
       alarmPrint('Notification permission not granted');
       return;

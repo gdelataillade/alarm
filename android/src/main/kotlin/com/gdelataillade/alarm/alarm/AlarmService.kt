@@ -1,34 +1,34 @@
 package com.gdelataillade.alarm.alarm
 
-import android.app.*
-import android.content.Context
+import com.gdelataillade.alarm.services.AudioService
+import com.gdelataillade.alarm.services.VibrationService
+import com.gdelataillade.alarm.services.VolumeService
+
+import android.app.Service
 import android.content.Intent
-import android.media.MediaPlayer
-import android.media.AudioManager
-import android.media.AudioManager.FLAG_SHOW_UI
-import android.provider.Settings
-import android.os.*
+import android.content.Context
+import android.os.IBinder
+import android.os.PowerManager
 import io.flutter.Log
-import io.flutter.embedding.engine.FlutterEngine
-import io.flutter.embedding.engine.dart.DartExecutor
-import kotlin.math.round
-import java.util.Timer
-import java.util.TimerTask
 
 class AlarmService : Service() {
-    private val mediaPlayers = mutableMapOf<Int, MediaPlayer>()
-    private var vibrator: Vibrator? = null
-    private var previousVolume: Int? = null
-    private var showSystemUI: Boolean = true
+    private var audioService: AudioService? = null
+    private var vibrationService: VibrationService? = null
+    private var volumeService: VolumeService? = null
 
-    override fun onCreate() {
-        super.onCreate()
-    }
+    private var showSystemUI: Boolean = true
 
     companion object {
         @JvmStatic
-        var isRinging: Boolean = false
-            private set
+        var ringingAlarmIds: List<Int> = listOf()
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+
+        audioService = AudioService(this)
+        vibrationService = VibrationService(this)
+        volumeService = VolumeService(this)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -56,144 +56,48 @@ class AlarmService : Service() {
         Log.d("AlarmService", "volume: $volume")
         Log.d("AlarmService", "fadeDuration: $fadeDuration")
 
-        isRinging = true
-
-        val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-
         if (volume != -1.0) {
-            val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-            previousVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC) // Save the previous volume
-            val _volume = (round(volume * maxVolume)).toInt()
-            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, _volume, if (showSystemUI) FLAG_SHOW_UI else 0)
+            volumeService?.setVolume(volume, showSystemUI)
         }
 
-        // Request audio focus
-        val focusRequestResult = audioManager.requestAudioFocus(
-            null,
-            AudioManager.STREAM_MUSIC,
-            AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK
-        )
+        volumeService?.requestAudioFocus()
 
-        try {
-            val assetManager = applicationContext.assets
-            val descriptor = assetManager.openFd("flutter_assets/" + assetAudioPath!!)
+        audioService?.playAudio(id, assetAudioPath!!, loopAudio!!, fadeDuration!!)
 
-            val mediaPlayer = MediaPlayer().apply {
-                setDataSource(descriptor.fileDescriptor, descriptor.startOffset, descriptor.length)
-                prepare()
-                isLooping = loopAudio!!
-            }
-            mediaPlayer.start()
-
-            // Store MediaPlayer instance in map
-            mediaPlayers[id] = mediaPlayer
-
-            if (fadeDuration != null && fadeDuration > 0) {
-                startFadeIn(mediaPlayer, fadeDuration)
-            }
-        } catch (e: Exception) {
-            // Handle exceptions related to asset loading or MediaPlayer
-            e.printStackTrace()
-        }
+        ringingAlarmIds = audioService?.getPlayingMediaPlayersIds()!!
 
         if (vibrate!!) {
-            // Obtain Vibrator instance if not already obtained
-            if (vibrator == null) {
-                vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-            }
-
-            // Vibrate the device in a loop: vibrate for 500ms, pause for 500ms
-            val pattern = longArrayOf(0, 500, 500)  // Start immediately, vibrate 500ms, pause 500ms
-            val repeat = 1  // Repeat from the second element (0-based) of the pattern, which is the pause
-            val vibrationEffect = VibrationEffect.createWaveform(pattern, repeat)
-            vibrator?.vibrate(vibrationEffect)
+            vibrationService?.startVibrating(longArrayOf(0, 500, 500), 1)
         }
 
         // Wake up the device
         val wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager)
             .newWakeLock(PowerManager.FULL_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP, "app:AlarmWakelockTag")
-        wakeLock.acquire(5 * 60 * 1000L /*5 minutes*/)
-
-        Log.d("AlarmService => SET ALARM", "Current mediaPlayers keys: ${mediaPlayers.keys}")
+        wakeLock.acquire(5 * 60 * 1000L) // 5 minutes
 
         return START_STICKY
     }
 
     fun stopAlarm(id: Int) {
-        Log.d("AlarmService => STOP ALARM", "id: $id")
-        Log.d("AlarmService => STOP ALARM", "Current mediaPlayers keys: ${mediaPlayers.keys}")
-        Log.d("AlarmService => STOP ALARM", "previousVolume: $previousVolume")
+        ringingAlarmIds = audioService?.getPlayingMediaPlayersIds()!!
 
-        isRinging = false
+        volumeService?.restorePreviousVolume(showSystemUI)
+        volumeService?.abandonAudioFocus()
 
-        previousVolume?.let { prevVolume ->
-            val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, prevVolume, if (showSystemUI) FLAG_SHOW_UI else 0)
-            previousVolume = null // Reset the previous volume
+        audioService?.stopAudio(id)
+        if (audioService?.isMediaPlayerEmpty()!!) {
+            vibrationService?.stopVibrating()
+            stopForeground(true)
+            stopSelf()
         }
-
-        if (mediaPlayers.containsKey(id)) {
-            Log.d("AlarmService => STOP ALARM", "Stopping MediaPlayer with id: $id")
-            mediaPlayers[id]?.stop()
-            mediaPlayers[id]?.release()
-            mediaPlayers.remove(id)
-
-            // Abandon audio focus
-            val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-            audioManager.abandonAudioFocus(null)
-
-            // Check if there are no more active alarms
-            if (mediaPlayers.isEmpty()) {
-                vibrator?.cancel()
-                stopForeground(true)
-                stopSelf()
-            }
-        }
-    }
-
-    private fun startFadeIn(mediaPlayer: MediaPlayer, duration: Double) {
-        val maxVolume = 1.0f // Use 1.0f for MediaPlayer's max volume
-        val fadeDuration = (duration * 1000).toLong() // Convert seconds to milliseconds
-        val fadeInterval = 100L // Interval for volume increment
-        val numberOfSteps = fadeDuration / fadeInterval // Number of volume increments
-        val deltaVolume = maxVolume / numberOfSteps // Volume increment per step
-
-        val timer = Timer(true) // Use a daemon thread
-        var volume = 0.0f
-
-        val timerTask = object : TimerTask() {
-            override fun run() {
-                mediaPlayer.setVolume(volume, volume) // Set volume for both channels
-                volume += deltaVolume
-
-                if (volume >= maxVolume) {
-                    mediaPlayer.setVolume(maxVolume, maxVolume) // Ensure max volume is set
-                    this.cancel() // Cancel the timer
-                }
-            }
-        }
-
-        timer.schedule(timerTask, 0, fadeInterval)
     }
 
     override fun onDestroy() {
-        isRinging = false
+        ringingAlarmIds = listOf()
 
-        // Clean up MediaPlayer resources
-        mediaPlayers.values.forEach {
-            it.stop()
-            it.release()
-        }
-        mediaPlayers.clear()
-
-        // Cancel any ongoing vibration
-        vibrator?.cancel()
-
-        // Restore system volume if it was changed
-        val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        previousVolume?.let { prevVolume ->
-            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, prevVolume, if (showSystemUI) FLAG_SHOW_UI else 0)
-        }
+        audioService?.cleanUp()
+        vibrationService?.stopVibrating()
+        volumeService?.restorePreviousVolume(showSystemUI)
 
         // Stop the foreground service and remove the notification
         stopForeground(true)

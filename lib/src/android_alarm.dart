@@ -51,9 +51,8 @@ class AndroidAlarm {
           'delayInSeconds': delay.inSeconds,
           'assetAudioPath': settings.assetAudioPath,
           'loopAudio': settings.loopAudio,
-          'vibrate': false, // settings.vibrate,
-          'volume': -1.0,
-          // 'volume': settings.volumeMax ? 1.0 : -1.0,
+          'vibrate': settings.vibrate,
+          'volume': settings.volumeMax ? 1.0 : -1.0,
           'fadeDuration': settings.fadeDuration,
         },
       );
@@ -71,7 +70,7 @@ class AndroidAlarm {
             'description': AlarmStorage.getNotificationOnAppKillBody(),
           },
         );
-        alarmPrint('NotificationOnKillService set with success');
+        alarmPrint('NotificationOnKillService enabled with success');
       } catch (e) {
         throw AlarmException('NotificationOnKillService error: $e');
       }
@@ -98,7 +97,7 @@ class AndroidAlarm {
   static Future<void> stopNotificationOnKillService() async {
     try {
       await platform.invokeMethod('stopNotificationOnKillService');
-      alarmPrint('NotificationOnKillService stopped with success');
+      alarmPrint('NotificationOnKillService disabled with success');
     } catch (e) {
       throw AlarmException('NotificationOnKillService error: $e');
     }

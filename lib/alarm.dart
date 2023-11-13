@@ -97,7 +97,7 @@ class Alarm {
     }
 
     if (alarmSettings.enableNotificationOnKill) {
-      await AlarmNotification.instance.requestPermission();
+      await AlarmNotification.instance.requestNotificationPermission();
     }
 
     if (iOS) {

@@ -94,9 +94,9 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       loopAudio: loopAudio,
       vibrate: vibrate,
       volumeMax: volumeMax,
+      assetAudioPath: assetAudio,
       notificationTitle: showNotification ? 'Alarm example' : null,
       notificationBody: showNotification ? 'Your alarm ($id) is ringing' : null,
-      assetAudioPath: assetAudio,
     );
     return alarmSettings;
   }

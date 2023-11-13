@@ -1,4 +1,4 @@
-package com.gdelataillade.alarm.alarm
+package com.gdelataillade.alarm.services
 
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
@@ -19,6 +19,8 @@ class NotificationOnKillService: Service() {
     private lateinit var description: String
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d("NotificationOnKillService", "HEEEEEEEY")
+
         title = intent?.getStringExtra("title") ?: "Your alarms may not ring"
         description = intent?.getStringExtra("description") ?: "You killed the app. Please reopen so your alarms can be rescheduled."
 
@@ -27,8 +29,9 @@ class NotificationOnKillService: Service() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onTaskRemoved(rootIntent: Intent?) {
-        try {
+        Log.d("NotificationOnKillService", "HELLOOOOO")
 
+        try {
             val notificationIntent = packageManager.getLaunchIntentForPackage(packageName)
             val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE)
 
@@ -47,6 +50,8 @@ class NotificationOnKillService: Service() {
             val channel = NotificationChannel("com.gdelataillade.alarm.alarm", name, importance).apply {
                 description = descriptionText
             }
+
+            Log.d("NotificationOnKillService", "HELLOOOOO")
 
             // Register the channel with the system
             val notificationManager: NotificationManager =

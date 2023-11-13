@@ -11,7 +11,7 @@
     <receiver android:name=".AlarmReceiver" />
     <service android:name=".AlarmService" />
     <service
-        android:name=".NotificationOnKillService"
+        android:name=".services.NotificationOnKillService"
         android:enabled="true"
         android:exported="false"/>
     <service

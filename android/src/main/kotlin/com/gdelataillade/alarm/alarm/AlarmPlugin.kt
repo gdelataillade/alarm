@@ -1,5 +1,7 @@
 package com.gdelataillade.alarm.alarm
 
+import com.gdelataillade.alarm.services.NotificationOnKillService
+
 import android.os.Build
 import android.app.AlarmManager
 import android.app.PendingIntent
@@ -78,7 +80,12 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
                 serviceIntent.putExtra("title", title)
                 serviceIntent.putExtra("description", description)
 
-                context.startService(serviceIntent)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(serviceIntent)
+                } else {
+                    context.startService(serviceIntent)
+                }
+
                 result.success(true)
             }
             "stopNotificationOnKillService" -> {
