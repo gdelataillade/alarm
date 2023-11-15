@@ -47,6 +47,7 @@ class AndroidAlarm {
           'fadeDuration': settings.fadeDuration,
           'notificationTitle': settings.notificationTitle,
           'notificationBody': settings.notificationBody,
+          'fullScreenIntent': settings.androidFullScreenIntent,
         },
       );
       alarmPrint('[DEV] setAlarm method channel invoked, returned: $res');

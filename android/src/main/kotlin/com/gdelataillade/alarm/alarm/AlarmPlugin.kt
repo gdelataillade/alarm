@@ -48,6 +48,7 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
                 alarmIntent.putExtra("fadeDuration", call.argument<Double>("fadeDuration"))
                 alarmIntent.putExtra("notificationTitle", call.argument<String>("notificationTitle"))
                 alarmIntent.putExtra("notificationBody", call.argument<String>("notificationBody"))
+                alarmIntent.putExtra("fullScreenIntent", call.argument<Boolean>("fullScreenIntent"))
 
                 val triggerTime = System.currentTimeMillis() + delayInSeconds!! * 1000 // in milliseconds
                 val pendingIntent = PendingIntent.getBroadcast(context, id!!, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT)

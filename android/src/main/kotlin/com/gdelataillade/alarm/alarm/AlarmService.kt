@@ -62,6 +62,7 @@ class AlarmService : Service() {
         val fadeDuration = intent?.getDoubleExtra("fadeDuration", 0.0)
         val notificationTitle = intent?.getStringExtra("notificationTitle")
         val notificationBody = intent?.getStringExtra("notificationBody")
+        val fullScreenIntent = intent?.getBooleanExtra("fullScreenIntent", true)
         showSystemUI = intent?.getBooleanExtra("showSystemUI", true) ?: true
 
         Log.d("AlarmService", "id: $id")
@@ -72,13 +73,14 @@ class AlarmService : Service() {
         Log.d("AlarmService", "fadeDuration: $fadeDuration")
         Log.d("AlarmService", "notificationTitle: $notificationTitle")
         Log.d("AlarmService", "notificationBody: $notificationBody")
+        Log.d("AlarmService", "fullScreenIntent: $fullScreenIntent")
 
         val notificationHandler = NotificationHandler(this)
 
         val intent = applicationContext.packageManager.getLaunchIntentForPackage(applicationContext.packageName)
         val pendingIntent = PendingIntent.getActivity(this, id!!, intent, PendingIntent.FLAG_UPDATE_CURRENT)
 
-        val notification = notificationHandler.buildNotification(notificationTitle!!, notificationBody!!, pendingIntent)
+        val notification = notificationHandler.buildNotification(notificationTitle!!, notificationBody!!, fullScreenIntent!!, pendingIntent)
         startForeground(id, notification)
 
         try {

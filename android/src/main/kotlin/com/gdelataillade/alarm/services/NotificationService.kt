@@ -1,4 +1,5 @@
 package com.gdelataillade.alarm.alarm
+import com.gdelataillade.alarm.alarm.R
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -10,7 +11,6 @@ import android.os.Build
 import android.net.Uri
 import android.media.AudioAttributes
 import androidx.core.app.NotificationCompat
-
 
 class NotificationHandler(private val context: Context) {
     companion object {
@@ -39,12 +39,15 @@ class NotificationHandler(private val context: Context) {
     }
 
 
-    fun buildNotification(title: String, body: String, pendingIntent: PendingIntent): Notification {
+    fun buildNotification(title: String, body: String, fullScreen: Boolean, pendingIntent: PendingIntent): Notification {
         val iconResId = context.resources.getIdentifier("ic_launcher", "mipmap", context.packageName)
         val soundUri = Uri.parse("android.resource://${context.packageName}/${R.raw.blank}")
 
-        return Notification.Builder(context, CHANNEL_ID)
-            .setSmallIcon(iconResId)
+        val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+        val pendingIntent = PendingIntent.getActivity(context, 0, intent, 0)
+
+        val notificationBuilder = Notification.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle(title)
             .setContentText(body)
             .setPriority(NotificationCompat.PRIORITY_MAX)
@@ -54,6 +57,11 @@ class NotificationHandler(private val context: Context) {
             .setContentIntent(pendingIntent)
             .setSound(soundUri)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .build()
+
+        if (fullScreen) {
+            notificationBuilder.setFullScreenIntent(pendingIntent, true)
+        }
+
+        return notificationBuilder.build()
     }
 }
