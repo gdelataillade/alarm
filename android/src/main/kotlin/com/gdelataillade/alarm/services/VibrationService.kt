@@ -6,17 +6,14 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 
 class VibrationService(private val context: Context) {
-    private var vibrator: Vibrator? = null
+    private val vibrator: Vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 
     fun startVibrating(pattern: LongArray, repeat: Int) {
-        if (vibrator == null) {
-            vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-        }
         val vibrationEffect = VibrationEffect.createWaveform(pattern, repeat)
-        vibrator?.vibrate(vibrationEffect)
+        vibrator.vibrate(vibrationEffect)
     }
 
     fun stopVibrating() {
-        vibrator?.cancel()
+        vibrator.cancel()
     }
 }

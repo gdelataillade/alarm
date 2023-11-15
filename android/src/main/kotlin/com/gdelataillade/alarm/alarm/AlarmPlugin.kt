@@ -1,5 +1,8 @@
 package com.gdelataillade.alarm.alarm
 
+import com.gdelataillade.alarm.services.AudioService
+import com.gdelataillade.alarm.services.VibrationService
+import com.gdelataillade.alarm.services.VolumeService
 import com.gdelataillade.alarm.services.NotificationOnKillService
 
 import android.os.Build
@@ -22,7 +25,13 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
 
     companion object {
         @JvmStatic
-        var binaryMessenger: BinaryMessenger? = null
+        lateinit var binaryMessenger: BinaryMessenger
+        @JvmStatic
+        lateinit var audioService: AudioService
+        @JvmStatic
+        lateinit var vibrationService: VibrationService
+        @JvmStatic
+        lateinit var volumeService: VolumeService
     }
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
@@ -30,6 +39,10 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "com.gdelataillade.alarm/alarm")
         channel.setMethodCallHandler(this)
         binaryMessenger = flutterPluginBinding.binaryMessenger
+
+        audioService = AudioService(context)
+        vibrationService = VibrationService(context)
+        volumeService = VolumeService(context)
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
@@ -58,7 +71,7 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
             "stopAlarm" -> {
                 val id = call.argument<Int>("id")
 
-                // Intent to stop the alarm if it's currently ringing
+                // Intent to stop the alarm
                 val stopIntent = Intent(context, AlarmService::class.java)
                 stopIntent.action = "STOP_ALARM"
                 stopIntent.putExtra("id", id)

@@ -53,6 +53,9 @@ class Alarm {
       final now = DateTime.now();
       if (alarm.dateTime.isAfter(now)) {
         await set(alarmSettings: alarm);
+      } else {
+        final isRinging = await Alarm.isRinging(alarm.id);
+        isRinging ? ringStream.add(alarm) : stop(alarm.id);
       }
     }
   }

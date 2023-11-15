@@ -1,9 +1,5 @@
 package com.gdelataillade.alarm.alarm
 
-import com.gdelataillade.alarm.services.AudioService
-import com.gdelataillade.alarm.services.VibrationService
-import com.gdelataillade.alarm.services.VolumeService
-
 import android.app.Service
 import android.content.Intent
 import android.content.Context
@@ -16,9 +12,6 @@ import io.flutter.embedding.engine.FlutterEngine
 
 class AlarmService : Service() {
     private var channel: MethodChannel? = null
-    private var audioService: AudioService? = null
-    private var vibrationService: VibrationService? = null
-    private var volumeService: VolumeService? = null
     private var showSystemUI: Boolean = true
 
     companion object {
@@ -33,10 +26,6 @@ class AlarmService : Service() {
         if (messenger != null) {
             channel = MethodChannel(messenger, "com.gdelataillade.alarm/alarm")
         }
-
-        audioService = AudioService(this)
-        vibrationService = VibrationService(this)
-        volumeService = VolumeService(this)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -67,17 +56,17 @@ class AlarmService : Service() {
         channel?.invokeMethod("alarmRinging", mapOf("id" to id))
 
         if (volume != -1.0) {
-            volumeService?.setVolume(volume, showSystemUI)
+            AlarmPlugin.volumeService.setVolume(volume, showSystemUI)
         }
 
-        volumeService?.requestAudioFocus()
+        AlarmPlugin.volumeService.requestAudioFocus()
 
-        audioService?.playAudio(id, assetAudioPath!!, loopAudio!!, fadeDuration!!)
+        AlarmPlugin.audioService.playAudio(id, assetAudioPath!!, loopAudio!!, fadeDuration!!)
 
-        ringingAlarmIds = audioService?.getPlayingMediaPlayersIds()!!
+        ringingAlarmIds = AlarmPlugin.audioService.getPlayingMediaPlayersIds()!!
 
         if (vibrate!!) {
-            vibrationService?.startVibrating(longArrayOf(0, 500, 500), 1)
+            AlarmPlugin.vibrationService.startVibrating(longArrayOf(0, 500, 500), 1)
         }
 
         // Wake up the device
@@ -89,15 +78,14 @@ class AlarmService : Service() {
     }
 
     fun stopAlarm(id: Int) {
-        ringingAlarmIds = audioService?.getPlayingMediaPlayersIds()!!
+        ringingAlarmIds = AlarmPlugin.audioService.getPlayingMediaPlayersIds()!!
 
-        volumeService?.restorePreviousVolume(showSystemUI)
-        volumeService?.abandonAudioFocus()
+        AlarmPlugin.volumeService.restorePreviousVolume(showSystemUI)
+        AlarmPlugin.volumeService.abandonAudioFocus()
 
-        audioService?.stopAudio(id)
-        if (audioService?.isMediaPlayerEmpty()!!) {
-            vibrationService?.stopVibrating()
-            stopForeground(true)
+        AlarmPlugin.audioService.stopAudio(id)
+        if (AlarmPlugin.audioService.isMediaPlayerEmpty()!!) {
+            AlarmPlugin.vibrationService.stopVibrating()
             stopSelf()
         }
     }
@@ -105,12 +93,9 @@ class AlarmService : Service() {
     override fun onDestroy() {
         ringingAlarmIds = listOf()
 
-        audioService?.cleanUp()
-        vibrationService?.stopVibrating()
-        volumeService?.restorePreviousVolume(showSystemUI)
-
-        // Stop the foreground service and remove the notification
-        stopForeground(true)
+        AlarmPlugin.audioService.cleanUp()
+        AlarmPlugin.vibrationService.stopVibrating()
+        AlarmPlugin.volumeService.restorePreviousVolume(showSystemUI)
 
         // Call the superclass method
         super.onDestroy()
