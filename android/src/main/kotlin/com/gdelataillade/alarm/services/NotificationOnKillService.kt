@@ -44,7 +44,7 @@ class NotificationOnKillService: Service() {
 
             val name = "Alarm notification service on application kill"
             val descriptionText = "If an alarm was set and the app is killed, a notification will show to warn the user the alarm could not ring as long as the app is killed"
-            val importance = NotificationManager.IMPORTANCE_HIGH
+            val importance = NotificationManager.IMPORTANCE_MAX
             val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
                 description = descriptionText
             }

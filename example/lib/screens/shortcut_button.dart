@@ -32,6 +32,9 @@ class _ExampleAlarmHomeShortcutButtonState
       dateTime: dateTime,
       assetAudioPath: 'assets/marimba.mp3',
       volumeMax: false,
+      notificationTitle: 'Alarm example',
+      notificationBody:
+          'Shortcut button alarm with delay of $delayInHours hours',
     );
 
     await Alarm.set(alarmSettings: alarmSettings);

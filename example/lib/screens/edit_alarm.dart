@@ -19,7 +19,6 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
   late bool loopAudio;
   late bool vibrate;
   late bool volumeMax;
-  late bool showNotification;
   late String assetAudio;
 
   @override
@@ -33,17 +32,12 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       loopAudio = true;
       vibrate = true;
       volumeMax = false;
-      showNotification = true;
       assetAudio = 'assets/marimba.mp3';
     } else {
       selectedDateTime = widget.alarmSettings!.dateTime;
       loopAudio = widget.alarmSettings!.loopAudio;
       vibrate = widget.alarmSettings!.vibrate;
       volumeMax = widget.alarmSettings!.volumeMax;
-      showNotification = widget.alarmSettings!.notificationTitle != null &&
-          widget.alarmSettings!.notificationTitle!.isNotEmpty &&
-          widget.alarmSettings!.notificationBody != null &&
-          widget.alarmSettings!.notificationBody!.isNotEmpty;
       assetAudio = widget.alarmSettings!.assetAudioPath;
     }
   }
@@ -95,8 +89,8 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       vibrate: vibrate,
       volumeMax: volumeMax,
       assetAudioPath: assetAudio,
-      notificationTitle: showNotification ? 'Alarm example' : null,
-      notificationBody: showNotification ? 'Your alarm ($id) is ringing' : null,
+      notificationTitle: 'Alarm example',
+      notificationBody: 'Your alarm ($id) is ringing',
     );
     return alarmSettings;
   }
@@ -206,19 +200,6 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
               Switch(
                 value: volumeMax,
                 onChanged: (value) => setState(() => volumeMax = value),
-              ),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Show notification',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              Switch(
-                value: showNotification,
-                onChanged: (value) => setState(() => showNotification = value),
               ),
             ],
           ),

@@ -1,8 +1,5 @@
 package com.gdelataillade.alarm.alarm
 
-import com.gdelataillade.alarm.services.AudioService
-import com.gdelataillade.alarm.services.VibrationService
-import com.gdelataillade.alarm.services.VolumeService
 import com.gdelataillade.alarm.services.NotificationOnKillService
 
 import android.os.Build
@@ -26,12 +23,6 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
     companion object {
         @JvmStatic
         lateinit var binaryMessenger: BinaryMessenger
-        @JvmStatic
-        lateinit var audioService: AudioService
-        @JvmStatic
-        lateinit var vibrationService: VibrationService
-        @JvmStatic
-        lateinit var volumeService: VolumeService
     }
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
@@ -39,10 +30,6 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "com.gdelataillade.alarm/alarm")
         channel.setMethodCallHandler(this)
         binaryMessenger = flutterPluginBinding.binaryMessenger
-
-        audioService = AudioService(context)
-        vibrationService = VibrationService(context)
-        volumeService = VolumeService(context)
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
@@ -59,6 +46,8 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
                 alarmIntent.putExtra("vibrate", call.argument<Boolean>("vibrate"))
                 alarmIntent.putExtra("volume", call.argument<Boolean>("volume"))
                 alarmIntent.putExtra("fadeDuration", call.argument<Double>("fadeDuration"))
+                alarmIntent.putExtra("notificationTitle", call.argument<String>("notificationTitle"))
+                alarmIntent.putExtra("notificationBody", call.argument<String>("notificationBody"))
 
                 val triggerTime = System.currentTimeMillis() + delayInSeconds!! * 1000 // in milliseconds
                 val pendingIntent = PendingIntent.getBroadcast(context, id!!, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT)

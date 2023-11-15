@@ -30,12 +30,10 @@ class AlarmSettings {
   final double fadeDuration;
 
   /// Title of the notification to be shown when alarm is triggered.
-  /// Must not be null nor empty to show a notification.
-  final String? notificationTitle;
+  final String notificationTitle;
 
   /// Body of the notification to be shown when alarm is triggered.
-  /// Must not be null nor empty to show a notification.
-  final String? notificationBody;
+  final String notificationBody;
 
   /// Whether to show a notification when application is killed to warn
   /// the user that the alarms won't ring anymore. Enabled by default.
@@ -45,8 +43,6 @@ class AlarmSettings {
   final bool stopOnNotificationOpen;
 
   /// Whether to turn screen on when android alarm notification is triggered. Enabled by default.
-  ///
-  /// [notificationTitle] and [notificationBody] must not be null nor empty.
   final bool androidFullScreenIntent;
 
   /// Returns a hash code for this `AlarmSettings` instance using Jenkins hash function.
@@ -61,8 +57,8 @@ class AlarmSettings {
     hash = hash ^ vibrate.hashCode;
     hash = hash ^ volumeMax.hashCode;
     hash = hash ^ fadeDuration.hashCode;
-    hash = hash ^ (notificationTitle?.hashCode ?? 0);
-    hash = hash ^ (notificationBody?.hashCode ?? 0);
+    hash = hash ^ (notificationTitle.hashCode);
+    hash = hash ^ (notificationBody.hashCode);
     hash = hash ^ enableNotificationOnKill.hashCode;
     hash = hash ^ stopOnNotificationOpen.hashCode;
     hash = hash & 0x3fffffff;
@@ -83,8 +79,8 @@ class AlarmSettings {
     this.vibrate = true,
     this.volumeMax = true,
     this.fadeDuration = 0.0,
-    this.notificationTitle,
-    this.notificationBody,
+    required this.notificationTitle,
+    required this.notificationBody,
     this.enableNotificationOnKill = true,
     this.stopOnNotificationOpen = false,
     this.androidFullScreenIntent = true,
@@ -99,8 +95,8 @@ class AlarmSettings {
         vibrate: json['vibrate'] as bool,
         volumeMax: json['volumeMax'] as bool,
         fadeDuration: json['fadeDuration'] as double,
-        notificationTitle: json['notificationTitle'] as String?,
-        notificationBody: json['notificationBody'] as String?,
+        notificationTitle: json['notificationTitle'] as String,
+        notificationBody: json['notificationBody'] as String,
         enableNotificationOnKill: json['enableNotificationOnKill'] as bool,
         stopOnNotificationOpen: json['stopOnNotificationOpen'] as bool,
         androidFullScreenIntent:
