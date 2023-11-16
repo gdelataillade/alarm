@@ -1,5 +1,4 @@
 package com.gdelataillade.alarm.alarm
-import com.gdelataillade.alarm.alarm.R
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -47,7 +46,7 @@ class NotificationHandler(private val context: Context) {
         val pendingIntent = PendingIntent.getActivity(context, 0, intent, 0)
 
         val notificationBuilder = Notification.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(iconResId)
             .setContentTitle(title)
             .setContentText(body)
             .setPriority(NotificationCompat.PRIORITY_MAX)

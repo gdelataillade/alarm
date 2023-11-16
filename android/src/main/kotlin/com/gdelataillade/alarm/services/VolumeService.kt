@@ -2,6 +2,9 @@ package com.gdelataillade.alarm.services
 
 import android.content.Context
 import android.media.AudioManager
+import android.media.AudioAttributes
+import android.media.AudioFocusRequest
+import android.os.Build
 import kotlin.math.round
 
 class VolumeService(private val context: Context) {
@@ -23,11 +26,25 @@ class VolumeService(private val context: Context) {
     }
 
     fun requestAudioFocus() {
-        audioManager.requestAudioFocus(
-            null,
-            AudioManager.STREAM_MUSIC,
-            AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK
-        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val audioAttributes = AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_ALARM)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build()
+
+            val focusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+                .setAudioAttributes(audioAttributes)
+                .build()
+
+            audioManager.requestAudioFocus(focusRequest)
+        } else {
+            @Suppress("DEPRECATION")
+            audioManager.requestAudioFocus(
+                null,
+                AudioManager.STREAM_ALARM,
+                AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK
+            )
+        }
     }
 
     fun abandonAudioFocus() {

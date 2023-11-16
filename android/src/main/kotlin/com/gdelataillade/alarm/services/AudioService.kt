@@ -19,6 +19,13 @@ class AudioService(private val context: Context) {
 
     fun playAudio(id: Int, assetAudioPath: String, loopAudio: Boolean, fadeDuration: Double?) {
         try {
+            mediaPlayers.forEach { (_, mediaPlayer) ->
+                if (mediaPlayer.isPlaying) {
+                    mediaPlayer.stop()
+                    mediaPlayer.release()
+                }
+            }
+
             val assetManager = context.assets
             val descriptor = assetManager.openFd("flutter_assets/$assetAudioPath")
             val mediaPlayer = MediaPlayer().apply {
@@ -34,7 +41,6 @@ class AudioService(private val context: Context) {
                 startFadeIn(mediaPlayer, fadeDuration)
             }
         } catch (e: Exception) {
-            // Handle exceptions related to asset loading or MediaPlayer
             e.printStackTrace()
         }
     }
