@@ -7,8 +7,6 @@ import io.flutter.Log
 
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        Log.d("AlarmReceiver", "AlarmReceiver triggered")
-
         val serviceIntent = Intent(context, AlarmService::class.java)
         serviceIntent.putExtras(intent)
 

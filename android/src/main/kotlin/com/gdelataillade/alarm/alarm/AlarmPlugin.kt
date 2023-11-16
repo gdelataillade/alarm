@@ -3,6 +3,8 @@ package com.gdelataillade.alarm.alarm
 import com.gdelataillade.alarm.services.NotificationOnKillService
 
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
@@ -35,26 +37,18 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
         when (call.method) {
             "setAlarm" -> {
-                val alarmIntent = Intent(context, AlarmReceiver::class.java)
+                val id = call.argument<Int>("id")!!
+                val delayInSeconds = call.argument<Int>("delayInSeconds")!!
 
-                val id = call.argument<Int>("id")
-                val delayInSeconds = call.argument<Int>("delayInSeconds")
+                Log.d("AlarmPlugin", "delay is $delayInSeconds seconds")
 
-                alarmIntent.putExtra("id", id)
-                alarmIntent.putExtra("assetAudioPath", call.argument<String>("assetAudioPath"))
-                alarmIntent.putExtra("loopAudio", call.argument<Boolean>("loopAudio"))
-                alarmIntent.putExtra("vibrate", call.argument<Boolean>("vibrate"))
-                alarmIntent.putExtra("volume", call.argument<Boolean>("volume"))
-                alarmIntent.putExtra("fadeDuration", call.argument<Double>("fadeDuration"))
-                alarmIntent.putExtra("notificationTitle", call.argument<String>("notificationTitle"))
-                alarmIntent.putExtra("notificationBody", call.argument<String>("notificationBody"))
-                alarmIntent.putExtra("fullScreenIntent", call.argument<Boolean>("fullScreenIntent"))
+                val alarmIntent = createAlarmIntent(context, call, id)
 
-                val triggerTime = System.currentTimeMillis() + delayInSeconds!! * 1000 // in milliseconds
-                val pendingIntent = PendingIntent.getBroadcast(context, id!!, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT)
-                val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-
-                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
+                if (delayInSeconds <= 5) {
+                    handleImmediateAlarm(context, alarmIntent, delayInSeconds)
+                } else {
+                    handleDelayedAlarm(context, alarmIntent, delayInSeconds, id)
+                }
 
                 result.success(true)
             }
@@ -105,6 +99,39 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
                 result.notImplemented()
             }
         }
+    }
+
+    fun createAlarmIntent(context: Context, call: MethodCall, id: Int?): Intent {
+        val alarmIntent = Intent(context, AlarmReceiver::class.java)
+        setIntentExtras(alarmIntent, call, id)
+        return alarmIntent
+    }
+
+    fun setIntentExtras(intent: Intent, call: MethodCall, id: Int?) {
+        intent.putExtra("id", id)
+        intent.putExtra("assetAudioPath", call.argument<String>("assetAudioPath"))
+        intent.putExtra("loopAudio", call.argument<Boolean>("loopAudio"))
+        intent.putExtra("vibrate", call.argument<Boolean>("vibrate"))
+        intent.putExtra("volume", call.argument<Boolean>("volume"))
+        intent.putExtra("fadeDuration", call.argument<Double>("fadeDuration"))
+        intent.putExtra("notificationTitle", call.argument<String>("notificationTitle"))
+        intent.putExtra("notificationBody", call.argument<String>("notificationBody"))
+        intent.putExtra("fullScreenIntent", call.argument<Boolean>("fullScreenIntent"))
+    }
+
+    fun handleImmediateAlarm(context: Context, intent: Intent, delayInSeconds: Int) {
+        val handler = Handler(Looper.getMainLooper())
+        handler.postDelayed({
+            context.sendBroadcast(intent)
+        }, delayInSeconds * 1000L)
+    }
+
+    fun handleDelayedAlarm(context: Context, intent: Intent, delayInSeconds: Int, id: Int) {
+        val triggerTime = System.currentTimeMillis() + delayInSeconds * 1000
+        val pendingIntent = PendingIntent.getBroadcast(context, id, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
     }
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {

@@ -45,8 +45,6 @@ class AlarmService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d("AlarmService", "onStartCommand")
-
         val action = intent?.action
         val id = intent?.getIntExtra("id", 0) ?: 0
 
@@ -65,15 +63,15 @@ class AlarmService : Service() {
         val fullScreenIntent = intent?.getBooleanExtra("fullScreenIntent", true)
         showSystemUI = intent?.getBooleanExtra("showSystemUI", true) ?: true
 
-        Log.d("AlarmService", "id: $id")
-        Log.d("AlarmService", "assetAudioPath: $assetAudioPath")
-        Log.d("AlarmService", "loopAudio: $loopAudio")
-        Log.d("AlarmService", "vibrate: $vibrate")
-        Log.d("AlarmService", "volume: $volume")
-        Log.d("AlarmService", "fadeDuration: $fadeDuration")
-        Log.d("AlarmService", "notificationTitle: $notificationTitle")
-        Log.d("AlarmService", "notificationBody: $notificationBody")
-        Log.d("AlarmService", "fullScreenIntent: $fullScreenIntent")
+        // Log.d("AlarmService", "id: $id")
+        // Log.d("AlarmService", "assetAudioPath: $assetAudioPath")
+        // Log.d("AlarmService", "loopAudio: $loopAudio")
+        // Log.d("AlarmService", "vibrate: $vibrate")
+        // Log.d("AlarmService", "volume: $volume")
+        // Log.d("AlarmService", "fadeDuration: $fadeDuration")
+        // Log.d("AlarmService", "notificationTitle: $notificationTitle")
+        // Log.d("AlarmService", "notificationBody: $notificationBody")
+        // Log.d("AlarmService", "fullScreenIntent: $fullScreenIntent")
 
         val notificationHandler = NotificationHandler(this)
 
