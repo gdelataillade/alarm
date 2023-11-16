@@ -3,9 +3,7 @@ import 'package:alarm/alarm.dart';
 import 'package:alarm/service/storage.dart';
 import 'package:flutter/services.dart';
 
-/// For Android support, [AndroidAlarmManager] is used to trigger a callback
-/// when the given time is reached. The callback will run in an isolate if app
-/// is in background.
+/// Uses method channel to interact with the native platform.
 class AndroidAlarm {
   static const platform = MethodChannel('com.gdelataillade.alarm/alarm');
 
@@ -27,7 +25,7 @@ class AndroidAlarm {
     }
   }
 
-  /// Creates isolate communication channel and set alarm at given [dateTime].
+  /// Schedules a native alarm with given [alarmSettings] with its notification.
   static Future<bool> set(
     AlarmSettings settings,
     void Function()? onRing,
@@ -35,7 +33,7 @@ class AndroidAlarm {
     try {
       final delay = settings.dateTime.difference(DateTime.now());
 
-      final res = await platform.invokeMethod(
+      await platform.invokeMethod(
         'setAlarm',
         {
           'id': settings.id,
@@ -50,7 +48,6 @@ class AndroidAlarm {
           'fullScreenIntent': settings.androidFullScreenIntent,
         },
       );
-      alarmPrint('[DEV] setAlarm method channel invoked, returned: $res');
     } catch (e) {
       throw AlarmException('nativeAndroidAlarm error: $e');
     }
@@ -64,11 +61,12 @@ class AndroidAlarm {
             'description': AlarmStorage.getNotificationOnAppKillBody(),
           },
         );
-        alarmPrint('NotificationOnKillService enabled with success');
       } catch (e) {
         throw AlarmException('NotificationOnKillService error: $e');
       }
     }
+
+    alarmPrint('[DEV] Alarm with id ${settings.id} scheduled');
 
     return true;
   }
@@ -77,20 +75,21 @@ class AndroidAlarm {
   /// can stop playing and dispose.
   static Future<bool> stop(int id) async {
     final res = await platform.invokeMethod('stopAlarm', {'id': id});
-    alarmPrint('[DEV] stopAlarm method channel invoked, returned: $res');
+    if (res) alarmPrint('[DEV] Alarm with id $id stopped');
     if (!hasOtherAlarms) stopNotificationOnKillService();
     return res;
   }
 
+  /// Checks if the alarm with given [id] is ringing.
   static Future<bool> isRinging(int id) async {
     final res = await platform.invokeMethod('isRinging', {'id': id});
     return res;
   }
 
+  /// Disable the notification on kill service.
   static Future<void> stopNotificationOnKillService() async {
     try {
       await platform.invokeMethod('stopNotificationOnKillService');
-      alarmPrint('NotificationOnKillService disabled with success');
     } catch (e) {
       throw AlarmException('NotificationOnKillService error: $e');
     }

@@ -55,18 +55,6 @@ class AlarmNotification {
     return false;
   }
 
-  Future<bool> requestExactAlarmsPermission() async {
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      final res = await localNotif
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
-          ?.requestExactAlarmsPermission();
-
-      return res ?? false;
-    }
-    return true;
-  }
-
   tz.TZDateTime nextInstanceOfTime(DateTime dateTime) {
     final now = DateTime.now();
 
@@ -115,11 +103,6 @@ class AlarmNotification {
       alarmPrint('Notification permission not granted');
     }
 
-    final hasExactAlarmPermission = await requestExactAlarmsPermission();
-    if (!hasExactAlarmPermission) {
-      alarmPrint('Exact alarm permission not granted');
-    }
-
     try {
       await localNotif.zonedSchedule(
         id,
@@ -141,8 +124,5 @@ class AlarmNotification {
 
   /// Cancels notification. Called when the alarm is cancelled or
   /// when an alarm is overriden.
-  Future<void> cancel(int id) async {
-    await localNotif.cancel(id);
-    alarmPrint('Notification with id $id canceled');
-  }
+  Future<void> cancel(int id) => localNotif.cancel(id);
 }

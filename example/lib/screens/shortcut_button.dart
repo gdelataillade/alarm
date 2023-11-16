@@ -25,8 +25,6 @@ class _ExampleAlarmHomeShortcutButtonState
 
     setState(() => showMenu = false);
 
-    alarmPrint(dateTime.toString());
-
     final alarmSettings = AlarmSettings(
       id: DateTime.now().millisecondsSinceEpoch % 10000,
       dateTime: dateTime,

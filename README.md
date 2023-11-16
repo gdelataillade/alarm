@@ -13,7 +13,7 @@ This plugin offers a straightforward interface to set and cancel alarms on both 
 
 ## 🔧 Installation steps
 
-Please carefully follow these installation steps. They have been updated for plugin version `2.0.0`.
+Please carefully follow these installation steps. They have been updated for plugin version `3.0.0`.
 
 ### [iOS Setup](https://github.com/gdelataillade/alarm/blob/feat/ios-background-fetch/help/INSTALL-IOS.md)
 ### [Android Setup](https://github.com/gdelataillade/alarm/blob/feat/ios-background-fetch/help/INSTALL-ANDROID.md)
@@ -64,8 +64,6 @@ notificationTitle |   `String`     | The title of the notification triggered whe
 notificationBody | `String` | The body of the notification.
 enableNotificationOnKill |   `bool`     | Whether to show a notification when application is killed to warn the user that the alarm he set may not ring. Enabled by default.
 androidFullScreenIntent |   `bool`     | Whether to turn screen on when android alarm notification is triggered. Enabled by default.
-
-The notification shown on alarm ring can be disabled simply by ignoring the parameters `notificationTitle` and `notificationBody`. However, if you want a notification to be triggered, you will have to provide **both of them**.
 
 If you enabled `enableNotificationOnKill`, you can chose your own notification title and body by using this method before setting your alarms:
 ```Dart
@@ -124,6 +122,7 @@ Most common solution is to educate users to disable **battery optimization** set
 
 The more time the app spends in the background, the higher the chance the OS might stop it from running due to memory or battery optimizations. Here's how you can optimize:
 
+- **Battery Optimization**: Educate users to disable battery optimization on Android.
 - **Regular App Usage**: Encourage users to open the app at least once a day.
 - **Leverage Background Modes**: Engage in activities like weather API calls that keep the app active in the background.
 - **User Settings**: Educate users to refrain from using 'Do Not Disturb' and 'Low Power Mode' when they're expecting the alarm to ring.

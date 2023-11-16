@@ -40,8 +40,6 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
                 val id = call.argument<Int>("id")!!
                 val delayInSeconds = call.argument<Int>("delayInSeconds")!!
 
-                Log.d("AlarmPlugin", "delay is $delayInSeconds seconds")
-
                 val alarmIntent = createAlarmIntent(context, call, id)
 
                 if (delayInSeconds <= 5) {

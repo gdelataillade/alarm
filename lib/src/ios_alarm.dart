@@ -89,7 +89,7 @@ class IOSAlarm {
         ) ??
         false;
 
-    if (res) alarmPrint('Alarm with id $id stopped with success');
+    if (res) alarmPrint('Alarm with id $id stopped');
 
     return res;
   }

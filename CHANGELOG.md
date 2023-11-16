@@ -1,3 +1,10 @@
+## 3.0.0
+**💥 Breaking Changes**
+**🔧 Android installation steps were updated [here](https://github.com/gdelataillade/alarm/blob/main/help/INSTALL-ANDROID.md).**
+* Remove [stopOnNotificationOpen] property.
+* Make notification mandatory so android foreground services can be used.
+* [Android] Refactor alarm to native android services.
+
 ## 2.2.0
 * [Android] Move alarm service to native code.
 
@@ -5,7 +12,7 @@
 * Fix AlarmSettings.fromJson method with missing [androidFullScreenIntent].
 
 ## 2.1.0
-**Android installation steps were updated.**
+**🔧 Android installation steps were updated [here](https://github.com/gdelataillade/alarm/blob/main/help/INSTALL-ANDROID.md).**
 * [Android] Add parameter [androidFullScreenIntent] that turns screen on when alarm notification is triggered.
 * [Android] Fix 'ring now' alarm delay.
 * [Android] Fix fadeDuration cast error.
@@ -17,7 +24,7 @@
 * Refactor set alarm methods.
 
 ## 2.0.0
-**Breaking Changes**
+**💥 Breaking Changes**
 * Installation steps were updated in the README. Please make sure to follow them.
 * [iOS] Add Background Fetch to periodically make sure alarms are still active in the background.
 
@@ -134,7 +141,7 @@
 * Add optional [vibrate] parameter, to toggle vibrations when alarm rings.
 
 ## 0.2.0
-* **Breaking changes**: Add multiple alarm management. Now, you have to provide a unique [id] to [AlarmSettings].
+* **💥 Breaking changes**: Add multiple alarm management. Now, you have to provide a unique [id] to [AlarmSettings].
 * Update example application.
 * [Android] Fix potential delay between notification and alarm sound.
 
@@ -158,8 +165,8 @@
 * Export [AlarmSettings] model in [Alarm] service so it's not necessary to import it separately anymore.
 
 ## 0.1.0
-* **Breaking changes**: [Alarm.set] method now takes a [AlarmSettings] as only parameter.
-* **Breaking changes**: You will have to create a `StreamSubscription` attached to [Alarm.ringStream.stream] in order to listen to the alarm ringing state now. This way, even if your app was previously killed, your custom callback can still be triggered.
+* **💥 Breaking changes**: [Alarm.set] method now takes a [AlarmSettings] as only parameter.
+* **💥 Breaking changes**: You will have to create a `StreamSubscription` attached to [Alarm.ringStream.stream] in order to listen to the alarm ringing state now. This way, even if your app was previously killed, your custom callback can still be triggered.
 * By default, if an alarm was set and the app is killed, a notification will be shown to warn
 the user that the alarm may not ring, with the possibility to reopen the app and automatically reschedule the alarm.
 To disable this feature, you can call the method [Alarm.toggleNotificationOnAppKill(false)].
