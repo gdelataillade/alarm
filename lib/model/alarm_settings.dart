@@ -39,9 +39,6 @@ class AlarmSettings {
   /// the user that the alarms won't ring anymore. Enabled by default.
   final bool enableNotificationOnKill;
 
-  /// Stops the alarm on opened notification.
-  final bool stopOnNotificationOpen;
-
   /// Whether to turn screen on when android alarm notification is triggered. Enabled by default.
   final bool androidFullScreenIntent;
 
@@ -60,7 +57,6 @@ class AlarmSettings {
     hash = hash ^ (notificationTitle.hashCode);
     hash = hash ^ (notificationBody.hashCode);
     hash = hash ^ enableNotificationOnKill.hashCode;
-    hash = hash ^ stopOnNotificationOpen.hashCode;
     hash = hash & 0x3fffffff;
 
     return hash;
@@ -82,7 +78,6 @@ class AlarmSettings {
     required this.notificationTitle,
     required this.notificationBody,
     this.enableNotificationOnKill = true,
-    this.stopOnNotificationOpen = false,
     this.androidFullScreenIntent = true,
   });
 
@@ -97,10 +92,10 @@ class AlarmSettings {
         fadeDuration: json['fadeDuration'] as double,
         notificationTitle: json['notificationTitle'] as String,
         notificationBody: json['notificationBody'] as String,
-        enableNotificationOnKill: json['enableNotificationOnKill'] as bool,
-        stopOnNotificationOpen: json['stopOnNotificationOpen'] as bool,
+        enableNotificationOnKill:
+            json['enableNotificationOnKill'] as bool? ?? true,
         androidFullScreenIntent:
-            json['androidFullScreenIntent'] as bool? ?? false,
+            json['androidFullScreenIntent'] as bool? ?? true,
       );
 
   /// Creates a copy of `AlarmSettings` but with the given fields replaced with
@@ -116,7 +111,6 @@ class AlarmSettings {
     String? notificationTitle,
     String? notificationBody,
     bool? enableNotificationOnKill,
-    bool? stopOnNotificationOpen,
     bool? androidFullScreenIntent,
   }) {
     return AlarmSettings(
@@ -131,8 +125,6 @@ class AlarmSettings {
       notificationBody: notificationBody ?? this.notificationBody,
       enableNotificationOnKill:
           enableNotificationOnKill ?? this.enableNotificationOnKill,
-      stopOnNotificationOpen:
-          stopOnNotificationOpen ?? this.stopOnNotificationOpen,
       androidFullScreenIntent:
           androidFullScreenIntent ?? this.androidFullScreenIntent,
     );
@@ -150,7 +142,6 @@ class AlarmSettings {
         'notificationTitle': notificationTitle,
         'notificationBody': notificationBody,
         'enableNotificationOnKill': enableNotificationOnKill,
-        'stopOnNotificationOpen': stopOnNotificationOpen,
         'androidFullScreenIntent': androidFullScreenIntent,
       };
 
@@ -179,6 +170,5 @@ class AlarmSettings {
           notificationTitle == other.notificationTitle &&
           notificationBody == other.notificationBody &&
           enableNotificationOnKill == other.enableNotificationOnKill &&
-          stopOnNotificationOpen == other.stopOnNotificationOpen &&
           androidFullScreenIntent == other.androidFullScreenIntent;
 }
