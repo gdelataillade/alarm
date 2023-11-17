@@ -12,14 +12,13 @@ dependencies:
     sdk: flutter
   flutter_fgbg: ^0.3.0
   flutter_local_notifications: ^16.1.0
-  plugin_platform_interface: ^2.1.4
-  shared_preferences: ^2.1.2  
+  shared_preferences: ^2.2.2
   timezone: ^0.9.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0
+  flutter_lints: ^3.0.1
 
 flutter:
   assets:
