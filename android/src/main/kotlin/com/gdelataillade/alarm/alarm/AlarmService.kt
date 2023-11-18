@@ -89,7 +89,7 @@ class AlarmService : Service() {
             Log.d("AlarmService", "Error while invoking alarmRinging channel: $e")
         }
 
-        if (volume != -1.0) {
+        if (volume >= 0.0 && volume <= 1.0) {
             volumeService?.setVolume(volume, showSystemUI)
         }
 

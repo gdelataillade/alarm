@@ -84,8 +84,13 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         let loopAudio = args["loopAudio"] as! Bool
         let fadeDuration = args["fadeDuration"] as! Double
         let vibrationsEnabled = args["vibrate"] as! Bool
-        let volumeMax = args["volumeMax"] as! Bool
+        let volume = args["volume"] as? Double
         let assetAudio = args["assetAudio"] as! String
+        
+        var volumeFloat: Float? = nil
+        if let volumeValue = volume {
+            volumeFloat = Float(volumeValue)
+        }
 
         if assetAudio.hasPrefix("assets/") {
             let filename = registrar.lookupKey(forAsset: assetAudio)
@@ -146,7 +151,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 fadeDuration: fadeDuration,
                 vibrationsEnabled: vibrationsEnabled,
                 audioLoop: loopAudio,
-                volumeMax: volumeMax
+                volume: volumeFloat
             )
         })
 
@@ -214,7 +219,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
     }
 
-    private func handleAlarmAfterDelay(id: Int, triggerTime: Date, fadeDuration: Double, vibrationsEnabled: Bool, audioLoop: Bool, volumeMax: Bool) {
+    private func handleAlarmAfterDelay(id: Int, triggerTime: Date, fadeDuration: Double, vibrationsEnabled: Bool, audioLoop: Bool, volume: Float?) {
         guard let audioPlayer = self.audioPlayers[id], let storedTriggerTime = triggerTimes[id], triggerTime == storedTriggerTime else {
             return
         }
@@ -234,14 +239,12 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 self.vibrate = false
             }
         }
-        
-        if fadeDuration > 0.0 {
-            if volumeMax {
-                self.setVolume(volume: 1.0, enable: true)
-            }
-            audioPlayer.setVolume(1.0, fadeDuration: fadeDuration)
-        } else if volumeMax {
-            self.setVolume(volume: 1.0, enable: true)
+
+        if let volumeValue = volume {  
+            self.setVolume(volume: volumeValue, enable: true)  
+        }
+        if fadeDuration > 0.0 {  
+            audioPlayer.setVolume(1.0, fadeDuration: fadeDuration)  
         }
     }
 
