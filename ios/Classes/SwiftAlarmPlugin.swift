@@ -84,8 +84,13 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         let loopAudio = args["loopAudio"] as! Bool
         let fadeDuration = args["fadeDuration"] as! Double
         let vibrationsEnabled = args["vibrate"] as! Bool
-        let volume = args["volume"] as? Float
+        let volume = args["volume"] as? Double
         let assetAudio = args["assetAudio"] as! String
+        
+        var volumeFloat: Float? = nil
+        if let volumeValue = volume {
+            volumeFloat = Float(volumeValue)
+        }
 
         if assetAudio.hasPrefix("assets/") {
             let filename = registrar.lookupKey(forAsset: assetAudio)
@@ -146,7 +151,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 fadeDuration: fadeDuration,
                 vibrationsEnabled: vibrationsEnabled,
                 audioLoop: loopAudio,
-                volume: volume
+                volume: volumeFloat
             )
         })
 
