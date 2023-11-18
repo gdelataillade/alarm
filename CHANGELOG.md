@@ -1,4 +1,4 @@
-## 3.0.0
+## 3.0.0-dev.1
 **💥 Breaking Changes**
 **🔧 Android installation steps were updated [here](https://github.com/gdelataillade/alarm/blob/main/help/INSTALL-ANDROID.md).**
 * Remove [stopOnNotificationOpen] property.
