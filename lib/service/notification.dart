@@ -314,7 +314,7 @@ class AlarmNotification {
             AndroidFlutterLocalNotificationsPlugin>();
         enabled = await platform?.areNotificationsEnabled();
         if (enabled == null || !enabled) {
-          enabled = await platform?.requestPermission();
+          enabled = await platform?.requestNotificationsPermission();
         }
       } else {
         // iOS
@@ -338,7 +338,7 @@ class AlarmNotification {
         ? await localNotif
             .resolvePlatformSpecificImplementation<
                 AndroidFlutterLocalNotificationsPlugin>()
-            ?.requestPermission()
+            ?.requestNotificationsPermission()
         : await localNotif
             .resolvePlatformSpecificImplementation<
                 IOSFlutterLocalNotificationsPlugin>()
