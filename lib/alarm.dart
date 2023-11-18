@@ -54,18 +54,16 @@ class Alarm {
       if (alarm.dateTime.isAfter(now)) {
         await set(alarmSettings: alarm);
       } else {
-        await AlarmStorage.unsaveAlarm(alarm.id);
+        final isRinging = await Alarm.isRinging(alarm.id);
+        isRinging ? ringStream.add(alarm) : stop(alarm.id);
       }
     }
   }
 
-  /// Schedules an alarm with given [alarmSettings].
+  /// Schedules an alarm with given [alarmSettings] with its notification.
   ///
   /// If you set an alarm for the same [dateTime] as an existing one,
   /// the new alarm will replace the existing one.
-  ///
-  /// Also, schedules notification if [notificationTitle] and [notificationBody]
-  /// are not null nor empty.
   static Future<bool> set({required AlarmSettings alarmSettings}) async {
     if (!alarmSettings.assetAudioPath.contains('.')) {
       throw AlarmException(
@@ -84,22 +82,18 @@ class Alarm {
 
     await AlarmStorage.saveAlarm(alarmSettings);
 
-    if (alarmSettings.notificationTitle != null &&
-        alarmSettings.notificationBody != null) {
-      if (alarmSettings.notificationTitle!.isNotEmpty &&
-          alarmSettings.notificationBody!.isNotEmpty) {
-        await AlarmNotification.instance.scheduleAlarmNotif(
-          id: alarmSettings.id,
-          dateTime: alarmSettings.dateTime,
-          title: alarmSettings.notificationTitle!,
-          body: alarmSettings.notificationBody!,
-          fullScreenIntent: alarmSettings.androidFullScreenIntent,
-        );
-      }
+    if (iOS) {
+      await AlarmNotification.instance.scheduleAlarmNotif(
+        id: alarmSettings.id,
+        dateTime: alarmSettings.dateTime,
+        title: alarmSettings.notificationTitle,
+        body: alarmSettings.notificationBody,
+        fullScreenIntent: alarmSettings.androidFullScreenIntent,
+      );
     }
 
     if (alarmSettings.enableNotificationOnKill) {
-      await AlarmNotification.instance.requestPermission();
+      await AlarmNotification.instance.requestNotificationPermission();
     }
 
     if (iOS) {
@@ -150,8 +144,9 @@ class Alarm {
   }
 
   /// Whether the alarm is ringing.
-  static Future<bool> isRinging(int id) async =>
-      iOS ? await IOSAlarm.checkIfRinging(id) : AndroidAlarm.isRinging;
+  static Future<bool> isRinging(int id) async => iOS
+      ? await IOSAlarm.checkIfRinging(id)
+      : await AndroidAlarm.isRinging(id);
 
   /// Whether an alarm is set.
   static bool hasAlarm() => AlarmStorage.hasAlarm();

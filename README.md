@@ -9,11 +9,11 @@
 
 # Alarm plugin for iOS and Android
 
-This Flutter plugin provides a simple and easy-to-use interface for setting and canceling alarms on iOS and Android devices. It utilizes the `android_alarm_manager_plus` plugin for Android and the native iOS `AVAudioPlayer` class.
+This plugin offers a straightforward interface to set and cancel alarms on both iOS and Android devices. Using native code, it handles audio playback, vibrations, system volume, and notifications seamlessly.
 
 ## 🔧 Installation steps
 
-Please carefully follow these installation steps. They have been updated for plugin version `2.0.0`.
+Please carefully follow these installation steps. They have been updated for plugin version `3.0.0`.
 
 ### [iOS Setup](https://github.com/gdelataillade/alarm/blob/feat/ios-background-fetch/help/INSTALL-IOS.md)
 ### [Android Setup](https://github.com/gdelataillade/alarm/blob/feat/ios-background-fetch/help/INSTALL-ANDROID.md)
@@ -63,10 +63,7 @@ fadeDuration |   `double`     | Duration, in seconds, over which to fade the ala
 notificationTitle |   `String`     | The title of the notification triggered when alarm rings if app is on background.
 notificationBody | `String` | The body of the notification.
 enableNotificationOnKill |   `bool`     | Whether to show a notification when application is killed to warn the user that the alarm he set may not ring. Enabled by default.
-stopOnNotificationOpen |   `bool`     | Whether to stop the alarm when opening the received notification. Disabled by default.
 androidFullScreenIntent |   `bool`     | Whether to turn screen on when android alarm notification is triggered. Enabled by default.
-
-The notification shown on alarm ring can be disabled simply by ignoring the parameters `notificationTitle` and `notificationBody`. However, if you want a notification to be triggered, you will have to provide **both of them**.
 
 If you enabled `enableNotificationOnKill`, you can chose your own notification title and body by using this method before setting your alarms:
 ```Dart
@@ -101,9 +98,11 @@ Don't hesitate to check out the example's code, and take a look at the app:
 | Do not disturb           |  ✅   | ✅       | ✅          | Silenced
 | Sleep mode               |  ✅   | ✅       | ✅          | Silenced
 | While playing other media|  ✅   | ✅       | ✅          | ✅
-| App killed               |  ❌   | ❌       | ❌          | ✅
+| App killed               |  🤖   | 🤖       | 🤖          | ✅
 
-*Silenced: Means that the notification is not shown directly on the top of the screen. You have to go in your notification center to see it.*
+✅ : iOS and Android
+🤖 : Android only.
+Silenced: Means that the notification is not shown directly on the top of the screen. You have to go in your notification center to see it.
 
 ## ❓ FAQ
 
@@ -123,14 +122,15 @@ Most common solution is to educate users to disable **battery optimization** set
 
 The more time the app spends in the background, the higher the chance the OS might stop it from running due to memory or battery optimizations. Here's how you can optimize:
 
+- **Battery Optimization**: Educate users to disable battery optimization on Android.
 - **Regular App Usage**: Encourage users to open the app at least once a day.
 - **Leverage Background Modes**: Engage in activities like weather API calls that keep the app active in the background.
-- **User Settings**: Educate users to refrain from using 'Do Not Disturb' (DnD) and 'Low Power Mode' when they're expecting the alarm to ring.
+- **User Settings**: Educate users to refrain from using 'Do Not Disturb' and 'Low Power Mode' when they're expecting the alarm to ring.
 
 ## ⚙️ Under the hood
 
 ### Android
-Uses `oneShotAt` from the `android_alarm_manager_plus` plugin with a two-way communication isolated callback to start/stop the alarm.
+Leverages a foreground service with AlarmManager scheduling to ensure alarm reliability, even if the app is terminated. Utilizes AudioManager for robust alarm sound management.
 
 ### iOS
 Keeps the app awake using a silent `AVAudioPlayer` until alarm rings. When in the background, it also uses `Background App Refresh` to periodically ensure the app is still active.
@@ -155,5 +155,9 @@ These are some features that I have in mind that could be useful:
 - Make alarm ring even if app was terminated.
 
 Thank you for considering contributing to this plugin. Your help is greatly appreciated!
+
+🙏 Special thanks to the main contributors 🇫🇷
+- [evolum](https://evolum.co)
+- [WayUp](https://wayuphealth.fr)
 
 ❤️ Let me know if you like the plugin by liking it on [pub.dev](https://pub.dev/packages/alarm) and starring the repo on [Github](https://github.com/gdelataillade/alarm) 🙂

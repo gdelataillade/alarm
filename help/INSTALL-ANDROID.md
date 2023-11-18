@@ -14,41 +14,53 @@ android {
 ```
 
 ## Step 2
-Then, add the following to your `AndroidManifest.xml` within the `<manifest></manifest>` tags:
+Then, add the following permissions to your `AndroidManifest.xml` within the `<manifest></manifest>` tags:
 
 ```xml
-<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-<uses-permission android:name="android.permission.WAKE_LOCK"/>
-<uses-permission android:name="android.permission.VIBRATE"/>
-<uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
-<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+  <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+  <uses-permission android:name="android.permission.WAKE_LOCK"/>
+  <uses-permission android:name="android.permission.VIBRATE"/>
+  <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
+  <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 ```
+
+See more details on Android permissions [here](https://developer.android.com/reference/android/Manifest.permission).
 
 ## Step 3
-Now, within the `<application></application>` tags, add:
-
-```xml
-<service
-    android:name="dev.fluttercommunity.plus.androidalarmmanager.AlarmService"
-    android:permission="android.permission.BIND_JOB_SERVICE"
-    android:exported="false"/>
-<receiver
-    android:name="dev.fluttercommunity.plus.androidalarmmanager.AlarmBroadcastReceiver"
-    android:exported="false"/>
-<receiver
-    android:name="dev.fluttercommunity.plus.androidalarmmanager.RebootBroadcastReceiver"
-    android:enabled="false"
-    android:exported="false">
-    <intent-filter>
-        <action android:name="android.intent.action.BOOT_COMPLETED" />
-    </intent-filter>
-</receiver>
-```
-
-Finally, if you want your notifications to show in full screen even when the device is locked, add these attributes in `<activity>`:
+Finally, if you want your notifications to show in full screen even when the device is locked (`androidFullScreenIntent` parameter), add these attributes in `<activity>`:
 
 ```xml
 <activity
     android:showWhenLocked="true"
     android:turnScreenOn="true">
 ```
+
+## Step 4
+Inside the <application> tag of your AndroidManifest.xml, add the following declarations:
+```xml
+<application>
+  [...]
+  <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
+  <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
+      <intent-filter>
+          <action android:name="android.intent.action.BOOT_COMPLETED"/>
+          <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+          <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+          <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
+      </intent-filter>
+  </receiver>
+  <service android:name="com.gdelataillade.alarm.services.NotificationOnKillService" />
+  [...]
+</application>
+```
+
+This setup is essential for managing notifications, especially when the app is terminated or the device is rebooted.
+
+## Additional Resource
+
+For a practical implementation example, you can refer to the example's Android manifest in the plugin repository. This might help you better understand the setup and integration:
+
+[Example AndroidManifest.xml](https://github.com/gdelataillade/alarm/blob/main/example/android/app/src/main/AndroidManifest.xml)

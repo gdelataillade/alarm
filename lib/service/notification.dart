@@ -25,60 +25,34 @@ class AlarmNotification {
       requestAlertPermission: false,
       requestSoundPermission: false,
       requestBadgePermission: false,
-      onDidReceiveLocalNotification: onSelectNotificationOldIOS,
     );
     const initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsIOS,
     );
 
-    await localNotif.initialize(
-      initializationSettings,
-      onDidReceiveBackgroundNotificationResponse: onSelectNotification,
-      onDidReceiveNotificationResponse: onSelectNotification,
-    );
+    await localNotif.initialize(initializationSettings);
     tz.initializeTimeZones();
   }
 
-  // Callback to stop the alarm when the notification is opened.
-  static onSelectNotification(NotificationResponse notificationResponse) async {
-    if (notificationResponse.id == null) return;
-    await stopAlarm(notificationResponse.id!);
-  }
-
-  // Callback to stop the alarm when the notification is opened for iOS versions older than 10.
-  static onSelectNotificationOldIOS(
-    int? id,
-    String? _,
-    String? __,
-    String? ___,
-  ) async {
-    if (id != null) await stopAlarm(id);
-  }
-
-  /// Stops the alarm.
-  static Future<void> stopAlarm(int id) async {
-    if (Alarm.getAlarm(id)?.stopOnNotificationOpen != null &&
-        Alarm.getAlarm(id)!.stopOnNotificationOpen) {
-      await Alarm.stop(id);
-    }
-  }
-
   /// Shows notification permission request.
-  Future<bool> requestPermission() async {
-    bool? result;
+  Future<bool> requestNotificationPermission() async {
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      final res = await localNotif
+          .resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin>()
+          ?.requestPermissions(alert: true, badge: true, sound: true);
+      return res ?? false;
+    }
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      final res = await localNotif
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.requestNotificationsPermission();
 
-    result = defaultTargetPlatform == TargetPlatform.android
-        ? await localNotif
-            .resolvePlatformSpecificImplementation<
-                AndroidFlutterLocalNotificationsPlugin>()
-            ?.requestPermission()
-        : await localNotif
-            .resolvePlatformSpecificImplementation<
-                IOSFlutterLocalNotificationsPlugin>()
-            ?.requestPermissions(alert: true, badge: true, sound: true);
-
-    return result ?? false;
+      return res ?? false;
+    }
+    return false;
   }
 
   tz.TZDateTime nextInstanceOfTime(DateTime dateTime) {
@@ -114,6 +88,7 @@ class AlarmNotification {
       playSound: false,
       enableLights: true,
       fullScreenIntent: fullScreenIntent,
+      visibility: NotificationVisibility.public,
     );
 
     final platformChannelSpecifics = NotificationDetails(
@@ -123,10 +98,9 @@ class AlarmNotification {
 
     final zdt = nextInstanceOfTime(dateTime);
 
-    final hasPermission = await requestPermission();
-    if (!hasPermission) {
+    final hasNotificationPermission = await requestNotificationPermission();
+    if (!hasNotificationPermission) {
       alarmPrint('Notification permission not granted');
-      return;
     }
 
     try {
@@ -136,7 +110,7 @@ class AlarmNotification {
         body,
         tz.TZDateTime.from(zdt.toUtc(), tz.UTC),
         platformChannelSpecifics,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: AndroidScheduleMode.alarmClock,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
       );
@@ -150,8 +124,5 @@ class AlarmNotification {
 
   /// Cancels notification. Called when the alarm is cancelled or
   /// when an alarm is overriden.
-  Future<void> cancel(int id) async {
-    await localNotif.cancel(id);
-    alarmPrint('Notification with id $id canceled');
-  }
+  Future<void> cancel(int id) => localNotif.cancel(id);
 }

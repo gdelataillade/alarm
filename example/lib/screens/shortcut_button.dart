@@ -25,13 +25,14 @@ class _ExampleAlarmHomeShortcutButtonState
 
     setState(() => showMenu = false);
 
-    alarmPrint(dateTime.toString());
-
     final alarmSettings = AlarmSettings(
       id: DateTime.now().millisecondsSinceEpoch % 10000,
       dateTime: dateTime,
       assetAudioPath: 'assets/marimba.mp3',
-      volumeMax: true,
+      volumeMax: false,
+      notificationTitle: 'Alarm example',
+      notificationBody:
+          'Shortcut button alarm with delay of $delayInHours hours',
     );
 
     await Alarm.set(alarmSettings: alarmSettings);
