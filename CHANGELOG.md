@@ -4,6 +4,7 @@
 * Remove [stopOnNotificationOpen] property.
 * Make notification mandatory so android foreground services can be used.
 * [Android] Refactor alarm to native android services.
+* Replace [volumeMax] with [volume] double property.
 
 ## 2.2.0
 * [Android] Move alarm service to native code.
