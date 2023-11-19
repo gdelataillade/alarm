@@ -1,5 +1,7 @@
 # Android Setup
 
+If you are using a plugin version below `3.0.0`, follow [these installation steps](https://github.com/gdelataillade/alarm/blob/a2b736807e03ae1f3a60f234ad0b4f686ac59520/help/INSTALL-ANDROID.md) instead.
+
 ## Step 1
 In your `android/app/build.gradle`, make sure you have the following config:
 ```Gradle
