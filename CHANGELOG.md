@@ -1,6 +1,3 @@
-## 3.0.0-dev.3
-* [iOS] Remove `flutter_fgbg` dependency.
-
 ## 3.0.0-dev.2
 * [iOS] Make native iOS notifications to remove `flutter_local_notification` dependency.
 
