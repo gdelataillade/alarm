@@ -1,3 +1,6 @@
+## 3.0.0-dev.2
+* [iOS] Make native iOS notifications to remove `flutter_local_notification` dependency.
+
 ## 3.0.0-dev.1
 **💥 Breaking Changes**
 **🔧 Android installation steps were updated [here](https://github.com/gdelataillade/alarm/blob/main/help/INSTALL-ANDROID.md).**
@@ -10,7 +13,7 @@
 * [Android] Move alarm service to native code.
 
 ## 2.1.1
-* Fix AlarmSettings.fromJson method with missing [androidFullScreenIntent].
+* Fix `AlarmSettings.fromJson` method with missing [androidFullScreenIntent].
 
 ## 2.1.0
 **🔧 Android installation steps were updated [here](https://github.com/gdelataillade/alarm/blob/main/help/INSTALL-ANDROID.md).**
