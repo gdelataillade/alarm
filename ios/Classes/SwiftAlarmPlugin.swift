@@ -66,27 +66,30 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
         let args = call.arguments as! Dictionary<String, Any>
 
+        let id = args["id"] as! Int
+        let delayInSeconds = args["delayInSeconds"] as! Double
+        let notificationTitle = args["notificationTitle"] as? String
+        let notificationBody = args["notificationBody"] as? String
+
+        if (notificationTitle != nil && notificationBody != nil && delayInSeconds >= 1.0) {
+            self.scheduleNotification(id: String(id), delayInSeconds: Int(floor(delayInSeconds)), title: notificationTitle!, body: notificationBody!)
+        }
+
         notifOnKillEnabled = (args["notifOnKillEnabled"] as! Bool)
         notificationTitleOnKill = (args["notifTitleOnAppKill"] as! String)
         notificationBodyOnKill = (args["notifDescriptionOnAppKill"] as! String)
 
         if notifOnKillEnabled && !observerAdded {
             observerAdded = true
-            do {
-                NotificationCenter.default.addObserver(self, selector: #selector(applicationWillTerminate(_:)), name: UIApplication.willTerminateNotification, object: nil)
-            } catch {
-                NSLog("SwiftAlarmPlugin: Failed to register observer for UIApplication.willTerminateNotification: \(error)")
-            }
+            NotificationCenter.default.addObserver(self, selector: #selector(applicationWillTerminate(_:)), name: UIApplication.willTerminateNotification, object: nil)
         }
 
-        let id = args["id"] as! Int
-        let delayInSeconds = args["delayInSeconds"] as! Double
         let loopAudio = args["loopAudio"] as! Bool
         let fadeDuration = args["fadeDuration"] as! Double
         let vibrationsEnabled = args["vibrate"] as! Bool
         let volume = args["volume"] as? Double
         let assetAudio = args["assetAudio"] as! String
-        
+
         var volumeFloat: Float? = nil
         if let volumeValue = volume {
             volumeFloat = Float(volumeValue)
@@ -249,6 +252,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
 
     private func stopAlarm(id: Int, result: FlutterResult) {
+        self.cancelNotification(id: String(id))
+
         self.mixOtherAudios()
 
         self.vibrate = false
@@ -420,5 +425,35 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         } else {
             NSLog("SwiftAlarmPlugin: BGTaskScheduler not available for your version of iOS lower than 13.0")
         }
+    }
+
+    func scheduleNotification(id: String, delayInSeconds: Int, title: String, body: String) {
+        // Request permission
+        let center = UNUserNotificationCenter.current()
+        center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+            if granted {
+                // Schedule the notification
+                let content = UNMutableNotificationContent()
+                content.title = title
+                content.body = body
+                content.sound = UNNotificationSound.default
+
+                let trigger = UNTimeIntervalNotificationTrigger(timeInterval: TimeInterval(delayInSeconds), repeats: false)
+                let request = UNNotificationRequest(identifier: "alarm-\(id)", content: content, trigger: trigger)
+
+                center.add(request) { error in
+                    if let error = error {
+                        NSLog("SwiftAlarmPlugin: Error scheduling notification: \(error.localizedDescription)")
+                    }
+                }
+            } else {
+                NSLog("SwiftAlarmPlugin: Notification permission denied")
+            }
+        }
+    }
+
+    func cancelNotification(id: String) {
+        let center = UNUserNotificationCenter.current()
+        center.removePendingNotificationRequests(withIdentifiers: ["alarm-\(id)"])
     }
 }

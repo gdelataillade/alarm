@@ -36,6 +36,8 @@ class IOSAlarm {
               'vibrate': settings.vibrate,
               'volume': settings.volume,
               'notifOnKillEnabled': settings.enableNotificationOnKill,
+              'notificationTitle': settings.notificationTitle,
+              'notificationBody': settings.notificationBody,
               'notifTitleOnAppKill':
                   AlarmStorage.getNotificationOnAppKillTitle(),
               'notifDescriptionOnAppKill':
