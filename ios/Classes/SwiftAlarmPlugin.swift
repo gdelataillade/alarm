@@ -18,6 +18,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
 
     private let vibrationService = VibrationService()
+    private let audioService = AudioService()
 
     private var audioPlayers: [Int: AVAudioPlayer] = [:]
     private var silentAudioPlayer: AVAudioPlayer?
@@ -56,7 +57,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
 
     private func setAlarm(call: FlutterMethodCall, result: FlutterResult) {
-        self.mixOtherAudios()
+        audioService.mixOtherAudios()
 
         let args = call.arguments as! Dictionary<String, Any>
 
@@ -66,11 +67,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
         if notifOnKillEnabled && !observerAdded {
             observerAdded = true
-            do {
-                NotificationCenter.default.addObserver(self, selector: #selector(applicationWillTerminate(_:)), name: UIApplication.willTerminateNotification, object: nil)
-            } catch {
-                NSLog("SwiftAlarmPlugin: Failed to register observer for UIApplication.willTerminateNotification: \(error)")
-            }
+            NotificationCenter.default.addObserver(self, selector: #selector(applicationWillTerminate(_:)), name: UIApplication.willTerminateNotification, object: nil)
         }
 
         let id = args["id"] as! Int
@@ -80,7 +77,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         let vibrationsEnabled = args["vibrate"] as! Bool
         let volume = args["volume"] as? Double
         let assetAudio = args["assetAudio"] as! String
-        
+
         var volumeFloat: Float? = nil
         if let volumeValue = volume {
             volumeFloat = Float(volumeValue)
@@ -116,8 +113,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             }
         }
 
-       let currentTime = self.audioPlayers[id]!.deviceCurrentTime
-       let time = currentTime + delayInSeconds
+        let currentTime = self.audioPlayers[id]!.deviceCurrentTime
+        let time = currentTime + delayInSeconds
 
         let dateTime = Date().addingTimeInterval(delayInSeconds)
         self.triggerTimes[id] = dateTime
@@ -218,7 +215,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             return
         }
 
-        self.duckOtherAudios()
+        audioService.duckOtherAudios()
 
         if !audioPlayer.isPlaying || audioPlayer.currentTime == 0.0 {
             self.audioPlayers[id]!.play()
@@ -243,7 +240,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
 
     private func stopAlarm(id: Int, result: FlutterResult) {
-        self.mixOtherAudios()
+        audioService.mixOtherAudios()
 
         vibrationService.setVibrations(enable: false)
         if self.previousVolume != nil {
@@ -270,7 +267,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }	
 
     private func stopSilentSound() {
-        self.mixOtherAudios()
+        audioService.mixOtherAudios()
 
         if self.audioPlayers.isEmpty {
             self.playSilent = false
@@ -304,7 +301,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
 
     private func backgroundFetch() {
-        self.mixOtherAudios()
+        audioService.mixOtherAudios()
 
         self.silentAudioPlayer?.pause()
         self.silentAudioPlayer?.play()
@@ -347,24 +344,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             } else {
                 NSLog("SwiftAlarmPlugin: Trigger notification on app kill")
             }
-        }
-    }
-
-    private func mixOtherAudios() {
-        do {
-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers])
-            try AVAudioSession.sharedInstance().setActive(true)
-        } catch {
-            NSLog("SwiftAlarmPlugin: Error setting up audio session with option mixWithOthers: \(error.localizedDescription)")
-        }
-    }
-
-    private func duckOtherAudios() {
-        do {
-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.duckOthers])
-            try AVAudioSession.sharedInstance().setActive(true)
-        } catch {
-            NSLog("SwiftAlarmPlugin: Error setting up audio session with option duckOthers: \(error.localizedDescription)")
         }
     }
 
