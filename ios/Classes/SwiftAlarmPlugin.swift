@@ -1,17 +1,10 @@
 import Flutter
 import UIKit
 import AVFoundation
-import AudioToolbox
 import MediaPlayer
 import BackgroundTasks
 
 public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
-    #if targetEnvironment(simulator)
-        private let isDevice = false
-    #else
-        private let isDevice = true
-    #endif
-
     private var registrar: FlutterPluginRegistrar!
     static let sharedInstance = SwiftAlarmPlugin()
     static let backgroundTaskIdentifier: String = "com.gdelataillade.fetch"
@@ -24,6 +17,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         registrar.addMethodCallDelegate(instance, channel: channel)
     }
 
+    private let vibrationService = VibrationService()
+
     private var audioPlayers: [Int: AVAudioPlayer] = [:]
     private var silentAudioPlayer: AVAudioPlayer?
     private var tasksQueue: [Int: DispatchWorkItem] = [:]
@@ -35,7 +30,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     private var notificationBodyOnKill: String!
 
     private var observerAdded = false
-    private var vibrate = false
     private var playSilent = false
     private var previousVolume: Float? = nil
 
@@ -230,13 +224,13 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             self.audioPlayers[id]!.play()
         }
 
-        self.vibrate = vibrationsEnabled
-        self.triggerVibrations()
+        vibrationService.setVibrations(enable: vibrationsEnabled)
+        vibrationService.triggerVibrations()
 
         if !audioLoop {
             let audioDuration = audioPlayer.duration
             DispatchQueue.main.asyncAfter(deadline: .now() + audioDuration) {
-                self.vibrate = false
+                self.vibrationService.setVibrations(enable: false)
             }
         }
 
@@ -251,7 +245,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     private func stopAlarm(id: Int, result: FlutterResult) {
         self.mixOtherAudios()
 
-        self.vibrate = false
+        vibrationService.setVibrations(enable: false)
         if self.previousVolume != nil {
             self.setVolume(volume: self.previousVolume!, enable: false)
         }
@@ -283,16 +277,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             self.silentAudioPlayer?.stop()
             NotificationCenter.default.removeObserver(self)
             SwiftAlarmPlugin.cancelBackgroundTasks()
-        }
-    }
-
-    private func triggerVibrations() {
-        if vibrate && isDevice {
-            AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                    AudioServicesDisposeSystemSoundID(kSystemSoundID_Vibrate)
-                    self.triggerVibrations()
-                }
         }
     }
 
