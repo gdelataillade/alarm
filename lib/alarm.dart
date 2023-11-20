@@ -6,7 +6,6 @@ import 'dart:async';
 import 'package:alarm/model/alarm_settings.dart';
 import 'package:alarm/src/ios_alarm.dart';
 import 'package:alarm/src/android_alarm.dart';
-import 'package:alarm/service/notification.dart';
 import 'package:alarm/service/storage.dart';
 import 'package:flutter/foundation.dart';
 
@@ -38,7 +37,6 @@ class Alarm {
 
     await Future.wait([
       if (android) AndroidAlarm.init(),
-      AlarmNotification.instance.init(),
       AlarmStorage.init(),
     ]);
     await checkAlarm();
@@ -83,20 +81,6 @@ class Alarm {
     await AlarmStorage.saveAlarm(alarmSettings);
 
     if (iOS) {
-      await AlarmNotification.instance.scheduleAlarmNotif(
-        id: alarmSettings.id,
-        dateTime: alarmSettings.dateTime,
-        title: alarmSettings.notificationTitle,
-        body: alarmSettings.notificationBody,
-        fullScreenIntent: alarmSettings.androidFullScreenIntent,
-      );
-    }
-
-    if (alarmSettings.enableNotificationOnKill) {
-      await AlarmNotification.instance.requestNotificationPermission();
-    }
-
-    if (iOS) {
       return IOSAlarm.setAlarm(
         alarmSettings,
         () => ringStream.add(alarmSettings),
@@ -128,8 +112,6 @@ class Alarm {
   /// Stops alarm.
   static Future<bool> stop(int id) async {
     await AlarmStorage.unsaveAlarm(id);
-
-    AlarmNotification.instance.cancel(id);
 
     return iOS ? await IOSAlarm.stopAlarm(id) : await AndroidAlarm.stop(id);
   }
