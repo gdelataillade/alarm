@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:alarm/alarm.dart';
+import 'package:alarm/service/fgbg.dart';
 import 'package:alarm/service/storage.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_fgbg/flutter_fgbg.dart';
 
 /// Uses method channel to interact with the native platform.
 class IOSAlarm {
