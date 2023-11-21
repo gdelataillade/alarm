@@ -58,7 +58,7 @@ class AndroidAlarm {
           'setNotificationOnKillService',
           {
             'title': AlarmStorage.getNotificationOnAppKillTitle(),
-            'description': AlarmStorage.getNotificationOnAppKillBody(),
+            'body': AlarmStorage.getNotificationOnAppKillBody(),
           },
         );
       } catch (e) {

@@ -77,12 +77,11 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
             }
             "setNotificationOnKillService" -> {
                 val title = call.argument<String>("title")
-                val description = call.argument<String>("description")
                 val body = call.argument<String>("body")
 
                 val serviceIntent = Intent(context, NotificationOnKillService::class.java)
                 serviceIntent.putExtra("title", title)
-                serviceIntent.putExtra("description", description)
+                serviceIntent.putExtra("body", body)
 
                 context.startService(serviceIntent)
 

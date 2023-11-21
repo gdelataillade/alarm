@@ -16,13 +16,13 @@ import io.flutter.Log
 
 class NotificationOnKillService: Service() {
     private lateinit var title: String
-    private lateinit var description: String
+    private lateinit var body: String
     private val NOTIFICATION_ID = 88888
     private val CHANNEL_ID = "com.gdelataillade.alarm.alarm_channel"
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         title = intent?.getStringExtra("title") ?: "Your alarms could not ring"
-        description = intent?.getStringExtra("description") ?: "You killed the app. Please reopen so your alarms can be rescheduled."
+        body = intent?.getStringExtra("body") ?: "You killed the app. Please reopen so your alarms can be rescheduled."
 
         return START_STICKY
     }
@@ -36,7 +36,7 @@ class NotificationOnKillService: Service() {
             val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(android.R.drawable.ic_notification_overlay)
                 .setContentTitle(title)
-                .setContentText(description)
+                .setContentText(body)
                 .setAutoCancel(false)
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setContentIntent(pendingIntent)
@@ -46,7 +46,7 @@ class NotificationOnKillService: Service() {
             val descriptionText = "If an alarm was set and the app is killed, a notification will show to warn the user the alarm could not ring as long as the app is killed"
             val importance = NotificationManager.IMPORTANCE_MAX
             val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
-                description = descriptionText
+                body = descriptionText
             }
 
             // Register the channel with the system

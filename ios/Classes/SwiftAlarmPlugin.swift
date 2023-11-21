@@ -125,8 +125,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             }
         }
 
-       let currentTime = self.audioPlayers[id]!.deviceCurrentTime
-       let time = currentTime + delayInSeconds
+        let currentTime = self.audioPlayers[id]!.deviceCurrentTime
+        let time = currentTime + delayInSeconds
 
         let dateTime = Date().addingTimeInterval(delayInSeconds)
         self.triggerTimes[id] = dateTime
