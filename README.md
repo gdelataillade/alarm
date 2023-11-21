@@ -151,7 +151,7 @@ We welcome contributions to this plugin! If you would like to make a change or a
 
 These are some features that I have in mind that could be useful:
 - Use `ffigen` and `jnigen` binding generators to call native code more efficiently instead of using method channels.
-- [Notification actions](https://pub.dev/packages/flutter_local_notifications#notification-actions): stop and snooze.
+- Notification actions: stop and snooze.
 - Stop alarm sound when notification is dismissed.
 - Make alarm ring even if app was terminated.
 

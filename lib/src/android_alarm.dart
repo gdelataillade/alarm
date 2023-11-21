@@ -58,11 +58,22 @@ class AndroidAlarm {
           'setNotificationOnKillService',
           {
             'title': AlarmStorage.getNotificationOnAppKillTitle(),
-            'description': AlarmStorage.getNotificationOnAppKillBody(),
+            'body': AlarmStorage.getNotificationOnAppKillBody(),
           },
         );
       } catch (e) {
         throw AlarmException('NotificationOnKillService error: $e');
+      }
+      try {
+        await platform.invokeMethod(
+          'setNotificationOnReboot',
+          {
+            'title': "title",
+            'body': "body",
+          },
+        );
+      } catch (e) {
+        throw AlarmException('BootCompletedReceiver error: $e');
       }
     }
 
@@ -92,6 +103,11 @@ class AndroidAlarm {
       await platform.invokeMethod('stopNotificationOnKillService');
     } catch (e) {
       throw AlarmException('NotificationOnKillService error: $e');
+    }
+    try {
+      await platform.invokeMethod('stopNotificationOnReboot');
+    } catch (e) {
+      throw AlarmException('BootCompletedReceiver error: $e');
     }
   }
 }

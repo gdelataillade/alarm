@@ -18,6 +18,9 @@ import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.Log
 
+import android.content.ComponentName
+import android.content.pm.PackageManager
+
 class AlarmPlugin: FlutterPlugin, MethodCallHandler {
     private lateinit var context: Context
     private lateinit var channel : MethodChannel
@@ -77,12 +80,11 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
             }
             "setNotificationOnKillService" -> {
                 val title = call.argument<String>("title")
-                val description = call.argument<String>("description")
                 val body = call.argument<String>("body")
 
                 val serviceIntent = Intent(context, NotificationOnKillService::class.java)
                 serviceIntent.putExtra("title", title)
-                serviceIntent.putExtra("description", description)
+                serviceIntent.putExtra("body", body)
 
                 context.startService(serviceIntent)
 
@@ -91,6 +93,16 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
             "stopNotificationOnKillService" -> {
                 val serviceIntent = Intent(context, NotificationOnKillService::class.java)
                 context.stopService(serviceIntent)
+                result.success(true)
+            }
+            "setNotificationOnReboot" -> {
+                val title = call.argument<String>("title")
+                val body = call.argument<String>("body")
+                enableBootCompletedReceiver(context)
+                result.success(true)
+            }
+            "stopNotificationOnReboot" -> {
+                disableBootCompletedReceiver(context)
                 result.success(true)
             }
             else -> {
@@ -130,6 +142,28 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
         alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
+    }
+
+    fun enableBootCompletedReceiver(context: Context) {
+        val receiver = ComponentName(context, BootCompletedReceiver::class.java)
+        val packageManager = context.packageManager
+
+        packageManager.setComponentEnabledSetting(
+            receiver,
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+            PackageManager.DONT_KILL_APP
+        )
+    }
+
+    fun disableBootCompletedReceiver(context: Context) {
+        val receiver = ComponentName(context, BootCompletedReceiver::class.java)
+        val packageManager = context.packageManager
+
+        packageManager.setComponentEnabledSetting(
+            receiver,
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+            PackageManager.DONT_KILL_APP
+        )
     }
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {

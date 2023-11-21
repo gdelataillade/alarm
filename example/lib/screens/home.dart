@@ -17,7 +17,7 @@ class ExampleAlarmHomeScreen extends StatefulWidget {
 class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
   late List<AlarmSettings> alarms;
 
-  static StreamSubscription? subscription;
+  static StreamSubscription<AlarmSettings>? subscription;
 
   @override
   void initState() {
