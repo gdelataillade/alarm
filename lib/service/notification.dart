@@ -314,7 +314,11 @@ class AlarmNotification {
             AndroidFlutterLocalNotificationsPlugin>();
         enabled = await platform?.areNotificationsEnabled();
         if (enabled == null || !enabled) {
-          enabled = await platform?.requestNotificationsPermission();
+          final enabledNotifications =
+              await platform?.requestNotificationsPermission() ?? false;
+          final enabledExactNotifications =
+              await platform?.requestExactAlarmsPermission() ?? false;
+          enabled = enabledNotifications && enabledExactNotifications;
         }
       } else {
         // iOS
@@ -334,16 +338,28 @@ class AlarmNotification {
 
   /// Shows notification permission request. May throw.
   Future<bool> requestPermissionUnguarded() async {
-    final result = defaultTargetPlatform == TargetPlatform.android
-        ? await localNotif
-            .resolvePlatformSpecificImplementation<
-                AndroidFlutterLocalNotificationsPlugin>()
-            ?.requestNotificationsPermission()
-        : await localNotif
-            .resolvePlatformSpecificImplementation<
-                IOSFlutterLocalNotificationsPlugin>()
-            ?.requestPermissions(alert: true, badge: true, sound: true);
-    return result ?? false;
+    bool? enabled;
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      // Android
+      final platform = localNotif.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+      enabled = await platform?.areNotificationsEnabled();
+      if (enabled == null || !enabled) {
+        final enabledNotifications =
+            await platform?.requestNotificationsPermission() ?? false;
+        final enabledExactNotifications =
+            await platform?.requestExactAlarmsPermission() ?? false;
+        enabled = enabledNotifications && enabledExactNotifications;
+      }
+    } else {
+      // iOS
+      enabled = await localNotif
+          .resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin>()
+          ?.requestPermissions(alert: true, badge: true, sound: true);
+    }
+
+    return enabled ?? false;
   }
 
   tz.TZDateTime nextInstanceOfTime(
