@@ -30,6 +30,9 @@ class AlarmSettings {
   /// Defaults to `null`.
   final double? volume;
 
+  /// Whether to show system volume UI when [volume] is set. Enabled by default.
+  final bool showVolumeSystemUI;
+
   /// Duration, in seconds, over which to fade the alarm ringtone.
   /// Set to 0.0 by default, which means no fade.
   final double fadeDuration;
@@ -58,6 +61,7 @@ class AlarmSettings {
     hash = hash ^ loopAudio.hashCode;
     hash = hash ^ vibrate.hashCode;
     hash = hash ^ volume.hashCode;
+    hash = hash ^ showVolumeSystemUI.hashCode;
     hash = hash ^ fadeDuration.hashCode;
     hash = hash ^ (notificationTitle.hashCode);
     hash = hash ^ (notificationBody.hashCode);
@@ -79,6 +83,7 @@ class AlarmSettings {
     this.loopAudio = true,
     this.vibrate = true,
     this.volume,
+    this.showVolumeSystemUI = true,
     this.fadeDuration = 0.0,
     required this.notificationTitle,
     required this.notificationBody,
@@ -94,6 +99,7 @@ class AlarmSettings {
         loopAudio: json['loopAudio'] as bool,
         vibrate: json['vibrate'] as bool? ?? true,
         volume: json['volume'] as double?,
+        showVolumeSystemUI: json['showVolumeSystemUI'] as bool? ?? true,
         fadeDuration: json['fadeDuration'] as double,
         notificationTitle: json['notificationTitle'] as String? ?? '',
         notificationBody: json['notificationBody'] as String? ?? '',
@@ -112,6 +118,7 @@ class AlarmSettings {
     bool? loopAudio,
     bool? vibrate,
     double? volume,
+    bool? showVolumeSystemUI,
     double? fadeDuration,
     String? notificationTitle,
     String? notificationBody,
@@ -125,6 +132,7 @@ class AlarmSettings {
       loopAudio: loopAudio ?? this.loopAudio,
       vibrate: vibrate ?? this.vibrate,
       volume: volume ?? this.volume,
+      showVolumeSystemUI: showVolumeSystemUI ?? this.showVolumeSystemUI,
       fadeDuration: fadeDuration ?? this.fadeDuration,
       notificationTitle: notificationTitle ?? this.notificationTitle,
       notificationBody: notificationBody ?? this.notificationBody,
@@ -143,6 +151,7 @@ class AlarmSettings {
         'loopAudio': loopAudio,
         'vibrate': vibrate,
         'volume': volume,
+        'showVolumeSystemUI': showVolumeSystemUI,
         'fadeDuration': fadeDuration,
         'notificationTitle': notificationTitle,
         'notificationBody': notificationBody,
@@ -171,6 +180,7 @@ class AlarmSettings {
           loopAudio == other.loopAudio &&
           vibrate == other.vibrate &&
           volume == other.volume &&
+          showVolumeSystemUI == other.showVolumeSystemUI &&
           fadeDuration == other.fadeDuration &&
           notificationTitle == other.notificationTitle &&
           notificationBody == other.notificationBody &&

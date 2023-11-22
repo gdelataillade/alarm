@@ -20,7 +20,6 @@ class AlarmService : Service() {
     private var audioService: AudioService? = null
     private var vibrationService: VibrationService? = null
     private var volumeService: VolumeService? = null
-    private var showSystemUI: Boolean = true
 
     companion object {
         @JvmStatic
@@ -57,17 +56,18 @@ class AlarmService : Service() {
         val loopAudio = intent?.getBooleanExtra("loopAudio", true)
         val vibrate = intent?.getBooleanExtra("vibrate", true)
         val volume = intent?.getDoubleExtra("volume", -1.0) ?: -1.0
+        val showVolumeSystemUI = intent?.getBooleanExtra("showVolumeSystemUI", true)
         val fadeDuration = intent?.getDoubleExtra("fadeDuration", 0.0)
         val notificationTitle = intent?.getStringExtra("notificationTitle")
         val notificationBody = intent?.getStringExtra("notificationBody")
         val fullScreenIntent = intent?.getBooleanExtra("fullScreenIntent", true)
-        showSystemUI = intent?.getBooleanExtra("showSystemUI", true) ?: true
 
         // Log.d("AlarmService", "id: $id")
         // Log.d("AlarmService", "assetAudioPath: $assetAudioPath")
         // Log.d("AlarmService", "loopAudio: $loopAudio")
         // Log.d("AlarmService", "vibrate: $vibrate")
         // Log.d("AlarmService", "volume: $volume")
+        // Log.d("AlarmService", "showVolumeSystemUI: $showVolumeSystemUI")
         // Log.d("AlarmService", "fadeDuration: $fadeDuration")
         // Log.d("AlarmService", "notificationTitle: $notificationTitle")
         // Log.d("AlarmService", "notificationBody: $notificationBody")
@@ -90,7 +90,7 @@ class AlarmService : Service() {
         }
 
         if (volume >= 0.0 && volume <= 1.0) {
-            volumeService?.setVolume(volume, showSystemUI)
+            volumeService?.setVolume(volume, showVolumeSystemUI!!)
         }
 
         volumeService?.requestAudioFocus()
@@ -114,7 +114,7 @@ class AlarmService : Service() {
     fun stopAlarm(id: Int) {
         ringingAlarmIds = audioService?.getPlayingMediaPlayersIds()!!
 
-        volumeService?.restorePreviousVolume(showSystemUI)
+        volumeService?.restorePreviousVolume()
         volumeService?.abandonAudioFocus()
 
         audioService?.stopAudio(id)
@@ -131,7 +131,7 @@ class AlarmService : Service() {
 
         audioService?.cleanUp()
         vibrationService?.stopVibrating()
-        volumeService?.restorePreviousVolume(showSystemUI)
+        volumeService?.restorePreviousVolume()
 
         stopForeground(true)
 

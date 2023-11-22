@@ -110,6 +110,7 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
         intent.putExtra("loopAudio", call.argument<Boolean>("loopAudio"))
         intent.putExtra("vibrate", call.argument<Boolean>("vibrate"))
         intent.putExtra("volume", call.argument<Boolean>("volume"))
+        intent.putExtra("showVolumeSystemUI", call.argument<Boolean>("showVolumeSystemUI"))
         intent.putExtra("fadeDuration", call.argument<Double>("fadeDuration"))
         intent.putExtra("notificationTitle", call.argument<String>("notificationTitle"))
         intent.putExtra("notificationBody", call.argument<String>("notificationBody"))

@@ -9,16 +9,18 @@ import kotlin.math.round
 
 class VolumeService(private val context: Context) {
     private var previousVolume: Int? = null
+    private var showSystemUI: Boolean = true
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
-    fun setVolume(volume: Double, showSystemUI: Boolean) {
+    fun setVolume(volume: Double, showVolumeSystemUI: Boolean) {
         val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
         previousVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+        showSystemUI = showVolumeSystemUI
         val _volume = (round(volume * maxVolume)).toInt()
         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, _volume, if (showSystemUI) AudioManager.FLAG_SHOW_UI else 0)
     }
 
-    fun restorePreviousVolume(showSystemUI: Boolean) {
+    fun restorePreviousVolume() {
         previousVolume?.let { prevVolume ->
             audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, prevVolume, if (showSystemUI) AudioManager.FLAG_SHOW_UI else 0)
             previousVolume = null

@@ -59,6 +59,7 @@ assetAudio |   `String`     | The path to you audio asset you want to use as rin
 loopAudio |   `bool`     | If true, audio will repeat indefinitely until alarm is stopped.
 vibrate |   `bool`     | If true, device will vibrate indefinitely until alarm is stopped. If [loopAudio] is set to false, vibrations will stop when audio ends.
 volume |   `double`     | Sets system volume level (0 to 1) at [dateTime]; reverts on alarm stop. Defaults to current volume if null.
+showVolumeSystemUI | `bool` | If true, shows the system volume UI when the volume is changed. Enabled by default.
 when alarm is stopped.
 fadeDuration |   `double`     | Duration, in seconds, over which to fade the alarm volume. Set to 0 by default, which means no fade.
 notificationTitle |   `String`     | The title of the notification triggered when alarm rings if app is on background.

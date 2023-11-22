@@ -42,6 +42,7 @@ class AndroidAlarm {
           'loopAudio': settings.loopAudio,
           'vibrate': settings.vibrate,
           'volume': settings.volume,
+          'showVolumeSystemUI': settings.showVolumeSystemUI,
           'fadeDuration': settings.fadeDuration,
           'notificationTitle': settings.notificationTitle,
           'notificationBody': settings.notificationBody,

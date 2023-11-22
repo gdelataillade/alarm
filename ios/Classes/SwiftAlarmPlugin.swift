@@ -36,6 +36,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
     private var observerAdded = false
     private var vibrate = false
+    private var showSystemUI = true
     private var playSilent = false
     private var previousVolume: Float? = nil
 
@@ -88,6 +89,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         let fadeDuration = args["fadeDuration"] as! Double
         let vibrationsEnabled = args["vibrate"] as! Bool
         let volume = args["volume"] as? Double
+        let showVolumeSystemUI = args["showVolumeSystemUI"] as! Bool
         let assetAudio = args["assetAudio"] as! String
 
         var volumeFloat: Float? = nil
@@ -154,7 +156,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 fadeDuration: fadeDuration,
                 vibrationsEnabled: vibrationsEnabled,
                 audioLoop: loopAudio,
-                volume: volumeFloat
+                volume: volumeFloat,
+                showVolumeSystemUI: showVolumeSystemUI
             )
         })
 
@@ -222,7 +225,15 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
     }
 
-    private func handleAlarmAfterDelay(id: Int, triggerTime: Date, fadeDuration: Double, vibrationsEnabled: Bool, audioLoop: Bool, volume: Float?) {
+    private func handleAlarmAfterDelay(
+        id: Int,
+        triggerTime: Date,
+        fadeDuration: Double,
+        vibrationsEnabled: Bool,
+        audioLoop: Bool,
+        volume: Float?,
+        showVolumeSystemUI: Bool
+    ) {
         guard let audioPlayer = self.audioPlayers[id], let storedTriggerTime = triggerTimes[id], triggerTime == storedTriggerTime else {
             return
         }
@@ -243,6 +254,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             }
         }
 
+        self.showSystemUI = showVolumeSystemUI
         if let volumeValue = volume {  
             self.setVolume(volume: volumeValue, enable: true)  
         }
@@ -304,6 +316,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     public func setVolume(volume: Float, enable: Bool) {
         DispatchQueue.main.async {
             let volumeView = MPVolumeView()
+            volumeView.showsVolumeSlider = self.showSystemUI
+            volumeView.showsRouteButton = self.showSystemUI
 
             DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.5) {
                 if let slider = volumeView.subviews.first(where: { $0 is UISlider }) as? UISlider {
