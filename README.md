@@ -59,12 +59,13 @@ assetAudio |   `String`     | The path to you audio asset you want to use as rin
 loopAudio |   `bool`     | If true, audio will repeat indefinitely until alarm is stopped.
 vibrate |   `bool`     | If true, device will vibrate indefinitely until alarm is stopped. If [loopAudio] is set to false, vibrations will stop when audio ends.
 volume |   `double`     | Sets system volume level (0.0 to 1.0) at [dateTime]; reverts on alarm stop. Defaults to current volume if null.
-when alarm is stopped.
 fadeDuration |   `double`     | Duration, in seconds, over which to fade the alarm volume. Set to 0.0 by default, which means no fade.
-notificationTitle |   `String`     | The title of the notification triggered when alarm rings if app is on background.
+notificationTitle |   `String`     | The title of the notification triggered when alarm rings.
 notificationBody | `String` | The body of the notification.
 enableNotificationOnKill |   `bool`     | Whether to show a notification when application is killed to warn the user that the alarm he set may not ring. Enabled by default.
 androidFullScreenIntent |   `bool`     | Whether to turn screen on when android alarm notification is triggered. Enabled by default.
+
+Note that if `notificationTitle` and `notificationBody` are both empty, iOS will not show the notification and Android will show an empty notification.
 
 If you enabled `enableNotificationOnKill`, you can chose your own notification title and body by using this method before setting your alarms:
 ```Dart
@@ -85,7 +86,7 @@ To avoid unexpected behaviors, if you set an alarm for the same time as an exist
 
 ## 📱 Example app
 
-Don't hesitate to check out the example's code, and take a look at the app:
+Don't hesitate to check out the [example's code](https://github.com/gdelataillade/alarm/tree/main/example), and take a look at the app:
 
 ![home](https://github.com/gdelataillade/alarm/assets/32983806/695736aa-b55f-4050-8b0d-274b0d46714a)
 ![edit](https://github.com/gdelataillade/alarm/assets/32983806/05329836-9fbe-462c-aa1e-dce0fa70f455)
@@ -101,8 +102,8 @@ Don't hesitate to check out the example's code, and take a look at the app:
 | While playing other media|  ✅   | ✅       | ✅     | ✅
 | App killed               |  🤖   | 🤖       | 🤖     | ✅
 
-✅ : iOS and Android
-🤖 : Android only.
+✅ : iOS and Android.\
+🤖 : Android only.\
 Silenced: Means that the notification is not shown directly on the top of the screen. You have to go in your notification center to see it.
 
 ## ❓ FAQ
@@ -133,6 +134,12 @@ The more time the app spends in the background, the higher the chance the OS mig
 While periodic alarms can be implemented on Android, this is not feasible for iOS. To maintain consistency between both platforms, I will not be adding this feature to the package (except if a solution is found). As an alternative, you could store the scheduled days for alarms and reset them for the upcoming week each time the app is launched.
 
 Related issue [here](https://github.com/gdelataillade/alarm/issues/47#issuecomment-1820896276).
+
+### Why was my app rejected by the App Store for guideline issues?
+
+The rejection may relate to plugin's background audio functionality, essential for alarm apps. Clarify in your submission that background activity is crucial for your alarm app to notify users effectively. Ensure compliance with Apple's guidelines on background processes.
+
+For more guidance, see: [App Store Rejection Issues](https://github.com/gdelataillade/alarm/discussions/87).
 
 ## ⚙️ Under the hood
 

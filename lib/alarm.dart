@@ -63,11 +63,7 @@ class Alarm {
   /// If you set an alarm for the same [dateTime] as an existing one,
   /// the new alarm will replace the existing one.
   static Future<bool> set({required AlarmSettings alarmSettings}) async {
-    if (!alarmSettings.assetAudioPath.contains('.')) {
-      throw AlarmException(
-        'Provided asset audio file does not have extension: ${alarmSettings.assetAudioPath}',
-      );
-    }
+    alarmSettingsValidation(alarmSettings);
 
     for (final alarm in Alarm.getAlarms()) {
       if (alarm.id == alarmSettings.id ||
@@ -93,6 +89,25 @@ class Alarm {
     }
 
     return false;
+  }
+
+  static void alarmSettingsValidation(AlarmSettings alarmSettings) {
+    if (!alarmSettings.assetAudioPath.contains('.')) {
+      throw AlarmException(
+        'Provided audio path is not valid: ${alarmSettings.assetAudioPath}',
+      );
+    }
+    if (alarmSettings.volume != null &&
+        (alarmSettings.volume! < 0 || alarmSettings.volume! > 1)) {
+      throw AlarmException(
+        'Volume must be between 0 and 1. Provided: ${alarmSettings.volume}',
+      );
+    }
+    if (alarmSettings.fadeDuration < 0) {
+      throw AlarmException(
+        'Fade duration must be positive. Provided: ${alarmSettings.fadeDuration}',
+      );
+    }
   }
 
   /// When the app is killed, all the processes are terminated

@@ -436,7 +436,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 let content = UNMutableNotificationContent()
                 content.title = title
                 content.body = body
-                content.sound = UNNotificationSound.default
+                content.sound = nil
 
                 let trigger = UNTimeIntervalNotificationTrigger(timeInterval: TimeInterval(delayInSeconds), repeats: false)
                 let request = UNNotificationRequest(identifier: "alarm-\(id)", content: content, trigger: trigger)

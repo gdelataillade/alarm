@@ -1,3 +1,8 @@
+## 3.0.0-dev.4
+* [iOS] Remove notification sound.
+* Throw exception if alarm settings are invalid.
+* Improve README.
+
 ## 3.0.0-dev.3
 * Update README.
 * Add minor improvements.
