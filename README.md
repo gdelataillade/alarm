@@ -128,6 +128,12 @@ The more time the app spends in the background, the higher the chance the OS mig
 - **Leverage Background Modes**: Engage in activities like weather API calls that keep the app active in the background.
 - **User Settings**: Educate users to refrain from using 'Do Not Disturb' and 'Low Power Mode' when they're expecting the alarm to ring.
 
+### How can I make my alarm periodic ?
+
+While periodic alarms can be implemented on Android, this is not feasible for iOS. To maintain consistency between both platforms, I will not be adding this feature to the package (except if a solution is found). As an alternative, you could store the scheduled days for alarms and reset them for the upcoming week each time the app is launched.
+
+Related issue [here](https://github.com/gdelataillade/alarm/issues/47#issuecomment-1820896276).
+
 ## ⚙️ Under the hood
 
 ### Android
@@ -150,10 +156,10 @@ We welcome contributions to this plugin! If you would like to make a change or a
 4.  Submit a pull request with a detailed description of your changes.
 
 These are some features that I have in mind that could be useful:
-- Use `ffigen` and `jnigen` binding generators to call native code more efficiently instead of using method channels.
+- [Android] Reschedule alarms after device reboot.
 - Notification actions: stop and snooze.
+- Use `ffigen` and `jnigen` binding generators to call native code more efficiently instead of using method channels.
 - Stop alarm sound when notification is dismissed.
-- Make alarm ring even if app was terminated.
 
 Thank you for considering contributing to this plugin. Your help is greatly appreciated!
 

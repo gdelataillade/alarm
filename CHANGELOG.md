@@ -1,3 +1,7 @@
+## 3.0.0-dev.3
+* Update README.
+* Add minor improvements.
+
 ## 3.0.0-dev.2
 * [iOS] Make native iOS notifications to remove `flutter_local_notification` dependency.
 
