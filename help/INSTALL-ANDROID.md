@@ -54,6 +54,7 @@ This setup is essential for managing notifications, especially when the app is t
 
 ## Additional Resource
 
-For a practical implementation example, you can refer to the example's Android manifest in the plugin repository. This might help you better understand the setup and integration:
+For a practical implementation example, you can refer to the example's Android manifest & build.gradle in the plugin repository. This might help you better understand the setup and integration:
 
+[Example build.gradle](https://github.com/gdelataillade/alarm/blob/main/example/android/app/build.gradle)
 [Example AndroidManifest.xml](https://github.com/gdelataillade/alarm/blob/main/example/android/app/src/main/AndroidManifest.xml)
