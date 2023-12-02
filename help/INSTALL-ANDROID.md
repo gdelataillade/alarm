@@ -52,9 +52,11 @@ Inside the <application> tag of your AndroidManifest.xml, add the following decl
 
 This setup is essential for managing notifications, especially when the app is terminated or the device is rebooted.
 
-## Additional Resource
+## Additional Resources
 
 For a practical implementation example, you can refer to the example's Android manifest & build.gradle in the plugin repository. This might help you better understand the setup and integration:
 
 [Example build.gradle](https://github.com/gdelataillade/alarm/blob/main/example/android/app/build.gradle)
 [Example AndroidManifest.xml](https://github.com/gdelataillade/alarm/blob/main/example/android/app/src/main/AndroidManifest.xml)
+
+Note that in version `3.0.0`, I removed the [`flutter_local_notifications`](https://pub.dev/packages/flutter_local_notifications) and [`android_alarm_manager_plus`](https://pub.dev/packages/android_alarm_manager_plus) dependencies. For those upgrading from versions earlier than `3.0.0`, please ensure to remove any configuration steps related to these dependencies.

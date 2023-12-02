@@ -1,3 +1,8 @@
+## 3.0.0-dev.5
+* Improve README and installation guides.
+* [iOS] Add more error handling.
+* [Android] Fix alarm for Android 12 and above.
+
 ## 3.0.0-dev.4
 * [iOS] Remove notification sound.
 * Throw exception if alarm settings are invalid.
@@ -8,7 +13,7 @@
 * Add minor improvements.
 
 ## 3.0.0-dev.2
-* [iOS] Make native iOS notifications to remove `flutter_local_notification` dependency.
+* [iOS] Make native iOS notifications to remove `flutter_local_notifications` dependency.
 
 ## 3.0.0-dev.1
 **💥 Breaking Changes**
