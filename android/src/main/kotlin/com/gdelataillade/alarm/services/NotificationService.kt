@@ -43,7 +43,12 @@ class NotificationHandler(private val context: Context) {
         val soundUri = Uri.parse("android.resource://${context.packageName}/${R.raw.blank}")
 
         val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
-        val pendingIntent = PendingIntent.getActivity(context, 0, intent, 0)
+        val pendingIntent = PendingIntent.getActivity(
+            context, 
+            0, 
+            intent, 
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
 
         val notificationBuilder = Notification.Builder(context, CHANNEL_ID)
             .setSmallIcon(iconResId)

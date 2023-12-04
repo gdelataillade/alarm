@@ -31,7 +31,7 @@ class NotificationOnKillService: Service() {
     override fun onTaskRemoved(rootIntent: Intent?) {
         try {
             val notificationIntent = packageManager.getLaunchIntentForPackage(packageName)
-            val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE)
+            val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
             val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(android.R.drawable.ic_notification_overlay)

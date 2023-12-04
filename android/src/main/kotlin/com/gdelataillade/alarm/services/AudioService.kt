@@ -2,12 +2,13 @@ package com.gdelataillade.alarm.services
 
 import android.content.Context
 import android.media.MediaPlayer
+import java.util.concurrent.ConcurrentHashMap
 import java.util.Timer
 import java.util.TimerTask
-import kotlin.math.round
 
 class AudioService(private val context: Context) {
-    private val mediaPlayers = mutableMapOf<Int, MediaPlayer>()
+    private val mediaPlayers = ConcurrentHashMap<Int, MediaPlayer>()
+    private val timers = ConcurrentHashMap<Int, Timer>()
 
     fun isMediaPlayerEmpty(): Boolean {
         return mediaPlayers.isEmpty()
@@ -18,27 +19,24 @@ class AudioService(private val context: Context) {
     }
 
     fun playAudio(id: Int, assetAudioPath: String, loopAudio: Boolean, fadeDuration: Double?) {
-        try {
-            mediaPlayers.forEach { (_, mediaPlayer) ->
-                if (mediaPlayer.isPlaying) {
-                    mediaPlayer.stop()
-                    mediaPlayer.release()
-                }
-            }
+        stopAudio(id) // Stop and release any existing MediaPlayer and Timer for this ID
 
+        try {
             val assetManager = context.assets
             val descriptor = assetManager.openFd("flutter_assets/$assetAudioPath")
-            val mediaPlayer = MediaPlayer().apply {
+            MediaPlayer().apply {
                 setDataSource(descriptor.fileDescriptor, descriptor.startOffset, descriptor.length)
                 prepare()
                 isLooping = loopAudio
-            }
-            mediaPlayer.start()
+                start()
 
-            mediaPlayers[id] = mediaPlayer
+                mediaPlayers[id] = this
 
-            if (fadeDuration != null && fadeDuration > 0) {
-                startFadeIn(mediaPlayer, fadeDuration)
+                if (fadeDuration != null && fadeDuration > 0) {
+                    val timer = Timer(true)
+                    timers[id] = timer
+                    startFadeIn(this, fadeDuration, timer)
+                }
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -46,39 +44,52 @@ class AudioService(private val context: Context) {
     }
 
     fun stopAudio(id: Int) {
-        mediaPlayers[id]?.stop()
-        mediaPlayers[id]?.release()
+        timers[id]?.cancel()
+        timers.remove(id)
+
+        mediaPlayers[id]?.apply {
+            if (isPlaying) {
+                stop()
+            }
+            release()
+        }
         mediaPlayers.remove(id)
     }
 
-    private fun startFadeIn(mediaPlayer: MediaPlayer, duration: Double) {
-        val maxVolume = 1.0f // Use 1.0f for MediaPlayer's max volume
-        val fadeDuration = (duration * 1000).toLong() // Convert seconds to milliseconds
-        val fadeInterval = 100L // Interval for volume increment
-        val numberOfSteps = fadeDuration / fadeInterval // Number of volume increments
-        val deltaVolume = maxVolume / numberOfSteps // Volume increment per step
-
-        val timer = Timer(true) // Use a daemon thread
+    private fun startFadeIn(mediaPlayer: MediaPlayer, duration: Double, timer: Timer) {
+        val maxVolume = 1.0f
+        val fadeDuration = (duration * 1000).toLong()
+        val fadeInterval = 100L
+        val numberOfSteps = fadeDuration / fadeInterval
+        val deltaVolume = maxVolume / numberOfSteps
         var volume = 0.0f
 
-        val timerTask = object : TimerTask() {
+        timer.schedule(object : TimerTask() {
             override fun run() {
-                mediaPlayer.setVolume(volume, volume) // Set volume for both channels
+                if (!mediaPlayer.isPlaying) {
+                    cancel()
+                    return
+                }
+
+                mediaPlayer.setVolume(volume, volume)
                 volume += deltaVolume
 
                 if (volume >= maxVolume) {
-                    mediaPlayer.setVolume(maxVolume, maxVolume) // Ensure max volume is set
-                    this.cancel() // Cancel the timer
+                    mediaPlayer.setVolume(maxVolume, maxVolume)
+                    cancel()
                 }
             }
-        }
-
-        timer.schedule(timerTask, 0, fadeInterval)
+        }, 0, fadeInterval)
     }
 
     fun cleanUp() {
-        mediaPlayers.forEach { (_, mediaPlayer) ->
-            mediaPlayer.stop()
+        timers.values.forEach(Timer::cancel)
+        timers.clear()
+
+        mediaPlayers.values.forEach { mediaPlayer ->
+            if (mediaPlayer.isPlaying) {
+                mediaPlayer.stop()
+            }
             mediaPlayer.release()
         }
         mediaPlayers.clear()
