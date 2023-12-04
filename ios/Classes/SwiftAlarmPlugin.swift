@@ -371,7 +371,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         let content = UNMutableNotificationContent()
         content.title = notificationTitleOnKill
         content.body = notificationBodyOnKill
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 2, repeats: false)
         let request = UNNotificationRequest(identifier: "notification on app kill", content: content, trigger: trigger)
 
         UNUserNotificationCenter.current().add(request) { (error) in
