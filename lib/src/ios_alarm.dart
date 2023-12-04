@@ -22,17 +22,20 @@ class IOSAlarm {
   ) async {
     final id = settings.id;
     try {
-      final delay = settings.dateTime.difference(DateTime.now());
+      final delay = settings.dateTime
+          .difference(DateTime.now())
+          .inSeconds
+          .abs()
+          .toDouble();
 
       final res = await methodChannel.invokeMethod<bool?>(
             'setAlarm',
             {
               'id': id,
               'assetAudio': settings.assetAudioPath,
-              'delayInSeconds': delay.inSeconds.abs().toDouble(),
+              'delayInSeconds': delay,
               'loopAudio': settings.loopAudio,
-              'fadeDuration':
-                  settings.fadeDuration >= 0 ? settings.fadeDuration : 0,
+              'fadeDuration': settings.fadeDuration,
               'vibrate': settings.vibrate,
               'volume': settings.volume,
               'notifOnKillEnabled': settings.enableNotificationOnKill,

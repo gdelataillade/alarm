@@ -146,7 +146,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         audioPlayer.prepareToPlay()
 
         if fadeDuration > 0.0 {
-            audioPlayer.volume = 0.1
+            audioPlayer.volume = 0.01
         }
 
         if !playSilent {
@@ -256,8 +256,10 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         if let volumeValue = volume {  
             self.setVolume(volume: volumeValue, enable: true)  
         }
-        if fadeDuration > 0.0 {  
-            audioPlayer.setVolume(1.0, fadeDuration: fadeDuration)  
+        if fadeDuration > 0.0 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.0) {
+                audioPlayer.setVolume(1.0, fadeDuration: fadeDuration)
+            }
         }
     }
 
