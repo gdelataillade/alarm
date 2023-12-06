@@ -95,8 +95,8 @@ class AndroidAlarm {
   static Future<bool> set(AlarmSettings settings) async {
     _registerPort(settings, registerIfTaken: true);
     try {
-      final permission = await Permission.ignoreBatteryOptimizations.request();
-      if (permission.isDenied) {
+      final isDenied = await Permission.ignoreBatteryOptimizations.isDenied;
+      if (isDenied) {
         alarmPrint(
           'Permission to ignore battery optimization not granted. Alarm may trigger with up to 15 minute delay due to Android Doze optimization',
         );
