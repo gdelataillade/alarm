@@ -23,24 +23,16 @@ class AlarmSettings {
   /// Specifies the system volume level to be set at the designated [dateTime].
   ///
   /// Accepts a value between 0 (mute) and 1 (maximum volume). When the alarm is triggered at [dateTime],
-<<<<<<< HEAD
   /// the system volume adjusts to this specified level. Upon stopping the alarm, the system systemVolume reverts
-=======
-  /// the system volume adjusts to this specified level. Upon stopping the alarm, the system volume reverts
->>>>>>> main
   /// to its prior setting.
   ///
   /// If left unspecified or set to `null`, the current system volume at the time of the alarm will be used.
   /// Defaults to `null`.
-<<<<<<< HEAD
   final double? systemVolume;
 
   /// Specifies the audio volume level to be set at the designated [dateTime].
   /// Defaults to 1.0.
   final double audioVolume;
-=======
-  final double? volume;
->>>>>>> main
 
   /// Duration, in seconds, over which to fade the alarm ringtone.
   /// Set to 0.0 by default, which means no fade.
@@ -59,6 +51,8 @@ class AlarmSettings {
   /// Whether to turn screen on when android alarm notification is triggered. Enabled by default.
   final bool androidFullScreenIntent;
 
+  final bool? respectSilentMode;
+
   /// Returns a hash code for this `AlarmSettings` instance using Jenkins hash function.
   @override
   int get hashCode {
@@ -69,16 +63,13 @@ class AlarmSettings {
     hash = hash ^ assetAudioPath.hashCode;
     hash = hash ^ loopAudio.hashCode;
     hash = hash ^ vibrate.hashCode;
-<<<<<<< HEAD
     hash = hash ^ systemVolume.hashCode;
     hash = hash ^ audioVolume.hashCode;
-=======
-    hash = hash ^ volume.hashCode;
->>>>>>> main
     hash = hash ^ fadeDuration.hashCode;
     hash = hash ^ (notificationTitle.hashCode);
     hash = hash ^ (notificationBody.hashCode);
     hash = hash ^ enableNotificationOnKill.hashCode;
+    hash = hash ^ respectSilentMode.hashCode;
     hash = hash & 0x3fffffff;
 
     return hash;
@@ -95,17 +86,14 @@ class AlarmSettings {
     required this.assetAudioPath,
     this.loopAudio = true,
     this.vibrate = true,
-<<<<<<< HEAD
     this.systemVolume,
     this.audioVolume = 1.0,
-=======
-    this.volume,
->>>>>>> main
     this.fadeDuration = 0.0,
     required this.notificationTitle,
     required this.notificationBody,
     this.enableNotificationOnKill = true,
     this.androidFullScreenIntent = true,
+    this.respectSilentMode,
   });
 
   /// Constructs an `AlarmSettings` instance from the given JSON data.
@@ -114,14 +102,9 @@ class AlarmSettings {
         dateTime: DateTime.fromMicrosecondsSinceEpoch(json['dateTime'] as int),
         assetAudioPath: json['assetAudioPath'] as String,
         loopAudio: json['loopAudio'] as bool,
-<<<<<<< HEAD
-        vibrate: json['vibrate'] != null ? json['vibrate'] as bool : true,
+        vibrate: json['vibrate'] as bool? ?? true,
         systemVolume: json['systemVolume'] as double?,
         audioVolume: json['audioVolume'] as double,
-=======
-        vibrate: json['vibrate'] as bool? ?? true,
-        volume: json['volume'] as double?,
->>>>>>> main
         fadeDuration: json['fadeDuration'] as double,
         notificationTitle: json['notificationTitle'] as String? ?? '',
         notificationBody: json['notificationBody'] as String? ?? '',
@@ -129,6 +112,7 @@ class AlarmSettings {
             json['enableNotificationOnKill'] as bool? ?? true,
         androidFullScreenIntent:
             json['androidFullScreenIntent'] as bool? ?? true,
+        respectSilentMode: json['respectSilentMode'] as bool?,
       );
 
   /// Creates a copy of `AlarmSettings` but with the given fields replaced with
@@ -139,17 +123,14 @@ class AlarmSettings {
     String? assetAudioPath,
     bool? loopAudio,
     bool? vibrate,
-<<<<<<< HEAD
     double? systemVolume,
     double? audioVolume,
-=======
-    double? volume,
->>>>>>> main
     double? fadeDuration,
     String? notificationTitle,
     String? notificationBody,
     bool? enableNotificationOnKill,
     bool? androidFullScreenIntent,
+    bool? respectSilentMode,
   }) {
     return AlarmSettings(
       id: id ?? this.id,
@@ -157,12 +138,8 @@ class AlarmSettings {
       assetAudioPath: assetAudioPath ?? this.assetAudioPath,
       loopAudio: loopAudio ?? this.loopAudio,
       vibrate: vibrate ?? this.vibrate,
-<<<<<<< HEAD
       systemVolume: systemVolume ?? this.systemVolume,
       audioVolume: audioVolume ?? this.audioVolume,
-=======
-      volume: volume ?? this.volume,
->>>>>>> main
       fadeDuration: fadeDuration ?? this.fadeDuration,
       notificationTitle: notificationTitle ?? this.notificationTitle,
       notificationBody: notificationBody ?? this.notificationBody,
@@ -170,6 +147,7 @@ class AlarmSettings {
           enableNotificationOnKill ?? this.enableNotificationOnKill,
       androidFullScreenIntent:
           androidFullScreenIntent ?? this.androidFullScreenIntent,
+      respectSilentMode: respectSilentMode ?? this.respectSilentMode,
     );
   }
 
@@ -180,17 +158,14 @@ class AlarmSettings {
         'assetAudioPath': assetAudioPath,
         'loopAudio': loopAudio,
         'vibrate': vibrate,
-<<<<<<< HEAD
         'systemVolume': systemVolume,
         'audioVolume': audioVolume,
-=======
-        'volume': volume,
->>>>>>> main
         'fadeDuration': fadeDuration,
         'notificationTitle': notificationTitle,
         'notificationBody': notificationBody,
         'enableNotificationOnKill': enableNotificationOnKill,
         'androidFullScreenIntent': androidFullScreenIntent,
+        'respectSilentMode': respectSilentMode,
       };
 
   /// Returns all the properties of `AlarmSettings` for debug purposes.
@@ -213,15 +188,12 @@ class AlarmSettings {
           assetAudioPath == other.assetAudioPath &&
           loopAudio == other.loopAudio &&
           vibrate == other.vibrate &&
-<<<<<<< HEAD
           systemVolume == other.systemVolume &&
           audioVolume == other.audioVolume &&
-=======
-          volume == other.volume &&
->>>>>>> main
           fadeDuration == other.fadeDuration &&
           notificationTitle == other.notificationTitle &&
           notificationBody == other.notificationBody &&
           enableNotificationOnKill == other.enableNotificationOnKill &&
-          androidFullScreenIntent == other.androidFullScreenIntent;
+          androidFullScreenIntent == other.androidFullScreenIntent &&
+          respectSilentMode == other.respectSilentMode;
 }
