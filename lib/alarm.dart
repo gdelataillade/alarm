@@ -6,7 +6,6 @@ import 'dart:async';
 import 'package:alarm/model/alarm_settings.dart';
 import 'package:alarm/src/ios_alarm.dart';
 import 'package:alarm/src/android_alarm.dart';
-import 'package:alarm/service/notification.dart';
 import 'package:alarm/service/storage.dart';
 import 'package:flutter/foundation.dart';
 
@@ -38,7 +37,6 @@ class Alarm {
 
     await Future.wait([
       if (android) AndroidAlarm.init(),
-      AlarmNotification.instance.init(),
       AlarmStorage.init(),
     ]);
     await checkAlarm();
@@ -54,24 +52,18 @@ class Alarm {
       if (alarm.dateTime.isAfter(now)) {
         await set(alarmSettings: alarm);
       } else {
-        await AlarmStorage.unsaveAlarm(alarm.id);
+        final isRinging = await Alarm.isRinging(alarm.id);
+        isRinging ? ringStream.add(alarm) : stop(alarm.id);
       }
     }
   }
 
-  /// Schedules an alarm with given [alarmSettings].
+  /// Schedules an alarm with given [alarmSettings] with its notification.
   ///
   /// If you set an alarm for the same [dateTime] as an existing one,
   /// the new alarm will replace the existing one.
-  ///
-  /// Also, schedules notification if [notificationTitle] and [notificationBody]
-  /// are not null nor empty.
   static Future<bool> set({required AlarmSettings alarmSettings}) async {
-    if (!alarmSettings.assetAudioPath.contains('.')) {
-      throw AlarmException(
-        'Provided asset audio file does not have extension: ${alarmSettings.assetAudioPath}',
-      );
-    }
+    alarmSettingsValidation(alarmSettings);
 
     for (final alarm in Alarm.getAlarms()) {
       if (alarm.id == alarmSettings.id ||
@@ -83,24 +75,6 @@ class Alarm {
     }
 
     await AlarmStorage.saveAlarm(alarmSettings);
-
-    if (alarmSettings.notificationTitle != null &&
-        alarmSettings.notificationBody != null) {
-      if (alarmSettings.notificationTitle!.isNotEmpty &&
-          alarmSettings.notificationBody!.isNotEmpty) {
-        await AlarmNotification.instance.scheduleAlarmNotif(
-          id: alarmSettings.id,
-          dateTime: alarmSettings.dateTime,
-          title: alarmSettings.notificationTitle!,
-          body: alarmSettings.notificationBody!,
-          fullScreenIntent: alarmSettings.androidFullScreenIntent,
-        );
-      }
-    }
-
-    if (alarmSettings.enableNotificationOnKill) {
-      await AlarmNotification.instance.requestPermission();
-    }
 
     if (iOS) {
       return IOSAlarm.setAlarm(
@@ -115,6 +89,25 @@ class Alarm {
     }
 
     return false;
+  }
+
+  static void alarmSettingsValidation(AlarmSettings alarmSettings) {
+    if (!alarmSettings.assetAudioPath.contains('.')) {
+      throw AlarmException(
+        'Provided audio path is not valid: ${alarmSettings.assetAudioPath}',
+      );
+    }
+    if (alarmSettings.volume != null &&
+        (alarmSettings.volume! < 0 || alarmSettings.volume! > 1)) {
+      throw AlarmException(
+        'Volume must be between 0 and 1. Provided: ${alarmSettings.volume}',
+      );
+    }
+    if (alarmSettings.fadeDuration < 0) {
+      throw AlarmException(
+        'Fade duration must be positive. Provided: ${alarmSettings.fadeDuration}',
+      );
+    }
   }
 
   /// When the app is killed, all the processes are terminated
@@ -135,8 +128,6 @@ class Alarm {
   static Future<bool> stop(int id) async {
     await AlarmStorage.unsaveAlarm(id);
 
-    AlarmNotification.instance.cancel(id);
-
     return iOS ? await IOSAlarm.stopAlarm(id) : await AndroidAlarm.stop(id);
   }
 
@@ -150,8 +141,9 @@ class Alarm {
   }
 
   /// Whether the alarm is ringing.
-  static Future<bool> isRinging(int id) async =>
-      iOS ? await IOSAlarm.checkIfRinging(id) : AndroidAlarm.isRinging;
+  static Future<bool> isRinging(int id) async => iOS
+      ? await IOSAlarm.checkIfRinging(id)
+      : await AndroidAlarm.isRinging(id);
 
   /// Whether an alarm is set.
   static bool hasAlarm() => AlarmStorage.hasAlarm();

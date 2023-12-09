@@ -1,5 +1,41 @@
+## 3.0.0-dev.6
+* [Android] Fix alarms for Android API 31 and above.
+* [iOS] Fix audio player fade duration.
+* [iOS] Fix on-app-kill notification.
+
+## 3.0.0-dev.5
+* Improve README and installation guides.
+* [iOS] Add more error handling.
+* [Android] Fix alarm for Android 12 and above.
+
+## 3.0.0-dev.4
+* [iOS] Remove notification sound.
+* Throw exception if alarm settings are invalid.
+* Improve README.
+
+## 3.0.0-dev.3
+* Update README.
+* Add minor improvements.
+
+## 3.0.0-dev.2
+* [iOS] Make native iOS notifications to remove `flutter_local_notifications` dependency.
+
+## 3.0.0-dev.1
+**💥 Breaking Changes**
+**🔧 Android installation steps were updated [here](https://github.com/gdelataillade/alarm/blob/main/help/INSTALL-ANDROID.md).**
+* Remove [stopOnNotificationOpen] property.
+* Make notification mandatory so android foreground services can be used.
+* [Android] Refactor alarm to native android services.
+* Replace [volumeMax] with [volume] double property.
+
+## 2.2.0
+* [Android] Move alarm service to native code.
+
+## 2.1.1
+* Fix `AlarmSettings.fromJson` method with missing [androidFullScreenIntent].
+
 ## 2.1.0
-**Android installation steps were updated.**
+**🔧 Android installation steps were updated [here](https://github.com/gdelataillade/alarm/blob/main/help/INSTALL-ANDROID.md).**
 * [Android] Add parameter [androidFullScreenIntent] that turns screen on when alarm notification is triggered.
 * [Android] Fix 'ring now' alarm delay.
 * [Android] Fix fadeDuration cast error.
@@ -11,7 +47,7 @@
 * Refactor set alarm methods.
 
 ## 2.0.0
-**Breaking Changes**
+**💥 Breaking Changes**
 * Installation steps were updated in the README. Please make sure to follow them.
 * [iOS] Add Background Fetch to periodically make sure alarms are still active in the background.
 
@@ -128,7 +164,7 @@
 * Add optional [vibrate] parameter, to toggle vibrations when alarm rings.
 
 ## 0.2.0
-* **Breaking changes**: Add multiple alarm management. Now, you have to provide a unique [id] to [AlarmSettings].
+* **💥 Breaking changes**: Add multiple alarm management. Now, you have to provide a unique [id] to [AlarmSettings].
 * Update example application.
 * [Android] Fix potential delay between notification and alarm sound.
 
@@ -152,8 +188,8 @@
 * Export [AlarmSettings] model in [Alarm] service so it's not necessary to import it separately anymore.
 
 ## 0.1.0
-* **Breaking changes**: [Alarm.set] method now takes a [AlarmSettings] as only parameter.
-* **Breaking changes**: You will have to create a `StreamSubscription` attached to [Alarm.ringStream.stream] in order to listen to the alarm ringing state now. This way, even if your app was previously killed, your custom callback can still be triggered.
+* **💥 Breaking changes**: [Alarm.set] method now takes a [AlarmSettings] as only parameter.
+* **💥 Breaking changes**: You will have to create a `StreamSubscription` attached to [Alarm.ringStream.stream] in order to listen to the alarm ringing state now. This way, even if your app was previously killed, your custom callback can still be triggered.
 * By default, if an alarm was set and the app is killed, a notification will be shown to warn
 the user that the alarm may not ring, with the possibility to reopen the app and automatically reschedule the alarm.
 To disable this feature, you can call the method [Alarm.toggleNotificationOnAppKill(false)].

@@ -10,5 +10,10 @@ Future<void> main() async {
 
   await Alarm.init(showDebugLogs: true);
 
-  runApp(const MaterialApp(home: ExampleAlarmHomeScreen()));
+  runApp(
+    MaterialApp(
+      theme: ThemeData(useMaterial3: false),
+      home: const ExampleAlarmHomeScreen(),
+    ),
+  );
 }
