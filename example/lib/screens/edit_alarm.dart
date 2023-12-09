@@ -18,13 +18,9 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
   late DateTime selectedDateTime;
   late bool loopAudio;
   late bool vibrate;
-<<<<<<< HEAD
   late double? systemVolume;
   late double audioVolume;
   late bool showNotification;
-=======
-  late double? volume;
->>>>>>> main
   late String assetAudio;
 
   @override
@@ -37,28 +33,20 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       selectedDateTime = selectedDateTime.copyWith(second: 0, millisecond: 0);
       loopAudio = true;
       vibrate = true;
-<<<<<<< HEAD
       systemVolume = null;
       audioVolume = 1.0;
       showNotification = true;
-=======
-      volume = null;
->>>>>>> main
       assetAudio = 'assets/marimba.mp3';
     } else {
       selectedDateTime = widget.alarmSettings!.dateTime;
       loopAudio = widget.alarmSettings!.loopAudio;
       vibrate = widget.alarmSettings!.vibrate;
-<<<<<<< HEAD
       systemVolume = widget.alarmSettings!.systemVolume;
       audioVolume = widget.alarmSettings!.audioVolume;
       showNotification = widget.alarmSettings!.notificationTitle != null &&
           widget.alarmSettings!.notificationTitle!.isNotEmpty &&
           widget.alarmSettings!.notificationBody != null &&
           widget.alarmSettings!.notificationBody!.isNotEmpty;
-=======
-      volume = widget.alarmSettings!.volume;
->>>>>>> main
       assetAudio = widget.alarmSettings!.assetAudioPath;
     }
   }
@@ -108,14 +96,8 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       dateTime: selectedDateTime,
       loopAudio: loopAudio,
       vibrate: vibrate,
-<<<<<<< HEAD
       systemVolume: systemVolume,
       audioVolume: audioVolume,
-      notificationTitle: showNotification ? 'Alarm example' : null,
-      notificationBody: showNotification ? 'Your alarm ($id) is ringing' : null,
-=======
-      volume: volume,
->>>>>>> main
       assetAudioPath: assetAudio,
       notificationTitle: 'Alarm example',
       notificationBody: 'Your alarm ($id) is ringing',
@@ -223,7 +205,6 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-<<<<<<< HEAD
                 'Show notification',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
@@ -237,8 +218,6 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-=======
->>>>>>> main
                 'Sound',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
@@ -270,7 +249,6 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
               ),
             ],
           ),
-<<<<<<< HEAD
           Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -299,13 +277,10 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
                   ),
                 ],
               )),
-=======
->>>>>>> main
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-<<<<<<< HEAD
                 'Custom systemVolume',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
@@ -313,52 +288,27 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
                 value: systemVolume != null,
                 onChanged: (value) =>
                     setState(() => systemVolume = value ? 0.5 : null),
-=======
-                'Custom volume',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              Switch(
-                value: volume != null,
-                onChanged: (value) =>
-                    setState(() => volume = value ? 0.5 : null),
->>>>>>> main
               ),
             ],
           ),
           SizedBox(
             height: 30,
-<<<<<<< HEAD
             child: systemVolume != null
-=======
-            child: volume != null
->>>>>>> main
                 ? Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Icon(
-<<<<<<< HEAD
                         systemVolume! > 0.7
                             ? Icons.volume_up_rounded
                             : systemVolume! > 0.1
-=======
-                        volume! > 0.7
-                            ? Icons.volume_up_rounded
-                            : volume! > 0.1
->>>>>>> main
                                 ? Icons.volume_down_rounded
                                 : Icons.volume_mute_rounded,
                       ),
                       Expanded(
                         child: Slider(
-<<<<<<< HEAD
                           value: systemVolume!,
                           onChanged: (value) {
                             setState(() => systemVolume = value);
-=======
-                          value: volume!,
-                          onChanged: (value) {
-                            setState(() => volume = value);
->>>>>>> main
                           },
                         ),
                       ),
