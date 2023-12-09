@@ -90,7 +90,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         let loopAudio = args["loopAudio"] as! Bool
         let fadeDuration = args["fadeDuration"] as! Double
         let vibrationsEnabled = args["vibrate"] as! Bool
-        let volume = args["volume"] as? Double
+        let systemVolume = args["systemVolume"] as? Float
+        let audioVolume = args["audioVolume"] as! Float
         let assetAudio = args["assetAudio"] as! String
 
         var volumeFloat: Float? = nil
@@ -162,7 +163,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 fadeDuration: fadeDuration,
                 vibrationsEnabled: vibrationsEnabled,
                 audioLoop: loopAudio,
-                volume: volumeFloat
+                systemVolume: systemVolume,
+                audioVolume: audioVolume
             )
         })
 
@@ -230,7 +232,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
     }
 
-    private func handleAlarmAfterDelay(id: Int, triggerTime: Date, fadeDuration: Double, vibrationsEnabled: Bool, audioLoop: Bool, volume: Float?) {
+    private func handleAlarmAfterDelay(id: Int, triggerTime: Date, fadeDuration: Double, vibrationsEnabled: Bool, audioLoop: Bool, systemVolume: Float?, audioVolume: Float) {
         guard let audioPlayer = self.audioPlayers[id], let storedTriggerTime = triggerTimes[id], triggerTime == storedTriggerTime else {
             return
         }
@@ -253,14 +255,14 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
         NSLog("SwiftAlarmPlugin: fadeDuration is \(fadeDuration)s and volume is \(String(describing: volume))%");
 
-        if let volumeValue = volume {  
-            self.setVolume(volume: volumeValue, enable: true)  
-        }
+        if let systemVolumeValue = systemVolume {
+            self.setVolume(systemVolume: systemVolumeValue, enable: true)
         if fadeDuration > 0.0 {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.0) {
                 audioPlayer.setVolume(1.0, fadeDuration: fadeDuration)
             }
         }
+        audioPlayer.setVolume(audioVolume, fadeDuration: fadeDuration)
     }
 
     private func stopAlarm(id: Int, result: FlutterResult) {
@@ -270,7 +272,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
         self.vibrate = false
         if self.previousVolume != nil {
-            self.setVolume(volume: self.previousVolume!, enable: false)
+            self.setVolume(systemVolume: self.previousVolume!, enable: false)
         }
 
         if let timer = timers[id] {
@@ -313,14 +315,14 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
     }
 
-    public func setVolume(volume: Float, enable: Bool) {
+    public func setVolume(systemVolume: Float, enable: Bool) {
         DispatchQueue.main.async {
             let volumeView = MPVolumeView()
 
             DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.5) {
                 if let slider = volumeView.subviews.first(where: { $0 is UISlider }) as? UISlider {
                     self.previousVolume = enable ? slider.value : nil
-                    slider.value = volume
+                    slider.value = systemVolume
                 }
                 volumeView.removeFromSuperview()
             }
