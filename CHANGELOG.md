@@ -1,3 +1,6 @@
+## 3.0.0-dev.7
+* [Android] Fix notification delay and sound.
+
 ## 3.0.0-dev.6
 * [Android] Fix alarms for Android API 31 and above.
 * [iOS] Fix audio player fade duration.

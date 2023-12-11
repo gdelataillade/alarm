@@ -153,7 +153,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             self.startSilentSound()
         }
 
-        audioPlayer.play(atTime: time)
+        audioPlayer.play(atTime: time + 0.5)
 
         self.tasksQueue[id] = DispatchWorkItem(block: {
             self.handleAlarmAfterDelay(
@@ -317,7 +317,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         DispatchQueue.main.async {
             let volumeView = MPVolumeView()
 
-            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.5) {
+            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
                 if let slider = volumeView.subviews.first(where: { $0 is UISlider }) as? UISlider {
                     self.previousVolume = enable ? slider.value : nil
                     slider.value = volume

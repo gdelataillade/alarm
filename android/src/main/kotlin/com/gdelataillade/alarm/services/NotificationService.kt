@@ -13,7 +13,7 @@ import androidx.core.app.NotificationCompat
 
 class NotificationHandler(private val context: Context) {
     companion object {
-        private const val CHANNEL_ID = "alarm_service_channel"
+        private const val CHANNEL_ID = "alarm_plugin_channel"
         private const val CHANNEL_NAME = "Alarm Notification"
     }
 
@@ -23,13 +23,12 @@ class NotificationHandler(private val context: Context) {
 
    private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val soundUri = Uri.parse("android.resource://${context.packageName}/${R.raw.blank}")
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_MAX
+                NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                setSound(soundUri, AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).setUsage(AudioAttributes.USAGE_NOTIFICATION).build())
+                setSound(null, null)
             }
 
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -40,7 +39,6 @@ class NotificationHandler(private val context: Context) {
 
     fun buildNotification(title: String, body: String, fullScreen: Boolean, pendingIntent: PendingIntent): Notification {
         val iconResId = context.resources.getIdentifier("ic_launcher", "mipmap", context.packageName)
-        val soundUri = Uri.parse("android.resource://${context.packageName}/${R.raw.blank}")
 
         val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
         val pendingIntent = PendingIntent.getActivity(
@@ -59,7 +57,7 @@ class NotificationHandler(private val context: Context) {
             .setAutoCancel(false)
             .setOngoing(true)
             .setContentIntent(pendingIntent)
-            .setSound(soundUri)
+            .setSound(null)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
 
         if (fullScreen) {
