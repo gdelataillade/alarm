@@ -6,6 +6,7 @@ import 'package:alarm_example/screens/ring.dart';
 import 'package:alarm_example/screens/shortcut_button.dart';
 import 'package:alarm_example/widgets/tile.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class ExampleAlarmHomeScreen extends StatefulWidget {
   const ExampleAlarmHomeScreen({Key? key}) : super(key: key);
@@ -22,6 +23,7 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
   @override
   void initState() {
     super.initState();
+    if (Alarm.android) checkAndroidNotificationPermission();
     loadAlarms();
     subscription ??= Alarm.ringStream.stream.listen(
       (alarmSettings) => navigateToRingScreen(alarmSettings),
@@ -62,6 +64,17 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
     if (res != null && res == true) loadAlarms();
   }
 
+  Future<void> checkAndroidNotificationPermission() async {
+    final status = await Permission.notification.status;
+    if (status.isDenied) {
+      alarmPrint('Requesting notification permission...');
+      final res = await Permission.notification.request();
+      alarmPrint(
+        'Notification permission ${res.isGranted ? '' : 'not'} granted.',
+      );
+    }
+  }
+
   @override
   void dispose() {
     subscription?.cancel();
@@ -71,7 +84,7 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('alarm 3.0.0-dev.7')),
+      appBar: AppBar(title: const Text('alarm 3.0.0-dev.8')),
       body: SafeArea(
         child: alarms.isNotEmpty
             ? ListView.separated(

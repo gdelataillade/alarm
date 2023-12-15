@@ -36,10 +36,8 @@ class NotificationHandler(private val context: Context) {
         }
     }
 
-
     fun buildNotification(title: String, body: String, fullScreen: Boolean, pendingIntent: PendingIntent): Notification {
         val iconResId = context.resources.getIdentifier("ic_launcher", "mipmap", context.packageName)
-
         val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
         val pendingIntent = PendingIntent.getActivity(
             context, 
@@ -59,6 +57,10 @@ class NotificationHandler(private val context: Context) {
             .setContentIntent(pendingIntent)
             .setSound(null)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            notificationBuilder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
+        }
 
         if (fullScreen) {
             notificationBuilder.setFullScreenIntent(pendingIntent, true)

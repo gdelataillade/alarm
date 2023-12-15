@@ -63,16 +63,6 @@ class AlarmService : Service() {
         val fullScreenIntent = intent?.getBooleanExtra("fullScreenIntent", true)
         showSystemUI = intent?.getBooleanExtra("showSystemUI", true) ?: true
 
-        // Log.d("AlarmService", "id: $id")
-        // Log.d("AlarmService", "assetAudioPath: $assetAudioPath")
-        // Log.d("AlarmService", "loopAudio: $loopAudio")
-        // Log.d("AlarmService", "vibrate: $vibrate")
-        // Log.d("AlarmService", "volume: $volume")
-        // Log.d("AlarmService", "fadeDuration: $fadeDuration")
-        // Log.d("AlarmService", "notificationTitle: $notificationTitle")
-        // Log.d("AlarmService", "notificationBody: $notificationBody")
-        // Log.d("AlarmService", "fullScreenIntent: $fullScreenIntent")
-
         val notificationHandler = NotificationHandler(this)
 
         val intent = applicationContext.packageManager.getLaunchIntentForPackage(applicationContext.packageName)
@@ -94,6 +84,14 @@ class AlarmService : Service() {
         }
 
         volumeService?.requestAudioFocus()
+
+        audioService?.setOnAudioCompleteListener {
+            if (!loopAudio!!) {
+                vibrationService?.stopVibrating()
+                volumeService?.restorePreviousVolume(showSystemUI)
+                volumeService?.abandonAudioFocus()
+            }
+        }
 
         audioService?.playAudio(id, assetAudioPath!!, loopAudio!!, fadeDuration!!)
 

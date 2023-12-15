@@ -4,6 +4,8 @@ PODS:
   - Flutter (1.0.0)
   - flutter_fgbg (0.0.1):
     - Flutter
+  - permission_handler_apple (9.1.1):
+    - Flutter
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -12,6 +14,7 @@ DEPENDENCIES:
   - alarm (from `.symlinks/plugins/alarm/ios`)
   - Flutter (from `Flutter`)
   - flutter_fgbg (from `.symlinks/plugins/flutter_fgbg/ios`)
+  - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
 
 EXTERNAL SOURCES:
@@ -21,6 +24,8 @@ EXTERNAL SOURCES:
     :path: Flutter
   flutter_fgbg:
     :path: ".symlinks/plugins/flutter_fgbg/ios"
+  permission_handler_apple:
+    :path: ".symlinks/plugins/permission_handler_apple/ios"
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
 
@@ -28,6 +33,7 @@ SPEC CHECKSUMS:
   alarm: 6c1f6a9688f94cd6bf8f104c67cc26e78c9d8d13
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
   flutter_fgbg: 31c0d1140a131daea2d342121808f6aa0dcd879d
+  permission_handler_apple: e76247795d700c14ea09e3a2d8855d41ee80a2e6
   shared_preferences_foundation: 5b919d13b803cadd15ed2dc053125c68730e5126
 
 PODFILE CHECKSUM: ef19549a9bc3046e7bb7d2fab4d021637c0c58a3

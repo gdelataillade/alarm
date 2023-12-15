@@ -1,3 +1,7 @@
+## 3.0.0-dev.8
+* [Android] Fix notification delay for Android 12 and above.
+* [Android] Abandon audio focus + stop vibrating when loopAudio is false and audio is over.
+
 ## 3.0.0-dev.7
 * [Android] Fix notification delay and sound.
 

@@ -10,6 +10,12 @@ class AudioService(private val context: Context) {
     private val mediaPlayers = ConcurrentHashMap<Int, MediaPlayer>()
     private val timers = ConcurrentHashMap<Int, Timer>()
 
+    private var onAudioComplete: (() -> Unit)? = null
+
+    fun setOnAudioCompleteListener(listener: () -> Unit) {
+        onAudioComplete = listener
+    }
+
     fun isMediaPlayerEmpty(): Boolean {
         return mediaPlayers.isEmpty()
     }
@@ -29,6 +35,12 @@ class AudioService(private val context: Context) {
                 prepare()
                 isLooping = loopAudio
                 start()
+
+                setOnCompletionListener {
+                    if (!loopAudio) {
+                        onAudioComplete?.invoke()
+                    }
+                }
 
                 mediaPlayers[id] = this
 
