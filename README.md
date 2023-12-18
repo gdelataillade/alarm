@@ -67,7 +67,7 @@ androidFullScreenIntent |   `bool`     | Whether to turn screen on when android 
 
 Note that if `notificationTitle` and `notificationBody` are both empty, iOS will not show the notification and Android will show an empty notification.
 
-If you enabled `enableNotificationOnKill`, you can chose your own notification title and body by using this method before setting your alarms:
+If you enabled `enableNotificationOnKill`, you can choose your own notification title and body by using this method before setting your alarms:
 ```Dart
 await Alarm.setNotificationOnAppKillContent(title, body)
 ```
@@ -77,7 +77,7 @@ This is how to stop/cancel your alarm:
 await Alarm.stop(id)
 ```
 
-This is how to run some code when alarm starts ringing. We implemented it as a stream so even if your app was previously killed, your custom callback can still be triggered.
+This is how to run some code when alarm starts ringing. I implemented it as a stream so even if your app was previously killed, your custom callback can still be triggered.
 ```Dart
 Alarm.ringStream.stream.listen((_) => yourOnRingCallback());
 ```
@@ -88,8 +88,9 @@ To avoid unexpected behaviors, if you set an alarm for the same time as an exist
 
 Don't hesitate to check out the [example's code](https://github.com/gdelataillade/alarm/tree/main/example), and take a look at the app:
 
-![home](https://github.com/gdelataillade/alarm/assets/32983806/695736aa-b55f-4050-8b0d-274b0d46714a)
-![edit](https://github.com/gdelataillade/alarm/assets/32983806/05329836-9fbe-462c-aa1e-dce0fa70f455)
+![home](https://github.com/gdelataillade/alarm/assets/32983806/501f5fc5-02f4-4a8b-b662-4cbf8f1b2b4c)
+![edit](https://github.com/gdelataillade/alarm/assets/32983806/0cb3e9e1-0efd-4112-b6b7-d9d474d56d10)
+
 
 ## ⏰ Alarm behaviour
 
