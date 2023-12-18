@@ -1,3 +1,12 @@
+## 3.0.0
+**💥 Breaking Changes**
+**🔧 Android installation steps were updated [here](https://github.com/gdelataillade/alarm/blob/main/help/INSTALL-ANDROID.md).**
+* [Android] Alarm will work even if app was killed.
+* [Android] Notification are now mandatory so foreground services can be used.
+* [iOS] iOS notifications are now native. `flutter_local_notifications` dependency was removed.
+* Remove [stopOnNotificationOpen] property.
+* Replace [volumeMax] with [volume] double property.
+
 ## 3.0.0-dev.8
 * [Android] Fix notification delay for Android 12 and above.
 * [Android] Abandon audio focus + stop vibrating when loopAudio is false and audio is over.

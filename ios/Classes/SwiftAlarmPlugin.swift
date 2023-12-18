@@ -251,7 +251,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             }
         }
 
-        NSLog("SwiftAlarmPlugin: fadeDuration is \(fadeDuration)s and volume is \(String(describing: volume))%");
+        NSLog("SwiftAlarmPlugin: fadeDuration is \(fadeDuration)s and volume is \(String(describing: volume))");
 
         if let volumeValue = volume {  
             self.setVolume(volume: volumeValue, enable: true)  

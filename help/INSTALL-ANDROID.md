@@ -42,7 +42,7 @@ Finally, if you want your notifications to show in full screen even when the dev
 ```
 
 ## Step 4
-Inside the <application> tag of your AndroidManifest.xml, add the following declarations:
+Inside the <application> tag of your `AndroidManifest.xml`, add the following declarations:
 ```xml
 <application>
   [...]
