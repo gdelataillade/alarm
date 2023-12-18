@@ -3,7 +3,7 @@
 **🔧 Android installation steps were updated [here](https://github.com/gdelataillade/alarm/blob/main/help/INSTALL-ANDROID.md).**
 * [Android] Alarm will work even if app was killed.
 * [Android] Notification are now mandatory so foreground services can be used.
-* [iOS] iOS notifications are now native. `flutter_local_notifications` dependency was removed.
+* [iOS] Notifications are now native. `flutter_local_notifications` dependency was removed.
 * Remove [stopOnNotificationOpen] property.
 * Replace [volumeMax] with [volume] double property.
 
