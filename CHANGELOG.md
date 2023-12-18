@@ -1,5 +1,5 @@
 ## 3.0.0
-**💥 Breaking Changes**
+**💥 Breaking Changes**\
 **🔧 Android installation steps were updated [here](https://github.com/gdelataillade/alarm/blob/main/help/INSTALL-ANDROID.md).**
 * [Android] Alarm will work even if app was killed.
 * [Android] Notification are now mandatory so foreground services can be used.
