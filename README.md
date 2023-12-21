@@ -82,7 +82,7 @@ This is how to run some code when alarm starts ringing. I implemented it as a st
 Alarm.ringStream.stream.listen((_) => yourOnRingCallback());
 ```
 
-To avoid unexpected behaviors, if you set an alarm for the same time as an existing one, the new alarm will replace the existing one.
+To avoid unexpected behaviors, if you set an alarm for the same time, down to the second, as an existing one, the new alarm will replace the existing one.
 
 ## 📱 Example app
 

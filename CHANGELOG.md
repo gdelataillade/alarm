@@ -1,3 +1,6 @@
+## 3.0.1
+* Only override an existing alarm if it's scheduled for the identical second.
+
 ## 3.0.0
 **💥 Breaking Changes**\
 **🔧 Android installation steps were updated [here](https://github.com/gdelataillade/alarm/blob/main/help/INSTALL-ANDROID.md).**

@@ -67,9 +67,7 @@ class Alarm {
 
     for (final alarm in Alarm.getAlarms()) {
       if (alarm.id == alarmSettings.id ||
-          (alarm.dateTime.day == alarmSettings.dateTime.day &&
-              alarm.dateTime.hour == alarmSettings.dateTime.hour &&
-              alarm.dateTime.minute == alarmSettings.dateTime.minute)) {
+          alarm.dateTime.isSameSecond(alarmSettings.dateTime)) {
         await Alarm.stop(alarm.id);
       }
     }
@@ -171,4 +169,14 @@ class AlarmException implements Exception {
 
   @override
   String toString() => message;
+}
+
+extension DateTimeExtension on DateTime {
+  bool isSameSecond(DateTime other) =>
+      year == other.year &&
+      month == other.month &&
+      day == other.day &&
+      hour == other.hour &&
+      minute == other.minute &&
+      second == other.second;
 }
