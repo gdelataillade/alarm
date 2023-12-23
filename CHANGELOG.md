@@ -1,3 +1,6 @@
+## 3.0.2
+* [Android] Fix local audio file playback. Add `READ_EXTERNAL_STORAGE` permission in the manifest and request it at runtime to prevent access errors.
+
 ## 3.0.1
 * Only override an existing alarm if it's scheduled for the identical second.
 

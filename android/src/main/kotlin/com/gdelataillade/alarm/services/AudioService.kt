@@ -24,14 +24,27 @@ class AudioService(private val context: Context) {
         return mediaPlayers.filter { (_, mediaPlayer) -> mediaPlayer.isPlaying }.keys.toList()
     }
 
-    fun playAudio(id: Int, assetAudioPath: String, loopAudio: Boolean, fadeDuration: Double?) {
+    fun playAudio(id: Int, filePath: String, loopAudio: Boolean, fadeDuration: Double?) {
         stopAudio(id) // Stop and release any existing MediaPlayer and Timer for this ID
 
+        val adjustedFilePath = if (filePath.startsWith("assets/")) {
+            "flutter_assets/$filePath"
+        } else {
+            filePath
+        }
+
         try {
-            val assetManager = context.assets
-            val descriptor = assetManager.openFd("flutter_assets/$assetAudioPath")
             MediaPlayer().apply {
-                setDataSource(descriptor.fileDescriptor, descriptor.startOffset, descriptor.length)
+                if (adjustedFilePath.startsWith("flutter_assets/")) {
+                    // It's an asset file
+                    val assetManager = context.assets
+                    val descriptor = assetManager.openFd(adjustedFilePath)
+                    setDataSource(descriptor.fileDescriptor, descriptor.startOffset, descriptor.length)
+                } else {
+                    // Handle local files
+                    setDataSource(adjustedFilePath)
+                }
+
                 prepare()
                 isLooping = loopAudio
                 start()

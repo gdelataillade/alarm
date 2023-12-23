@@ -23,7 +23,10 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
   @override
   void initState() {
     super.initState();
-    if (Alarm.android) checkAndroidNotificationPermission();
+    if (Alarm.android) {
+      checkAndroidNotificationPermission();
+      checkAndroidExternalStoragePermission();
+    }
     loadAlarms();
     subscription ??= Alarm.ringStream.stream.listen(
       (alarmSettings) => navigateToRingScreen(alarmSettings),
@@ -71,6 +74,17 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
       final res = await Permission.notification.request();
       alarmPrint(
         'Notification permission ${res.isGranted ? '' : 'not'} granted.',
+      );
+    }
+  }
+
+  Future<void> checkAndroidExternalStoragePermission() async {
+    final status = await Permission.storage.status;
+    if (status.isDenied) {
+      alarmPrint('Requesting external storage permission...');
+      final res = await Permission.storage.request();
+      alarmPrint(
+        'External storage permission ${res.isGranted ? '' : 'not'} granted.',
       );
     }
   }

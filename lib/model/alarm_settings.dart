@@ -9,6 +9,10 @@ class AlarmSettings {
   ///
   /// * Project asset: `assets/your_audio.mp3`.
   /// * Local asset: `/path/to/your/audio.mp3`, which is your `File.path`.
+  ///
+  /// If you want to use a local asset, you must request android `storage`
+  /// permission and add the following permission to your `AndroidManifest.xml`:
+  /// `android.permission.READ_EXTERNAL_STORAGE`
   final String assetAudioPath;
 
   /// If true, [assetAudioPath] will repeat indefinitely until alarm is stopped.
