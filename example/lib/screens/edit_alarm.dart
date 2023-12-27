@@ -47,14 +47,15 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
     final today = DateTime(now.year, now.month, now.day);
     final difference = selectedDateTime.difference(today).inDays;
 
-    if (difference == 0) {
-      return 'Today';
-    } else if (difference == 1) {
-      return 'Tomorrow';
-    } else if (difference == 2) {
-      return 'After tomorrow';
-    } else {
-      return 'In $difference days';
+    switch (difference) {
+      case 0:
+        return 'Today';
+      case 1:
+        return 'Tomorrow';
+      case 2:
+        return 'After tomorrow';
+      default:
+        return 'In $difference days';
     }
   }
 
@@ -66,11 +67,15 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
 
     if (res != null) {
       setState(() {
-        selectedDateTime = selectedDateTime.copyWith(
+        final DateTime now = DateTime.now();
+        selectedDateTime = now.copyWith(
           hour: res.hour,
           minute: res.minute,
+          second: 0,
+          millisecond: 0,
+          microsecond: 0
         );
-        if (selectedDateTime.isBefore(DateTime.now())) {
+        if (selectedDateTime.isBefore(now)) {
           selectedDateTime = selectedDateTime.add(const Duration(days: 1));
         }
       });
