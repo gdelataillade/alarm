@@ -12,6 +12,10 @@
   <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
   <application>
     <receiver android:name=".AlarmReceiver" />
-    <service android:name=".AlarmService" />
+    <service
+      android:name=".alarm.AlarmService"
+      android:exported="false"
+      android:foregroundServiceType="mediaPlayback">
+    </service>
   </application>
 </manifest>

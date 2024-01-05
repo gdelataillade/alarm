@@ -39,14 +39,20 @@ class NotificationHandler(private val context: Context) {
     fun buildNotification(title: String, body: String, fullScreen: Boolean, pendingIntent: PendingIntent): Notification {
         val iconResId = context.resources.getIdentifier("ic_launcher", "mipmap", context.packageName)
         val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
-        val pendingIntent = PendingIntent.getActivity(
+        val notificationPendingIntent = PendingIntent.getActivity(
             context, 
             0, 
             intent, 
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notificationBuilder = Notification.Builder(context, CHANNEL_ID)
+        val notificationBuilder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Notification.Builder(context, CHANNEL_ID) // For API 26 and above
+        } else {
+            Notification.Builder(context) // For lower API levels
+        }
+
+        notificationBuilder
             .setSmallIcon(iconResId)
             .setContentTitle(title)
             .setContentText(body)
@@ -54,7 +60,7 @@ class NotificationHandler(private val context: Context) {
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setAutoCancel(false)
             .setOngoing(true)
-            .setContentIntent(pendingIntent)
+            .setContentIntent(notificationPendingIntent)
             .setSound(null)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
 
@@ -63,7 +69,7 @@ class NotificationHandler(private val context: Context) {
         }
 
         if (fullScreen) {
-            notificationBuilder.setFullScreenIntent(pendingIntent, true)
+            notificationBuilder.setFullScreenIntent(notificationPendingIntent, true)
         }
 
         return notificationBuilder.build()

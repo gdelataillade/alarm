@@ -45,6 +45,11 @@ class AlarmService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent == null) {
+            stopSelf()
+            return START_NOT_STICKY
+        }
+
         val action = intent?.action
         val id = intent?.getIntExtra("id", 0) ?: 0
 
