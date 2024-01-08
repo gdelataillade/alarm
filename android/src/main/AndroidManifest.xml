@@ -13,7 +13,7 @@
   <application>
     <receiver android:name=".AlarmReceiver" />
     <service
-      android:name=".alarm.AlarmService"
+      android:name=".AlarmService"
       android:exported="false"
       android:foregroundServiceType="mediaPlayback">
     </service>
