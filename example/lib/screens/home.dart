@@ -25,7 +25,6 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
     super.initState();
     if (Alarm.android) {
       checkAndroidNotificationPermission();
-      checkAndroidExternalStoragePermission();
     }
     loadAlarms();
     subscription ??= Alarm.ringStream.stream.listen(

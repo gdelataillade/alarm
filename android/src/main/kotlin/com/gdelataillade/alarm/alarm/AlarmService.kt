@@ -92,9 +92,7 @@ class AlarmService : Service() {
 
         audioService?.setOnAudioCompleteListener {
             if (!loopAudio!!) {
-                vibrationService?.stopVibrating()
-                volumeService?.restorePreviousVolume(showSystemUI)
-                volumeService?.abandonAudioFocus()
+                stopAlarm(id)
             }
         }
 

@@ -247,7 +247,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         if !audioLoop {
             let audioDuration = audioPlayer.duration
             DispatchQueue.main.asyncAfter(deadline: .now() + audioDuration) {
-                self.vibrate = false
+                self.stopAlarm(id: id, result: { _ in })
             }
         }
 
@@ -290,7 +290,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         } else {
             result(false)
         }
-    }	
+    }
 
     private func stopSilentSound() {
         self.mixOtherAudios()
