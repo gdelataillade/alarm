@@ -1,3 +1,7 @@
+## 3.0.3
+* [Android] Fix errors with specific Android versions.
+* Call `stopAlarm` when `loopAudio` is false and audio ends.
+
 ## 3.0.2
 * [Android] Fix local audio file playback. Add `READ_EXTERNAL_STORAGE` permission in the manifest and request it at runtime to prevent access errors.
 
