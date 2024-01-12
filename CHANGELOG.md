@@ -1,3 +1,7 @@
+## 3.0.4
+* [Android] Add `FOREGROUND_SERVICE_MEDIA_PLAYBACK` permission.
+* [Android] Fix vibrations for versions below API 26.
+
 ## 3.0.3
 * [Android] Fix errors with specific Android versions.
 * Call `stopAlarm` when `loopAudio` is false and audio ends.
