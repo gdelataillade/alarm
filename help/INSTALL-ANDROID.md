@@ -29,6 +29,7 @@ Then, add the following permissions to your `AndroidManifest.xml` within the `<m
   <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
   <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
   <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
 ```
 
 See more details on Android permissions [here](https://developer.android.com/reference/android/Manifest.permission).
