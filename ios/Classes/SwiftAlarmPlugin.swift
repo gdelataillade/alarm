@@ -45,7 +45,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 self.setAlarm(call: call, result: result)
             } else if call.method == "stopAlarm" {
                 if let args = call.arguments as? [String: Any], let id = args["id"] as? Int {
-                    self.stopAlarm(id: id, result: result)
+                    self.stopAlarm(id: id, cancelNotif: true, result: result)
                 } else {
                     result(FlutterError.init(code: "NATIVE_ERR", message: "[Alarm] Error: id parameter is missing or invalid", details: nil))
                 }
@@ -247,7 +247,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         if !audioLoop {
             let audioDuration = audioPlayer.duration
             DispatchQueue.main.asyncAfter(deadline: .now() + audioDuration) {
-                self.stopAlarm(id: id, result: { _ in })
+                self.stopAlarm(id: id, cancelNotif: false, result: { _ in })
             }
         }
 
@@ -263,8 +263,10 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
     }
 
-    private func stopAlarm(id: Int, result: FlutterResult) {
-        self.cancelNotification(id: String(id))
+    private func stopAlarm(id: Int, cancelNotif: Bool, result: FlutterResult) {
+        if cancelNotif {
+            self.cancelNotification(id: String(id))
+        }
 
         self.mixOtherAudios()
 
