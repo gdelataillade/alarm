@@ -1,3 +1,6 @@
+## 3.0.5
+* Keep notification when audio's over
+
 ## 3.0.4
 * [Android] Add `FOREGROUND_SERVICE_MEDIA_PLAYBACK` permission.
 * [Android] Fix vibrations for versions below API 26.
