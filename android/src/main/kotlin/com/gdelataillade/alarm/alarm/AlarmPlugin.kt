@@ -129,7 +129,7 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
     }
 
     fun handleDelayedAlarm(context: Context, intent: Intent, delayInSeconds: Int, id: Int) {
-        val triggerTime = System.currentTimeMillis() + delayInSeconds * 1000
+        val triggerTime = System.currentTimeMillis() + delayInSeconds * 1000L
         val pendingIntent = PendingIntent.getBroadcast(
             context,
             id,
