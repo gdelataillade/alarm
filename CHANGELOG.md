@@ -1,3 +1,8 @@
+## 3.0.6
+* [Android] Add notification large icon.
+* [Android] Add Gradle 8 support.
+* [Android] Fix delay integer overflow when delay is more than a month.
+
 ## 3.0.5
 * Keep notification when audio's over
 
