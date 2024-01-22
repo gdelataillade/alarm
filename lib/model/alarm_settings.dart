@@ -48,7 +48,8 @@ class AlarmSettings {
   /// the user that the alarms won't ring anymore. Enabled by default.
   final bool enableNotificationOnKill;
 
-  /// Whether to turn screen on when android alarm notification is triggered. Enabled by default.
+  /// Whether to turn screen on and display full screen notification
+  /// when android alarm notification is triggered. Enabled by default.
   final bool androidFullScreenIntent;
 
   /// Returns a hash code for this `AlarmSettings` instance using Jenkins hash function.

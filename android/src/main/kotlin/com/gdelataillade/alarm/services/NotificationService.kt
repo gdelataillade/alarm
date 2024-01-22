@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.net.Uri
 import android.media.AudioAttributes
@@ -38,6 +39,7 @@ class NotificationHandler(private val context: Context) {
 
     fun buildNotification(title: String, body: String, fullScreen: Boolean, pendingIntent: PendingIntent): Notification {
         val iconResId = context.resources.getIdentifier("ic_launcher", "mipmap", context.packageName)
+        val largeIcon = BitmapFactory.decodeResource(context.resources, iconResId)
         val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
         val notificationPendingIntent = PendingIntent.getActivity(
             context, 
@@ -54,6 +56,7 @@ class NotificationHandler(private val context: Context) {
 
         notificationBuilder
             .setSmallIcon(iconResId)
+            .setLargeIcon(largeIcon)
             .setContentTitle(title)
             .setContentText(body)
             .setPriority(NotificationCompat.PRIORITY_MAX)
