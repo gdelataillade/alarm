@@ -116,14 +116,19 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             }
         } else {
             do {
-                let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-                let filename = String(assetAudio.split(separator: "/").last ?? "")
-                let assetAudioURL = documentsDirectory.appendingPathComponent(filename)
+                var assetAudioURL: URL
 
+                if assetAudio.starts(with: "/") {
+                    assetAudioURL = URL(fileURLWithPath: assetAudio)
+                } else {
+                    let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                    let filename = String(assetAudio.split(separator: "/").last ?? "")
+                    assetAudioURL = documentsDirectory.appendingPathComponent(filename)
+                }
                 let audioPlayer = try AVAudioPlayer(contentsOf: assetAudioURL)
                 self.audioPlayers[id] = audioPlayer
             } catch {
-                result(FlutterError.init(code: "NATIVE_ERR", message: "[Alarm] Error loading given local asset path: \(assetAudio)", details: nil))
+                result(FlutterError.init(code: "NATIVE_ERR", message: "[Alarm] Error loading audio file: \(assetAudio)", details: nil))
                 return
             }
         }
@@ -387,8 +392,9 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
     private func mixOtherAudios() {
         do {
-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers])
-            try AVAudioSession.sharedInstance().setActive(true)
+            let audioSession = AVAudioSession.sharedInstance()
+            try audioSession.setCategory(.playback, mode: .default, options: [.mixWithOthers])
+            try audioSession.setActive(true)
         } catch {
             NSLog("SwiftAlarmPlugin: Error setting up audio session with option mixWithOthers: \(error.localizedDescription)")
         }
@@ -396,8 +402,9 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
     private func duckOtherAudios() {
         do {
-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.duckOthers])
-            try AVAudioSession.sharedInstance().setActive(true)
+            let audioSession = AVAudioSession.sharedInstance()
+            try audioSession.setCategory(.playback, mode: .default, options: [.duckOthers])
+            try audioSession.setActive(true)
         } catch {
             NSLog("SwiftAlarmPlugin: Error setting up audio session with option duckOthers: \(error.localizedDescription)")
         }
