@@ -138,9 +138,12 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
         )
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            // For Android Lollipop (API 21) and above, use setAlarmClock
+            val alarmClockInfo = AlarmManager.AlarmClockInfo(triggerTime, pendingIntent)
+            alarmManager.setAlarmClock(alarmClockInfo, pendingIntent)
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            // For older versions, fall back to setExact
             alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
         } else {
             alarmManager.set(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)

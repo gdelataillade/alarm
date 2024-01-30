@@ -35,6 +35,15 @@ Then, add the following permissions to your `AndroidManifest.xml` within the `<m
 See more details on Android permissions [here](https://developer.android.com/reference/android/Manifest.permission).
 
 ## Step 3
+##### Android 12 (API 31) and above:
+Your app requires the `SCHEDULE_EXACT_ALARM` permission to schedule alarms. Request this permission from the user as needed.
+
+##### Android 13 (API 33) and above:
+Your app must obtain permission to display notifications. Ensure this permission is granted too.
+
+You can use the [permission_handler](https://pub.dev/packages/permission_handler) package to handle these permission requests in your app.
+
+## Step 4
 Finally, if you want your notifications to show in full screen even when the device is locked (`androidFullScreenIntent` parameter), add these attributes in `<activity>`:
 
 ```xml
@@ -43,7 +52,7 @@ Finally, if you want your notifications to show in full screen even when the dev
     android:turnScreenOn="true">
 ```
 
-## Step 4
+## Step 5
 Inside the <application> tag of your `AndroidManifest.xml`, add the following declarations:
 ```xml
 <application>
