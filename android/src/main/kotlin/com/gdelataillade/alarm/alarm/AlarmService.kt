@@ -6,10 +6,13 @@ import com.gdelataillade.alarm.services.VolumeService
 
 import android.app.Service
 import android.app.PendingIntent
+import android.app.ForegroundServiceStartNotAllowedException
 import android.content.Intent
 import android.content.Context
+import android.content.pm.ServiceInfo
 import android.os.IBinder
 import android.os.PowerManager
+import android.os.Build
 import io.flutter.Log
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.embedding.engine.dart.DartExecutor
@@ -74,7 +77,21 @@ class AlarmService : Service() {
         val pendingIntent = PendingIntent.getActivity(this, id!!, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 
         val notification = notificationHandler.buildNotification(notificationTitle!!, notificationBody!!, fullScreenIntent!!, pendingIntent)
-        startForeground(id, notification)
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                startForeground(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
+            } else {
+                startForeground(id, notification)
+            }
+        } catch (e: ForegroundServiceStartNotAllowedException) {
+            // Specific handling for ForegroundServiceStartNotAllowedException
+            Log.e("AlarmService", "Foreground service start not allowed", e)
+        } catch (e: SecurityException) {
+            Log.e("AlarmService", "Security exception in starting foreground service", e)
+        } catch (e: Exception) {
+            Log.e("AlarmService", "Error in starting foreground service", e)
+        }
 
         try {
             if (channel != null) {
@@ -115,18 +132,24 @@ class AlarmService : Service() {
     }
 
     fun stopAlarm(id: Int) {
-        ringingAlarmIds = audioService?.getPlayingMediaPlayersIds()!!
+        try {
+            ringingAlarmIds = audioService?.getPlayingMediaPlayersIds()!!
 
-        volumeService?.restorePreviousVolume(showSystemUI)
-        volumeService?.abandonAudioFocus()
+            volumeService?.restorePreviousVolume(showSystemUI)
+            volumeService?.abandonAudioFocus()
 
-        audioService?.stopAudio(id)
-        if (audioService?.isMediaPlayerEmpty()!!) {
-            vibrationService?.stopVibrating()
-            stopSelf()
+            audioService?.stopAudio(id)
+            if (audioService?.isMediaPlayerEmpty()!!) {
+                vibrationService?.stopVibrating()
+                stopSelf()
+            }
+
+            stopForeground(true)
+        } catch (e: IllegalStateException) {
+            Log.e("AlarmService", "Illegal State: ${e.message}", e)
+        } catch (e: Exception) {
+            Log.e("AlarmService", "Error in stopping alarm: ${e.message}", e)
         }
-
-        stopForeground(true)
     }
 
     override fun onDestroy() {

@@ -90,6 +90,11 @@ class Alarm {
   }
 
   static void alarmSettingsValidation(AlarmSettings alarmSettings) {
+    if (alarmSettings.id == 0 || alarmSettings.id == -1) {
+      throw AlarmException(
+        'Alarm id cannot be 0 or -1. Provided: ${alarmSettings.id}',
+      );
+    }
     if (!alarmSettings.assetAudioPath.contains('.')) {
       throw AlarmException(
         'Provided audio path is not valid: ${alarmSettings.assetAudioPath}',

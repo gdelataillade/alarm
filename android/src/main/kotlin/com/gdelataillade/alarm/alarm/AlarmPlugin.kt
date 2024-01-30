@@ -129,21 +129,31 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
     }
 
     fun handleDelayedAlarm(context: Context, intent: Intent, delayInSeconds: Int, id: Int) {
-        val triggerTime = System.currentTimeMillis() + delayInSeconds * 1000L
-        val pendingIntent = PendingIntent.getBroadcast(
-            context,
-            id,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        try {
+            val triggerTime = System.currentTimeMillis() + delayInSeconds * 1000L
+            val pendingIntent = PendingIntent.getBroadcast(
+                context,
+                id,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
-        } else {
-            alarmManager.set(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager
+                ?: throw IllegalStateException("AlarmManager not available")
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
+            } else {
+                alarmManager.set(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
+            }
+        } catch (e: ClassCastException) {
+            Log.e("AlarmPlugin", "AlarmManager service type casting failed", e)
+        } catch (e: IllegalStateException) {
+            Log.e("AlarmPlugin", "AlarmManager service not available", e)
+        } catch (e: Exception) {
+            Log.e("AlarmPlugin", "Error in handling delayed alarm", e)
         }
     }
 
