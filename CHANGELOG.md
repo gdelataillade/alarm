@@ -1,3 +1,8 @@
+## 3.0.7
+* Prevent if integer overflow.
+* [Android] Improve error handling. Add exceptions with better messages.
+* [iOS] Add support for subfolder local audio path.
+
 ## 3.0.6
 * [Android] Add notification large icon.
 * [Android] Add Gradle 8 support.
