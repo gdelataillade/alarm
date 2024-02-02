@@ -90,9 +90,7 @@ class AlarmSettings {
     required this.notificationBody,
     this.enableNotificationOnKill = true,
     this.androidFullScreenIntent = true,
-  })  : assert(id != 0 && id != -1, "id cannot be set to 0 or -1"),
-        assert(id <= 2147483647,
-            "id cannot be set larger then Android Int.MAX_VALUE");
+  });
 
   /// Constructs an `AlarmSettings` instance from the given JSON data.
   factory AlarmSettings.fromJson(Map<String, dynamic> json) => AlarmSettings(

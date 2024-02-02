@@ -69,11 +69,12 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       setState(() {
         final DateTime now = DateTime.now();
         selectedDateTime = now.copyWith(
-            hour: res.hour,
-            minute: res.minute,
-            second: 0,
-            millisecond: 0,
-            microsecond: 0);
+          hour: res.hour,
+          minute: res.minute,
+          second: 0,
+          millisecond: 0,
+          microsecond: 0,
+        );
         if (selectedDateTime.isBefore(now)) {
           selectedDateTime = selectedDateTime.add(const Duration(days: 1));
         }
@@ -82,15 +83,9 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
   }
 
   AlarmSettings buildAlarmSettings() {
-    //[DO] id must be less than Android's max int value
     final id = creating
         ? DateTime.now().millisecondsSinceEpoch % 10000
         : widget.alarmSettings!.id;
-
-    // [DON'T] id must be less than Android's max int value
-    // final id = creating
-    //     ? DateTime.now().millisecondsSinceEpoch
-    //     : widget.alarmSettings!.id;
 
     final alarmSettings = AlarmSettings(
       id: id,
