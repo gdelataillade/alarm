@@ -1,3 +1,6 @@
+## 3.0.8
+* Fix alarm id verification.
+
 ## 3.0.7
 * Prevent if integer overflow.
 * [Android] Improve error handling. Add exceptions with better messages.
