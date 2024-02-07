@@ -21,7 +21,7 @@ class AndroidAlarm {
         if (settings != null) Alarm.ringStream.add(settings);
       }
     } catch (e) {
-      alarmPrint('[DEV] Handle method call "${call.method}" error: $e');
+      alarmPrint('Handle method call "${call.method}" error: $e');
     }
   }
 
@@ -66,7 +66,7 @@ class AndroidAlarm {
       }
     }
 
-    alarmPrint('[DEV] Alarm with id ${settings.id} scheduled');
+    alarmPrint('Alarm with id ${settings.id} scheduled');
 
     return true;
   }
@@ -75,7 +75,7 @@ class AndroidAlarm {
   /// can stop playing and dispose.
   static Future<bool> stop(int id) async {
     final res = await platform.invokeMethod('stopAlarm', {'id': id});
-    if (res) alarmPrint('[DEV] Alarm with id $id stopped');
+    if (res) alarmPrint('Alarm with id $id stopped');
     if (!hasOtherAlarms) stopNotificationOnKillService();
     return res;
   }

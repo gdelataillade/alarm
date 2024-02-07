@@ -96,6 +96,8 @@ class AlarmService : Service() {
         try {
             if (channel != null) {
                 channel?.invokeMethod("alarmRinging", mapOf("id" to id))
+            } else {
+                Log.d("AlarmService", "Method channel is null")
             }
         } catch (e: Exception) {
             Log.d("AlarmService", "Error while invoking alarmRinging channel: $e")
