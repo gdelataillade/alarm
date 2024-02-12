@@ -47,7 +47,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 if let args = call.arguments as? [String: Any], let id = args["id"] as? Int {
                     self.stopAlarm(id: id, cancelNotif: true, result: result)
                 } else {
-                    result(FlutterError.init(code: "NATIVE_ERR", message: "[Alarm] Error: id parameter is missing or invalid", details: nil))
+                    result(FlutterError.init(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Error: id parameter is missing or invalid", details: nil))
                 }
             } else if call.method == "audioCurrentTime" {
                 let args = call.arguments as! Dictionary<String, Any>
@@ -102,7 +102,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             let filename = registrar.lookupKey(forAsset: assetAudio)
 
             guard let audioPath = Bundle.main.path(forResource: filename, ofType: nil) else {
-                result(FlutterError(code: "NATIVE_ERR", message: "[Alarm] Audio file not found: \(assetAudio)", details: nil))
+                result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Audio file not found: \(assetAudio)", details: nil))
                 return
             }
 
@@ -111,7 +111,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 let audioPlayer = try AVAudioPlayer(contentsOf: audioUrl)
                 self.audioPlayers[id] = audioPlayer
             } catch {
-                result(FlutterError(code: "NATIVE_ERR", message: "[Alarm] Error loading audio player: \(error.localizedDescription)", details: nil))
+                result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Error loading audio player: \(error.localizedDescription)", details: nil))
                 return
             }
         } else {
@@ -128,13 +128,13 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 let audioPlayer = try AVAudioPlayer(contentsOf: assetAudioURL)
                 self.audioPlayers[id] = audioPlayer
             } catch {
-                result(FlutterError.init(code: "NATIVE_ERR", message: "[Alarm] Error loading audio file: \(assetAudio)", details: nil))
+                result(FlutterError.init(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Error loading audio file: \(assetAudio)", details: nil))
                 return
             }
         }
 
         guard let audioPlayer = self.audioPlayers[id] else {
-            result(FlutterError(code: "NATIVE_ERR", message: "[Alarm] Audio player not found for ID: \(id)", details: nil))
+            result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Audio player not found for ID: \(id)", details: nil))
             return
         }
 
@@ -155,7 +155,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
 
         if !playSilent {
-            self.startSilentSound()
+            self.startSilentSound(result: result)
         }
 
         audioPlayer.play(atTime: time + 0.5)
@@ -185,7 +185,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
     }
 
-    private func startSilentSound() {
+    private func startSilentSound(result: FlutterResult) {
         let filename = registrar.lookupKey(forAsset: "assets/long_blank.mp3", fromPackage: "alarm")
         if let audioPath = Bundle.main.path(forResource: filename, ofType: nil) {
             let audioUrl = URL(fileURLWithPath: audioPath)
@@ -197,10 +197,10 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 self.silentAudioPlayer?.play()
                 NotificationCenter.default.addObserver(self, selector: #selector(handleInterruption), name: AVAudioSession.interruptionNotification, object: nil)
             } catch {
-                NSLog("SwiftAlarmPlugin: Error: Could not create and play audio player: \(error)")
+                result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Error: Could not create and play silent audio player: \(error)", details: nil))
             }
         } else {
-            NSLog("SwiftAlarmPlugin: Error: Could not find audio file")
+            result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Error: Could not find silent audio file", details: nil))
         }
     }
 
@@ -256,11 +256,10 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             }
         }
 
-        NSLog("SwiftAlarmPlugin: fadeDuration is \(fadeDuration)s and volume is \(String(describing: volume))");
-
         if let volumeValue = volume {  
             self.setVolume(volume: volumeValue, enable: true)  
         }
+
         if fadeDuration > 0.0 {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.0) {
                 audioPlayer.setVolume(1.0, fadeDuration: fadeDuration)
