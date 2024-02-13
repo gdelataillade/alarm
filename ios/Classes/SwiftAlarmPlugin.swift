@@ -72,7 +72,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         self.mixOtherAudios()
 
         guard let args = call.arguments as? [String: Any] else {
-            result(FlutterError(code: "NATIVE_ERR", message: "[Alarm] Arguments are not in the expected format", details: nil))
+            result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Arguments are not in the expected format", details: nil))
             return
         }
 
@@ -82,7 +82,11 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         let notificationBody = args["notificationBody"] as? String
 
         if let title = notificationTitle, let body = notificationBody, delayInSeconds >= 1.0 {
-            self.scheduleNotification(id: String(id), delayInSeconds: Int(floor(delayInSeconds)), title: title, body: body)
+            NotificationManager.shared.scheduleNotification(id: String(id), delayInSeconds: Int(floor(delayInSeconds)), title: title, body: body) { error in
+                if let error = error {
+                    NSLog("[SwiftAlarmPlugin] Error scheduling notification: \(error.localizedDescription)")
+                }
+            }
         }
 
         notifOnKillEnabled = (args["notifOnKillEnabled"] as! Bool)
@@ -278,7 +282,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
     private func stopAlarm(id: Int, cancelNotif: Bool, result: FlutterResult) {
         if cancelNotif {
-            self.cancelNotification(id: String(id))
+            NotificationManager.shared.cancelNotification(id: String(id))
         }
 
         self.mixOtherAudios()
@@ -471,35 +475,5 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         } else {
             NSLog("SwiftAlarmPlugin: BGTaskScheduler not available for your version of iOS lower than 13.0")
         }
-    }
-
-    func scheduleNotification(id: String, delayInSeconds: Int, title: String, body: String) {
-        // Request permission
-        let center = UNUserNotificationCenter.current()
-        center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
-            if granted {
-                // Schedule the notification
-                let content = UNMutableNotificationContent()
-                content.title = title
-                content.body = body
-                content.sound = nil
-
-                let trigger = UNTimeIntervalNotificationTrigger(timeInterval: TimeInterval(delayInSeconds), repeats: false)
-                let request = UNNotificationRequest(identifier: "alarm-\(id)", content: content, trigger: trigger)
-
-                center.add(request) { error in
-                    if let error = error {
-                        NSLog("SwiftAlarmPlugin: Error scheduling notification: \(error.localizedDescription)")
-                    }
-                }
-            } else {
-                NSLog("SwiftAlarmPlugin: Notification permission denied")
-            }
-        }
-    }
-
-    func cancelNotification(id: String) {
-        let center = UNUserNotificationCenter.current()
-        center.removePendingNotificationRequests(withIdentifiers: ["alarm-\(id)"])
     }
 }
