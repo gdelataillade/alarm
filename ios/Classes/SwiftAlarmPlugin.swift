@@ -98,39 +98,12 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             volumeFloat = Float(volumeValue)
         }
 
-        if assetAudio.hasPrefix("assets/") {
-            let filename = registrar.lookupKey(forAsset: assetAudio)
-
-            guard let audioPath = Bundle.main.path(forResource: filename, ofType: nil) else {
-                result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Audio file not found: \(assetAudio)", details: nil))
-                return
-            }
-
-            do {
-                let audioUrl = URL(fileURLWithPath: audioPath)
-                let audioPlayer = try AVAudioPlayer(contentsOf: audioUrl)
-                self.audioPlayers[id] = audioPlayer
-            } catch {
-                result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Error loading audio player: \(error.localizedDescription)", details: nil))
-                return
-            }
+        // Attempt to load the audio player for the given asset
+        if let audioPlayer = self.loadAudioPlayer(withAsset: assetAudio, forId: id) {
+            self.audioPlayers[id] = audioPlayer
         } else {
-            do {
-                var assetAudioURL: URL
-
-                if assetAudio.starts(with: "/") {
-                    assetAudioURL = URL(fileURLWithPath: assetAudio)
-                } else {
-                    let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-                    let filename = String(assetAudio.split(separator: "/").last ?? "")
-                    assetAudioURL = documentsDirectory.appendingPathComponent(filename)
-                }
-                let audioPlayer = try AVAudioPlayer(contentsOf: assetAudioURL)
-                self.audioPlayers[id] = audioPlayer
-            } catch {
-                result(FlutterError.init(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Error loading audio file: \(assetAudio)", details: nil))
-                return
-            }
+            result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Failed to load audio for asset: \(assetAudio)", details: nil))
+            return
         }
 
         guard let audioPlayer = self.audioPlayers[id] else {
@@ -177,6 +150,38 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
 
         result(true)
+    }
+
+    private func loadAudioPlayer(withAsset assetAudio: String, forId id: Int) -> AVAudioPlayer? {
+        do {
+            var audioURL: URL
+
+            if assetAudio.hasPrefix("assets/") {
+                // Load audio from Flutter assets
+                let filename = registrar.lookupKey(forAsset: assetAudio)
+                guard let audioPath = Bundle.main.path(forResource: filename, ofType: nil) else {
+                    NSLog("[SwiftAlarmPlugin] Audio file not found: \(assetAudio)")
+                    return nil
+                }
+                audioURL = URL(fileURLWithPath: audioPath)
+            } else {
+                // Load audio from file system
+                if assetAudio.starts(with: "/") {
+                    audioURL = URL(fileURLWithPath: assetAudio)
+                } else {
+                    let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                    let filename = String(assetAudio.split(separator: "/").last ?? "")
+                    audioURL = documentsDirectory.appendingPathComponent(filename)
+                }
+            }
+
+            // Create and return the audio player
+            let audioPlayer = try AVAudioPlayer(contentsOf: audioURL)
+            return audioPlayer
+        } catch {
+            print("[SwiftAlarmPlugin] Error loading audio player: \(error.localizedDescription)")
+            return nil
+        }
     }
 
     @objc func executeTask(_ timer: Timer) {
@@ -275,8 +280,9 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         self.mixOtherAudios()
 
         self.vibrate = false
-        if self.previousVolume != nil {
-            self.setVolume(volume: self.previousVolume!, enable: false)
+
+        if let previousVolume = self.previousVolume {
+            self.setVolume(volume: previousVolume, enable: false)
         }
 
         if let timer = timers[id] {
