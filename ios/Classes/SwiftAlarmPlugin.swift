@@ -185,7 +185,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             let audioPlayer = try AVAudioPlayer(contentsOf: audioURL)
             return audioPlayer
         } catch {
-            print("[SwiftAlarmPlugin] Error loading audio player: \(error.localizedDescription)")
+            NSLog("[SwiftAlarmPlugin] Error loading audio player: \(error.localizedDescription)")
             return nil
         }
     }
