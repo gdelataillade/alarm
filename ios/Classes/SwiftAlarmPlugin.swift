@@ -27,6 +27,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     private var audioPlayers: [Int: AVAudioPlayer] = [:]
     private var silentAudioPlayer: AVAudioPlayer?
     private var tasksQueue: [Int: DispatchWorkItem] = [:]
+    private let resourceAccessQueue = DispatchQueue(label: "com.gdelataillade.alarm.resourceAccessQueue")
     private var timers: [Int: Timer] = [:]
     private var triggerTimes: [Int: Date] = [:]
 
@@ -47,7 +48,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 if let args = call.arguments as? [String: Any], let id = args["id"] as? Int {
                     self.stopAlarm(id: id, cancelNotif: true, result: result)
                 } else {
-                    result(FlutterError.init(code: "NATIVE_ERR", message: "[Alarm] Error: id parameter is missing or invalid", details: nil))
+                    result(FlutterError.init(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Error: id parameter is missing or invalid", details: nil))
                 }
             } else if call.method == "audioCurrentTime" {
                 let args = call.arguments as! Dictionary<String, Any>
@@ -61,11 +62,17 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
     }
 
+    func safeModifyResources(_ modificationBlock: @escaping () -> Void) {
+        resourceAccessQueue.async {
+            modificationBlock()
+        }
+    }
+
     private func setAlarm(call: FlutterMethodCall, result: FlutterResult) {
         self.mixOtherAudios()
 
         guard let args = call.arguments as? [String: Any] else {
-            result(FlutterError(code: "NATIVE_ERR", message: "[Alarm] Arguments are not in the expected format", details: nil))
+            result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Arguments are not in the expected format", details: nil))
             return
         }
 
@@ -74,8 +81,12 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         let notificationTitle = args["notificationTitle"] as? String
         let notificationBody = args["notificationBody"] as? String
 
-        if (notificationTitle != nil && notificationBody != nil && delayInSeconds >= 1.0) {
-            self.scheduleNotification(id: String(id), delayInSeconds: Int(floor(delayInSeconds)), title: notificationTitle!, body: notificationBody!)
+        if let title = notificationTitle, let body = notificationBody, delayInSeconds >= 1.0 {
+            NotificationManager.shared.scheduleNotification(id: String(id), delayInSeconds: Int(floor(delayInSeconds)), title: title, body: body) { error in
+                if let error = error {
+                    NSLog("[SwiftAlarmPlugin] Error scheduling notification: \(error.localizedDescription)")
+                }
+            }
         }
 
         notifOnKillEnabled = (args["notifOnKillEnabled"] as! Bool)
@@ -98,85 +109,85 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             volumeFloat = Float(volumeValue)
         }
 
-        if assetAudio.hasPrefix("assets/") {
-            let filename = registrar.lookupKey(forAsset: assetAudio)
-
-            guard let audioPath = Bundle.main.path(forResource: filename, ofType: nil) else {
-                result(FlutterError(code: "NATIVE_ERR", message: "[Alarm] Audio file not found: \(assetAudio)", details: nil))
-                return
-            }
-
-            do {
-                let audioUrl = URL(fileURLWithPath: audioPath)
-                let audioPlayer = try AVAudioPlayer(contentsOf: audioUrl)
+        // Attempt to load the audio player for the given asset
+        if let audioPlayer = self.loadAudioPlayer(withAsset: assetAudio, forId: id) {
+            safeModifyResources {
                 self.audioPlayers[id] = audioPlayer
-            } catch {
-                result(FlutterError(code: "NATIVE_ERR", message: "[Alarm] Error loading audio player: \(error.localizedDescription)", details: nil))
-                return
-            }
-        } else {
-            do {
-                var assetAudioURL: URL
 
+                let currentTime = audioPlayer.deviceCurrentTime
+                let time = currentTime + delayInSeconds
+                let dateTime = Date().addingTimeInterval(delayInSeconds)
+
+                if loopAudio {
+                    audioPlayer.numberOfLoops = -1
+                }
+
+                audioPlayer.prepareToPlay()
+
+                if fadeDuration > 0.0 {
+                    audioPlayer.volume = 0.01
+                }
+
+                if !self.playSilent {
+                    self.startSilentSound()
+                }
+
+                audioPlayer.play(atTime: time + 0.5)
+
+                self.triggerTimes[id] = dateTime
+                self.tasksQueue[id] = DispatchWorkItem(block: {
+                    self.handleAlarmAfterDelay(
+                        id: id,
+                        triggerTime: dateTime,
+                        fadeDuration: fadeDuration,
+                        vibrationsEnabled: vibrationsEnabled,
+                        audioLoop: loopAudio,
+                        volume: volumeFloat
+                    )
+                })
+
+                DispatchQueue.main.async {
+                    self.timers[id] = Timer.scheduledTimer(timeInterval: delayInSeconds, target: self, selector: #selector(self.executeTask(_:)), userInfo: id, repeats: false)
+                    SwiftAlarmPlugin.scheduleAppRefresh()
+                }
+            }
+            result(true)
+        } else {
+            result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Failed to load audio for asset: \(assetAudio)", details: nil))
+            return
+        }
+    }
+
+    private func loadAudioPlayer(withAsset assetAudio: String, forId id: Int) -> AVAudioPlayer? {
+        do {
+            var audioURL: URL
+
+            if assetAudio.hasPrefix("assets/") {
+                // Load audio from Flutter assets
+                let filename = registrar.lookupKey(forAsset: assetAudio)
+                guard let audioPath = Bundle.main.path(forResource: filename, ofType: nil) else {
+                    NSLog("[SwiftAlarmPlugin] Audio file not found: \(assetAudio)")
+                    return nil
+                }
+                audioURL = URL(fileURLWithPath: audioPath)
+            } else {
+                // Load audio from file system
                 if assetAudio.starts(with: "/") {
-                    assetAudioURL = URL(fileURLWithPath: assetAudio)
+                    audioURL = URL(fileURLWithPath: assetAudio)
                 } else {
                     let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
                     let filename = String(assetAudio.split(separator: "/").last ?? "")
-                    assetAudioURL = documentsDirectory.appendingPathComponent(filename)
+                    audioURL = documentsDirectory.appendingPathComponent(filename)
                 }
-                let audioPlayer = try AVAudioPlayer(contentsOf: assetAudioURL)
-                self.audioPlayers[id] = audioPlayer
-            } catch {
-                result(FlutterError.init(code: "NATIVE_ERR", message: "[Alarm] Error loading audio file: \(assetAudio)", details: nil))
-                return
             }
+
+            // Create and return the audio player
+            let audioPlayer = try AVAudioPlayer(contentsOf: audioURL)
+            return audioPlayer
+        } catch {
+            NSLog("[SwiftAlarmPlugin] Error loading audio player: \(error.localizedDescription)")
+            return nil
         }
-
-        guard let audioPlayer = self.audioPlayers[id] else {
-            result(FlutterError(code: "NATIVE_ERR", message: "[Alarm] Audio player not found for ID: \(id)", details: nil))
-            return
-        }
-
-        let currentTime = audioPlayer.deviceCurrentTime
-        let time = currentTime + delayInSeconds
-
-        let dateTime = Date().addingTimeInterval(delayInSeconds)
-        self.triggerTimes[id] = dateTime
-
-        if loopAudio {
-            audioPlayer.numberOfLoops = -1
-        }
-
-        audioPlayer.prepareToPlay()
-
-        if fadeDuration > 0.0 {
-            audioPlayer.volume = 0.01
-        }
-
-        if !playSilent {
-            self.startSilentSound()
-        }
-
-        audioPlayer.play(atTime: time + 0.5)
-
-        self.tasksQueue[id] = DispatchWorkItem(block: {
-            self.handleAlarmAfterDelay(
-                id: id,
-                triggerTime: dateTime,
-                fadeDuration: fadeDuration,
-                vibrationsEnabled: vibrationsEnabled,
-                audioLoop: loopAudio,
-                volume: volumeFloat
-            )
-        })
-
-        DispatchQueue.main.async {
-            self.timers[id] = Timer.scheduledTimer(timeInterval: delayInSeconds, target: self, selector: #selector(self.executeTask(_:)), userInfo: id, repeats: false)
-            SwiftAlarmPlugin.scheduleAppRefresh()
-        }
-
-        result(true)
     }
 
     @objc func executeTask(_ timer: Timer) {
@@ -197,10 +208,10 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 self.silentAudioPlayer?.play()
                 NotificationCenter.default.addObserver(self, selector: #selector(handleInterruption), name: AVAudioSession.interruptionNotification, object: nil)
             } catch {
-                NSLog("SwiftAlarmPlugin: Error: Could not create and play audio player: \(error)")
+                NSLog("[SwiftAlarmPlugin] Error: Could not create and play silent audio player: \(error)")
             }
         } else {
-            NSLog("SwiftAlarmPlugin: Error: Could not find audio file")
+            NSLog("[SwiftAlarmPlugin] Error: Could not find silent audio file")
         }
     }
 
@@ -236,77 +247,88 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
 
     private func handleAlarmAfterDelay(id: Int, triggerTime: Date, fadeDuration: Double, vibrationsEnabled: Bool, audioLoop: Bool, volume: Float?) {
-        guard let audioPlayer = self.audioPlayers[id], let storedTriggerTime = triggerTimes[id], triggerTime == storedTriggerTime else {
-            return
-        }
-
-        self.duckOtherAudios()
-
-        if !audioPlayer.isPlaying || audioPlayer.currentTime == 0.0 {
-            self.audioPlayers[id]!.play()
-        }
-
-        self.vibrate = vibrationsEnabled
-        self.triggerVibrations()
-
-        if !audioLoop {
-            let audioDuration = audioPlayer.duration
-            DispatchQueue.main.asyncAfter(deadline: .now() + audioDuration) {
-                self.stopAlarm(id: id, cancelNotif: false, result: { _ in })
+        safeModifyResources {
+            guard let audioPlayer = self.audioPlayers[id], let storedTriggerTime = self.triggerTimes[id], triggerTime == storedTriggerTime else {
+                return
             }
-        }
 
-        NSLog("SwiftAlarmPlugin: fadeDuration is \(fadeDuration)s and volume is \(String(describing: volume))");
+            DispatchQueue.main.async {
+                self.duckOtherAudios()
 
-        if let volumeValue = volume {  
-            self.setVolume(volume: volumeValue, enable: true)  
-        }
-        if fadeDuration > 0.0 {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.0) {
-                audioPlayer.setVolume(1.0, fadeDuration: fadeDuration)
+                if !audioPlayer.isPlaying || audioPlayer.currentTime == 0.0 {
+                    audioPlayer.play()
+                }
+
+                self.vibrate = vibrationsEnabled
+                self.triggerVibrations()
+
+                if !audioLoop {
+                    let audioDuration = audioPlayer.duration
+                    DispatchQueue.main.asyncAfter(deadline: .now() + audioDuration) {
+                        self.stopAlarm(id: id, cancelNotif: false, result: { _ in })
+                    }
+                }
+
+                if let volumeValue = volume {
+                    self.setVolume(volume: volumeValue, enable: true)
+                }
+
+                if fadeDuration > 0.0 {
+                    audioPlayer.setVolume(1.0, fadeDuration: fadeDuration)
+                }
             }
         }
     }
 
     private func stopAlarm(id: Int, cancelNotif: Bool, result: FlutterResult) {
         if cancelNotif {
-            self.cancelNotification(id: String(id))
+            NotificationManager.shared.cancelNotification(id: String(id))
         }
 
         self.mixOtherAudios()
 
         self.vibrate = false
-        if self.previousVolume != nil {
-            self.setVolume(volume: self.previousVolume!, enable: false)
+
+        safeModifyResources {
+            // Restore the previous volume if it was saved
+            if let previousVolume = self.previousVolume {
+                self.setVolume(volume: previousVolume, enable: false)
+            }
+
+            // Invalidate and remove the timer if it exists
+            if let timer = self.timers[id] {
+                timer.invalidate()
+                self.timers.removeValue(forKey: id)
+            }
+
+            // Stop the audio player if it exists, and clean up all related resources
+            if let audioPlayer = self.audioPlayers[id] {
+                audioPlayer.stop()
+                self.audioPlayers.removeValue(forKey: id)
+                self.triggerTimes.removeValue(forKey: id)
+                self.tasksQueue[id]?.cancel()
+                self.tasksQueue.removeValue(forKey: id)
+            }
         }
 
-        if let timer = timers[id] {
-            timer.invalidate()
-            timers.removeValue(forKey: id)
-        }
+        self.stopSilentSound()
+        self.stopNotificationOnKillService()
 
-        if let audioPlayer = self.audioPlayers[id] {
-            audioPlayer.stop()
-            self.audioPlayers.removeValue(forKey: id)
-            self.triggerTimes.removeValue(forKey: id)
-            self.tasksQueue[id]?.cancel()
-            self.tasksQueue.removeValue(forKey: id)
-            self.stopSilentSound()
-            self.stopNotificationOnKillService()
-            result(true)
-        } else {
-            result(false)
-        }
+        result(true)
     }
 
     private func stopSilentSound() {
         self.mixOtherAudios()
 
-        if self.audioPlayers.isEmpty {
-            self.playSilent = false
-            self.silentAudioPlayer?.stop()
-            NotificationCenter.default.removeObserver(self)
-            SwiftAlarmPlugin.cancelBackgroundTasks()
+        safeModifyResources {
+            if self.audioPlayers.isEmpty {
+                self.playSilent = false
+                DispatchQueue.main.async {
+                    self.silentAudioPlayer?.stop()
+                    NotificationCenter.default.removeObserver(self)
+                    SwiftAlarmPlugin.cancelBackgroundTasks()
+                }
+            }
         }
     }
 
@@ -349,20 +371,24 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         self.silentAudioPlayer?.pause()
         self.silentAudioPlayer?.play()
 
-        let ids = Array(self.audioPlayers.keys)
+        safeModifyResources {
+            let ids = Array(self.audioPlayers.keys)
 
-        for id in ids {
-            NSLog("SwiftAlarmPlugin: Background check alarm with id \(id)")
-            if let audioPlayer = self.audioPlayers[id] {
-                let dateTime = self.triggerTimes[id]!
-                let currentTime = audioPlayer.deviceCurrentTime
-                let time = currentTime + dateTime.timeIntervalSinceNow
-                self.audioPlayers[id]!.play(atTime: time)
-            }
+            for id in ids {
+                NSLog("SwiftAlarmPlugin: Background check alarm with id \(id)")
+                if let audioPlayer = self.audioPlayers[id], let dateTime = self.triggerTimes[id] {
+                    let currentTime = audioPlayer.deviceCurrentTime
+                    let time = currentTime + dateTime.timeIntervalSinceNow
+                    audioPlayer.play(atTime: time)
+                }
 
-            let delayInSeconds = self.triggerTimes[id]!.timeIntervalSinceNow
-            DispatchQueue.main.async {
-                self.timers[id] = Timer.scheduledTimer(timeInterval: delayInSeconds, target: self, selector: #selector(self.executeTask(_:)), userInfo: id, repeats: false)
+                if let delayInSeconds = self.triggerTimes[id]?.timeIntervalSinceNow {
+                    DispatchQueue.main.async {
+                        self.safeModifyResources {
+                            self.timers[id] = Timer.scheduledTimer(timeInterval: delayInSeconds, target: self, selector: #selector(self.executeTask(_:)), userInfo: id, repeats: false)
+                        }
+                    }
+                }
             }
         }
     }
@@ -374,6 +400,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
     }
 
+    // Show notification on app kill
     @objc func applicationWillTerminate(_ notification: Notification) {
         let content = UNMutableNotificationContent()
         content.title = notificationTitleOnKill
@@ -390,6 +417,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
     }
 
+    // Mix with other audio sources
     private func mixOtherAudios() {
         do {
             let audioSession = AVAudioSession.sharedInstance()
@@ -400,6 +428,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
     }
 
+    // Lower other audio sources
     private func duckOtherAudios() {
         do {
             let audioSession = AVAudioSession.sharedInstance()
@@ -446,35 +475,5 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         } else {
             NSLog("SwiftAlarmPlugin: BGTaskScheduler not available for your version of iOS lower than 13.0")
         }
-    }
-
-    func scheduleNotification(id: String, delayInSeconds: Int, title: String, body: String) {
-        // Request permission
-        let center = UNUserNotificationCenter.current()
-        center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
-            if granted {
-                // Schedule the notification
-                let content = UNMutableNotificationContent()
-                content.title = title
-                content.body = body
-                content.sound = nil
-
-                let trigger = UNTimeIntervalNotificationTrigger(timeInterval: TimeInterval(delayInSeconds), repeats: false)
-                let request = UNNotificationRequest(identifier: "alarm-\(id)", content: content, trigger: trigger)
-
-                center.add(request) { error in
-                    if let error = error {
-                        NSLog("SwiftAlarmPlugin: Error scheduling notification: \(error.localizedDescription)")
-                    }
-                }
-            } else {
-                NSLog("SwiftAlarmPlugin: Notification permission denied")
-            }
-        }
-    }
-
-    func cancelNotification(id: String) {
-        let center = UNUserNotificationCenter.current()
-        center.removePendingNotificationRequests(withIdentifiers: ["alarm-\(id)"])
     }
 }
