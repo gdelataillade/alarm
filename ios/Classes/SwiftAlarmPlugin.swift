@@ -171,14 +171,9 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 }
                 audioURL = URL(fileURLWithPath: audioPath)
             } else {
-                // Load audio from file system
-                if assetAudio.starts(with: "/") {
-                    audioURL = URL(fileURLWithPath: assetAudio)
-                } else {
-                    let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-                    let filename = String(assetAudio.split(separator: "/").last ?? "")
-                    audioURL = documentsDirectory.appendingPathComponent(filename)
-                }
+                // Adjusted to support subfolder paths
+                let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                audioURL = documentsDirectory.appendingPathComponent(assetAudio)
             }
 
             // Create and return the audio player
