@@ -1,3 +1,7 @@
+## 3.0.9
+* [iOS] Add concurrency handling.
+* [iOS] Make iOS notification show in foreground.
+
 ## 3.0.8
 * Fix alarm id verification.
 
