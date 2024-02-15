@@ -105,11 +105,6 @@ class Alarm {
         'Alarm id cannot be set smaller than Int min value (-2147483648). Provided: ${alarmSettings.id}',
       );
     }
-    if (!alarmSettings.assetAudioPath.contains('.')) {
-      throw AlarmException(
-        'Provided audio path is not valid: ${alarmSettings.assetAudioPath}',
-      );
-    }
     if (alarmSettings.volume != null &&
         (alarmSettings.volume! < 0 || alarmSettings.volume! > 1)) {
       throw AlarmException(

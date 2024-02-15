@@ -5,6 +5,7 @@ import android.media.MediaPlayer
 import java.util.concurrent.ConcurrentHashMap
 import java.util.Timer
 import java.util.TimerTask
+import io.flutter.Log
 
 class AudioService(private val context: Context) {
     private val mediaPlayers = ConcurrentHashMap<Int, MediaPlayer>()
@@ -69,6 +70,7 @@ class AudioService(private val context: Context) {
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            Log.e("AudioService", "Error playing audio: $e")
         }
     }
 

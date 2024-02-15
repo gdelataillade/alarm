@@ -1,3 +1,6 @@
+## 3.0.10
+* [Android] Add relative audio path support.
+
 ## 3.0.9
 * [iOS] Add concurrency handling.
 * [iOS] Make iOS notification show in foreground.
