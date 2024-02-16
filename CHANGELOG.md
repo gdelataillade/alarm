@@ -1,3 +1,6 @@
+## 3.0.11
+* Improve alarm reschedule on init.
+
 ## 3.0.10
 * [Android] Add relative audio path support.
 
@@ -19,7 +22,7 @@
 * [Android] Fix delay integer overflow when delay is more than a month.
 
 ## 3.0.5
-* Keep notification when audio's over
+* Keep notification when audio's over.
 
 ## 3.0.4
 * [Android] Add `FOREGROUND_SERVICE_MEDIA_PLAYBACK` permission.
