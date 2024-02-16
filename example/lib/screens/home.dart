@@ -41,11 +41,12 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
 
   Future<void> navigateToRingScreen(AlarmSettings alarmSettings) async {
     await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) =>
-              ExampleAlarmRingScreen(alarmSettings: alarmSettings),
-        ));
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            ExampleAlarmRingScreen(alarmSettings: alarmSettings),
+      ),
+    );
     loadAlarms();
   }
 

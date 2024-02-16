@@ -47,13 +47,15 @@ class Alarm {
   static Future<void> checkAlarm() async {
     final alarms = AlarmStorage.getSavedAlarms();
 
+    await stopAll();
+
     for (final alarm in alarms) {
       final now = DateTime.now();
       if (alarm.dateTime.isAfter(now)) {
         await set(alarmSettings: alarm);
       } else {
         final isRinging = await Alarm.isRinging(alarm.id);
-        isRinging ? ringStream.add(alarm) : stop(alarm.id);
+        isRinging ? ringStream.add(alarm) : await stop(alarm.id);
       }
     }
   }
