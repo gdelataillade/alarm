@@ -73,7 +73,7 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
       alarmPrint('Requesting notification permission...');
       final res = await Permission.notification.request();
       alarmPrint(
-        'Notification permission ${res.isGranted ? '' : 'not'} granted.',
+        'Notification permission ${res.isGranted ? '' : 'not '}granted.',
       );
     }
   }

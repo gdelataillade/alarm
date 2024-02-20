@@ -52,12 +52,10 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
             }
             "stopAlarm" -> {
                 val id = call.argument<Int>("id")
-
-                // Intent to stop the alarm
                 val stopIntent = Intent(context, AlarmService::class.java)
                 stopIntent.action = "STOP_ALARM"
                 stopIntent.putExtra("id", id)
-                context.startService(stopIntent)
+                context.stopService(stopIntent)
 
                 // Intent to cancel the future alarm if it's set
                 val alarmIntent = Intent(context, AlarmReceiver::class.java)
