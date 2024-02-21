@@ -1,3 +1,7 @@
+## 3.0.12
+* [Android] Fix BackgroundServiceStartNotAllowedException.
+* [Android] Fix alarm ring on app launch.
+
 ## 3.0.11
 * Improve alarm reschedule on init.
 
