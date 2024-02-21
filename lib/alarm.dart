@@ -47,7 +47,7 @@ class Alarm {
   static Future<void> checkAlarm() async {
     final alarms = AlarmStorage.getSavedAlarms();
 
-    await stopAll();
+    if (iOS) await stopAll();
 
     for (final alarm in alarms) {
       final now = DateTime.now();
