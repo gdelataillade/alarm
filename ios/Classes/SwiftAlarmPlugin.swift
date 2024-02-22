@@ -389,9 +389,11 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
 
     private func stopNotificationOnKillService() {
-        if audioPlayers.isEmpty && observerAdded {
-            NotificationCenter.default.removeObserver(self, name: UIApplication.willTerminateNotification, object: nil)
-            observerAdded = false
+        safeModifyResources {
+            if self.audioPlayers.isEmpty && self.observerAdded {
+                NotificationCenter.default.removeObserver(self, name: UIApplication.willTerminateNotification, object: nil)
+                self.observerAdded = false
+            }
         }
     }
 
