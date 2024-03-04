@@ -4,6 +4,7 @@
 ![Pub Popularity](https://img.shields.io/pub/popularity/alarm)
 
 [![alarm](https://github.com/gdelataillade/alarm/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/gdelataillade/alarm/actions/workflows/main.yml)
+[![GitHub Sponsor](https://img.shields.io/github/sponsors/gdelataillade?label=Sponsor&logo=GitHub)](https://github.com/sponsors/gdelataillade)
 
 🏆 Winner of the [2023 OnePub Community Choice Awards](https://onepub.dev/Competition).
 
@@ -176,3 +177,6 @@ Thank you for considering contributing to this plugin. Your help is greatly appr
 - [WayUp](https://wayuphealth.fr)
 
 ❤️ Let me know if you like the plugin by liking it on [pub.dev](https://pub.dev/packages/alarm) and starring the repo on [Github](https://github.com/gdelataillade/alarm) 🙂
+
+[![](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/gdelataillade)
+
