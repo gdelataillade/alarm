@@ -1,15 +1,21 @@
 import 'dart:async';
 
 import 'package:alarm/alarm.dart';
-import 'package:alarm/service/storage.dart';
+import 'package:alarm/model/alarm_settings.dart';
+import 'package:alarm/service/alarm_storage.dart';
+import 'package:alarm/utils/alarm_exception.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 
 /// Uses method channel to interact with the native platform.
 class IOSAlarm {
+  /// Method channel for the alarm.
   static const methodChannel = MethodChannel('com.gdelataillade/alarm');
 
+  /// Map of alarm timers.
   static Map<int, Timer?> timers = {};
+
+  /// Map of foreground/background subscriptions.
   static Map<int, StreamSubscription<FGBGType>?> fgbgSubscriptions = {};
 
   /// Calls the native function `setAlarm` and listens to alarm ring state.
@@ -50,12 +56,12 @@ class IOSAlarm {
           false;
 
       alarmPrint(
-        'Alarm with id $id scheduled ${res ? 'successfully' : 'failed'} at ${settings.dateTime}',
+        '''Alarm with id $id scheduled ${res ? 'successfully' : 'failed'} at ${settings.dateTime}''',
       );
 
       if (!res) return false;
     } catch (e) {
-      Alarm.stop(id);
+      await Alarm.stop(id);
       throw AlarmException(e.toString());
     }
 
@@ -106,7 +112,7 @@ class IOSAlarm {
     final pos1 = await methodChannel
             .invokeMethod<double?>('audioCurrentTime', {'id': id}) ??
         0.0;
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future.delayed(const Duration(milliseconds: 100), () {});
     final pos2 = await methodChannel
             .invokeMethod<double?>('audioCurrentTime', {'id': id}) ??
         0.0;
@@ -136,11 +142,13 @@ class IOSAlarm {
     });
   }
 
+  /// Disposes alarm timer.
   static void disposeTimer(int id) {
     timers[id]?.cancel();
     timers.removeWhere((key, value) => key == id);
   }
 
+  /// Disposes alarm timer and FGBG subscription.
   static void disposeAlarm(int id) {
     disposeTimer(id);
     fgbgSubscriptions[id]?.cancel();

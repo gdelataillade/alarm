@@ -1,17 +1,19 @@
 // ignore_for_file: avoid_print
 
-export 'package:alarm/model/alarm_settings.dart';
 import 'dart:async';
 
 import 'package:alarm/model/alarm_settings.dart';
-import 'package:alarm/src/ios_alarm.dart';
+import 'package:alarm/service/alarm_storage.dart';
 import 'package:alarm/src/android_alarm.dart';
-import 'package:alarm/service/storage.dart';
+import 'package:alarm/src/ios_alarm.dart';
+import 'package:alarm/utils/alarm_exception.dart';
+import 'package:alarm/utils/extensions.dart';
 import 'package:flutter/foundation.dart';
 
 /// Custom print function designed for Alarm plugin.
 DebugPrintCallback alarmPrint = debugPrintThrottled;
 
+/// Class that handles the alarm.
 class Alarm {
   /// Whether it's iOS device.
   static bool get iOS => defaultTargetPlatform == TargetPlatform.iOS;
@@ -31,7 +33,7 @@ class Alarm {
   static Future<void> init({bool showDebugLogs = true}) async {
     alarmPrint = (String? message, {int? wrapWidth}) {
       if (kDebugMode && showDebugLogs) {
-        print("[Alarm] $message");
+        print('[Alarm] $message');
       }
     };
 
@@ -62,7 +64,7 @@ class Alarm {
 
   /// Schedules an alarm with given [alarmSettings] with its notification.
   ///
-  /// If you set an alarm for the same [dateTime] as an existing one,
+  /// If you set an alarm for the same dateTime as an existing one,
   /// the new alarm will replace the existing one.
   static Future<bool> set({required AlarmSettings alarmSettings}) async {
     alarmSettingsValidation(alarmSettings);
@@ -82,7 +84,7 @@ class Alarm {
         () => ringStream.add(alarmSettings),
       );
     } else if (android) {
-      return await AndroidAlarm.set(
+      return AndroidAlarm.set(
         alarmSettings,
         () => ringStream.add(alarmSettings),
       );
@@ -91,6 +93,7 @@ class Alarm {
     return false;
   }
 
+  /// Validates [alarmSettings] fields.
   static void alarmSettingsValidation(AlarmSettings alarmSettings) {
     if (alarmSettings.id == 0 || alarmSettings.id == -1) {
       throw AlarmException(
@@ -99,12 +102,12 @@ class Alarm {
     }
     if (alarmSettings.id > 2147483647) {
       throw AlarmException(
-        'Alarm id cannot be set larger than Int max value (2147483647). Provided: ${alarmSettings.id}',
+        '''Alarm id cannot be set larger than Int max value (2147483647). Provided: ${alarmSettings.id}''',
       );
     }
     if (alarmSettings.id < -2147483648) {
       throw AlarmException(
-        'Alarm id cannot be set smaller than Int min value (-2147483648). Provided: ${alarmSettings.id}',
+        '''Alarm id cannot be set smaller than Int min value (-2147483648). Provided: ${alarmSettings.id}''',
       );
     }
     if (alarmSettings.volume != null &&
@@ -115,7 +118,7 @@ class Alarm {
     }
     if (alarmSettings.fadeDuration < 0) {
       throw AlarmException(
-        'Fade duration must be positive. Provided: ${alarmSettings.fadeDuration}',
+        '''Fade duration must be positive. Provided: ${alarmSettings.fadeDuration}''',
       );
     }
   }
@@ -127,7 +130,8 @@ class Alarm {
   ///
   /// [title] default value is `Your alarm may not ring`
   ///
-  /// [body] default value is `You killed the app. Please reopen so your alarm can ring.`
+  /// [body] default value is `You killed the app.
+  /// Please reopen so your alarm can ring.`
   static Future<void> setNotificationOnAppKillContent(
     String title,
     String body,
@@ -160,7 +164,7 @@ class Alarm {
 
   /// Returns alarm by given id. Returns null if not found.
   static AlarmSettings? getAlarm(int id) {
-    List<AlarmSettings> alarms = AlarmStorage.getSavedAlarms();
+    final alarms = AlarmStorage.getSavedAlarms();
 
     for (final alarm in alarms) {
       if (alarm.id == id) return alarm;
@@ -172,23 +176,4 @@ class Alarm {
 
   /// Returns all the alarms.
   static List<AlarmSettings> getAlarms() => AlarmStorage.getSavedAlarms();
-}
-
-class AlarmException implements Exception {
-  final String message;
-
-  const AlarmException(this.message);
-
-  @override
-  String toString() => message;
-}
-
-extension DateTimeExtension on DateTime {
-  bool isSameSecond(DateTime other) =>
-      year == other.year &&
-      month == other.month &&
-      day == other.day &&
-      hour == other.hour &&
-      minute == other.minute &&
-      second == other.second;
 }
