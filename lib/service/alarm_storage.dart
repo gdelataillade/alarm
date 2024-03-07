@@ -1,17 +1,29 @@
 import 'dart:convert';
 
-import 'package:alarm/alarm.dart';
 import 'package:alarm/model/alarm_settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Class that handles the local storage of the alarm info.
 class AlarmStorage {
+  /// Prefix to be used in local storage to identify alarm info.
   static const prefix = '__alarm_id__';
+
+  /// Key to be used in local storage to identify
+  /// notification on app kill title.
   static const notificationOnAppKill = 'notificationOnAppKill';
+
+  /// Key to be used in local storage to identify
+  /// notification on app kill body.
   static const notificationOnAppKillTitle = 'notificationOnAppKillTitle';
+
+  /// Key to be used in local storage to identify
+  /// notification on app kill body.
   static const notificationOnAppKillBody = 'notificationOnAppKillBody';
 
+  /// Shared preferences instance.
   static late SharedPreferences prefs;
 
+  /// Initializes shared preferences instance.
   static Future<void> init() async {
     prefs = await SharedPreferences.getInstance();
   }
@@ -24,7 +36,7 @@ class AlarmStorage {
       );
 
   /// Removes alarm from local storage.
-  static Future<void> unsaveAlarm(int id) => prefs.remove("$prefix$id");
+  static Future<void> unsaveAlarm(int id) => prefs.remove('$prefix$id');
 
   /// Whether at least one alarm is set.
   static bool hasAlarm() {
@@ -46,7 +58,9 @@ class AlarmStorage {
     for (final key in keys) {
       if (key.startsWith(prefix)) {
         final res = prefs.getString(key);
-        alarms.add(AlarmSettings.fromJson(json.decode(res!)));
+        alarms.add(
+          AlarmSettings.fromJson(json.decode(res!) as Map<String, dynamic>),
+        );
       }
     }
 
@@ -63,11 +77,11 @@ class AlarmStorage {
         prefs.setString(notificationOnAppKillBody, body),
       ]);
 
-  /// Returns notification on app kill [title].
+  /// Returns notification on app kill [notificationOnAppKillTitle].
   static String getNotificationOnAppKillTitle() =>
       prefs.getString(notificationOnAppKillTitle) ?? 'Your alarms may not ring';
 
-  /// Returns notification on app kill [body].
+  /// Returns notification on app kill [notificationOnAppKillBody].
   static String getNotificationOnAppKillBody() =>
       prefs.getString(notificationOnAppKillBody) ??
       'You killed the app. Please reopen so your alarms can be rescheduled.';
