@@ -102,7 +102,8 @@ class AlarmSettings {
 
   /// Whether to show a notification when application is killed to warn
   /// the user that the alarms won't ring anymore. Enabled by default.
-  /// Recommanded for iOS.
+  ///
+  /// Not necessary for Android. Recommanded for iOS.
   final bool enableNotificationOnKill;
 
   /// Whether to turn screen on and display full screen notification
