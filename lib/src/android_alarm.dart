@@ -22,7 +22,7 @@ class AndroidAlarm {
   static Future<dynamic> handleMethodCall(MethodCall call) async {
     try {
       if (call.method == 'alarmRinging') {
-        final arguments = call.arguments as Map<String, dynamic>;
+        final arguments = call.arguments as Map<dynamic, dynamic>;
         final id = arguments['id'] as int;
         final settings = Alarm.getAlarm(id);
         if (settings != null) Alarm.ringStream.add(settings);
