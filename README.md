@@ -4,6 +4,7 @@
 ![Pub Popularity](https://img.shields.io/pub/popularity/alarm)
 
 [![alarm](https://github.com/gdelataillade/alarm/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/gdelataillade/alarm/actions/workflows/main.yml)
+[![style: very good analysis](https://img.shields.io/badge/style-very_good_analysis-B22C89.svg)](https://pub.dev/packages/very_good_analysis)
 [![GitHub Sponsor](https://img.shields.io/github/sponsors/gdelataillade?label=Sponsor&logo=GitHub)](https://github.com/sponsors/gdelataillade)
 
 🏆 Winner of the [2023 OnePub Community Choice Awards](https://onepub.dev/Competition).
