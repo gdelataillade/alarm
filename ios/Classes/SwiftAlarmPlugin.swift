@@ -146,8 +146,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
                 DispatchQueue.main.async {
                     self.alarms[id]?.timer = Timer.scheduledTimer(timeInterval: delayInSeconds, target: self, selector: #selector(self.executeTask(_:)), userInfo: id, repeats: false)
-                    SwiftAlarmPlugin.scheduleAppRefresh()
                 }
+                SwiftAlarmPlugin.scheduleAppRefresh()
             }
             result(true)
         } else {
