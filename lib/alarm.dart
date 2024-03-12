@@ -22,7 +22,7 @@ class Alarm {
   static bool get android => defaultTargetPlatform == TargetPlatform.android;
 
   /// Stream of the ringing status.
-  static final ringStream = StreamController<AlarmSettings>.broadcast();
+  static final ringStream = StreamController<AlarmSettings>();
 
   /// Initializes Alarm services.
   ///
