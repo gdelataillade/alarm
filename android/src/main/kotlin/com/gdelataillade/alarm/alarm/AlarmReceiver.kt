@@ -13,7 +13,7 @@ class AlarmReceiver : BroadcastReceiver() {
         serviceIntent.putExtras(intent)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            PendingIntent.getForegroundService(context, 1, serviceIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+            PendingIntent.getForegroundService(context, 1, serviceIntent, PendingIntent.FLAG_IMMUTABLE)
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(serviceIntent)
         } else {
