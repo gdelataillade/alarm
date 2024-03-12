@@ -1,5 +1,6 @@
 package com.gdelataillade.alarm.alarm
 
+import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -11,7 +12,9 @@ class AlarmReceiver : BroadcastReceiver() {
         val serviceIntent = Intent(context, AlarmService::class.java)
         serviceIntent.putExtras(intent)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            PendingIntent.getForegroundService(context, 1, serviceIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(serviceIntent)
         } else {
             context.startService(serviceIntent)
