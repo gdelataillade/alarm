@@ -8,6 +8,7 @@ class AlarmConfiguration {
     let fadeDuration: Double
     let volume: Float?
     var triggerTime: Date?
+    var timeZone: String
     var audioPlayer: AVAudioPlayer?
     var timer: Timer?
     var task: DispatchWorkItem?
@@ -19,5 +20,6 @@ class AlarmConfiguration {
         self.loopAudio = loopAudio
         self.fadeDuration = fadeDuration
         self.volume = volume
+        self.timeZone = TimeZone.current.identifier
     }
 }
