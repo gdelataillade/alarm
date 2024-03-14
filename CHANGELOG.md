@@ -1,3 +1,9 @@
+## 3.0.13
+* [iOS] Fix EXC_BAD_ACCESS errors.
+* [Android] Improve error handling.
+* Improve Dart code quality: apply [very_good_analysis](https://pub.dev/packages/very_good_analysis) lint rules.
+* Add minor updates in documentation.
+
 ## 3.0.12
 * [Android] Fix BackgroundServiceStartNotAllowedException.
 * [Android] Fix alarm ring on app launch.
