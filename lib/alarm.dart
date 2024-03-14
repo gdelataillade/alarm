@@ -32,9 +32,7 @@ class Alarm {
   /// Set [showDebugLogs] to `false` to hide all the logs from the plugin.
   static Future<void> init({bool showDebugLogs = true}) async {
     alarmPrint = (String? message, {int? wrapWidth}) {
-      if (kDebugMode && showDebugLogs) {
-        print('[Alarm] $message');
-      }
+      if (showDebugLogs) print('[Alarm] $message');
     };
 
     await Future.wait([

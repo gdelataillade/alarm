@@ -26,6 +26,7 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
     super.initState();
     if (Alarm.android) {
       checkAndroidNotificationPermission();
+      checkAndroidScheduleExactAlarmPermission();
     }
     loadAlarms();
     subscription ??= Alarm.ringStream.stream.listen(
@@ -86,6 +87,18 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
       final res = await Permission.storage.request();
       alarmPrint(
         'External storage permission ${res.isGranted ? '' : 'not'} granted.',
+      );
+    }
+  }
+
+  Future<void> checkAndroidScheduleExactAlarmPermission() async {
+    final status = await Permission.scheduleExactAlarm.status;
+    alarmPrint('Schedule exact alarm permission: $status.');
+    if (status.isDenied) {
+      alarmPrint('Requesting schedule exact alarm permission...');
+      final res = await Permission.scheduleExactAlarm.request();
+      alarmPrint(
+        'Schedule exact alarm permission ${res.isGranted ? '' : 'not'} granted.',
       );
     }
   }

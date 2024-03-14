@@ -29,8 +29,7 @@ Then, add the following permissions to your `AndroidManifest.xml` within the `<m
   <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
   <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
-  <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"
-                   android:maxSdkVersion="32" />
+  <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
 ```
 
 See more details on Android permissions [here](https://developer.android.com/reference/android/Manifest.permission).

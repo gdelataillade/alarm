@@ -81,16 +81,26 @@ class AndroidAlarm {
   /// Sends the message `stop` to the isolate so the audio player
   /// can stop playing and dispose.
   static Future<bool> stop(int id) async {
-    final res = await platform.invokeMethod('stopAlarm', {'id': id}) as bool;
-    if (res) alarmPrint('Alarm with id $id stopped');
-    if (!hasOtherAlarms) await stopNotificationOnKillService();
-    return res;
+    try {
+      final res = await platform.invokeMethod('stopAlarm', {'id': id}) as bool;
+      if (res) alarmPrint('Alarm with id $id stopped');
+      if (!hasOtherAlarms) await stopNotificationOnKillService();
+      return res;
+    } catch (e) {
+      alarmPrint('Failed to stop alarm: $e');
+      return false;
+    }
   }
 
   /// Checks if the alarm with given [id] is ringing.
   static Future<bool> isRinging(int id) async {
-    final res = await platform.invokeMethod('isRinging', {'id': id}) as bool;
-    return res;
+    try {
+      final res = await platform.invokeMethod('isRinging', {'id': id}) as bool;
+      return res;
+    } catch (e) {
+      alarmPrint('Failed to check if alarm is ringing: $e');
+      return false;
+    }
   }
 
   /// Disable the notification on kill service.
