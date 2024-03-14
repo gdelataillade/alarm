@@ -55,7 +55,7 @@ class NotificationOnKillService: Service() {
             notificationManager.createNotificationChannel(channel)
             notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build())
         } catch (e: Exception) {
-            Log.d("NotificationOnKillService", "Error showing notification", e)
+            Log.e("NotificationOnKillService", "Error showing notification", e)
         }
         super.onTaskRemoved(rootIntent)
     }

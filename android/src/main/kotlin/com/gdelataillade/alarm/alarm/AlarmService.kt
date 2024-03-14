@@ -39,7 +39,7 @@ class AlarmService : Service() {
                 channel = MethodChannel(messenger, "com.gdelataillade.alarm/alarm")
             }
         } catch (e: Exception) {
-            Log.d("AlarmService", "Error while creating method channel: $e")
+            Log.e("AlarmService", "Error while creating method channel: $e")
         }
 
         audioService = AudioService(this)
@@ -97,10 +97,10 @@ class AlarmService : Service() {
             if (channel != null) {
                 channel?.invokeMethod("alarmRinging", mapOf("id" to id))
             } else {
-                Log.d("AlarmService", "Method channel is null")
+                Log.e("AlarmService", "Method channel is null")
             }
         } catch (e: Exception) {
-            Log.d("AlarmService", "Error while invoking alarmRinging channel: $e")
+            Log.e("AlarmService", "Error while invoking alarmRinging channel: $e")
         }
 
         if (volume >= 0.0 && volume <= 1.0) {
