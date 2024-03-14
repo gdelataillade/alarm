@@ -374,6 +374,52 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 }
             }
         }
+
+        checkTimeZoneChange()
+    }
+
+    // If time zone changed, reschedule all alarms
+    private func checkTimeZoneChange() {
+        let currentTimeZone = TimeZone.current.identifier
+
+        alarms.forEach { id, alarmConfig in
+            if alarmConfig.timeZone != currentTimeZone {
+                // Detected a time zone change, now recalculate the alarm trigger time
+                let timeDifference = calculateTimeDifference(from: alarmConfig.timeZone, to: currentTimeZone)
+                if let newTriggerTime = adjustAlarmTime(alarmConfig.triggerTime, by: timeDifference) {
+                    stopAlarm(id: id, cancelNotif: true, result: { _ in })
+                    // call setAlarm with updated trigger time
+                    let args: [String: Any] = [
+                        "id": id,
+                        "delayInSeconds": newTriggerTime.timeIntervalSinceNow,
+                        "loopAudio": alarmConfig.loopAudio,
+                        "fadeDuration": alarmConfig.fadeDuration,
+                        "vibrate": alarmConfig.vibrationsEnabled,
+                        "assetAudio": alarmConfig.assetAudio,
+                        "volume": alarmConfig.volume ?? 1.0,
+                        "notificationTitle": "Alarm",
+                        "notificationBody": "Alarm is ringing",
+                        "notifOnKillEnabled": notifOnKillEnabled,
+                        "notifTitleOnAppKill": notificationTitleOnKill,
+                        "notifDescriptionOnAppKill": notificationBodyOnKill
+                    ]
+                    setAlarm(call: FlutterMethodCall(methodName: "setAlarm", arguments: args), result: { _ in })
+                    // Also warn the Flutter side when possible to tell him that an alarm has been rescheduled
+                    // so it has to update its local storage
+                }
+            }
+        }
+    }
+
+    private func calculateTimeDifference(from oldTimeZoneIdentifier: String, to newTimeZoneIdentifier: String) -> TimeInterval {
+        let oldTimeZone = TimeZone(identifier: oldTimeZoneIdentifier)!
+        let newTimeZone = TimeZone(identifier: newTimeZoneIdentifier)!
+        let difference = TimeInterval(newTimeZone.secondsFromGMT() - oldTimeZone.secondsFromGMT())
+        return difference
+    }
+
+    private func adjustAlarmTime(_ originalTime: Date, by timeDifference: TimeInterval) -> Date {
+        return originalTime.addingTimeInterval(timeDifference)
     }
 
     private func stopNotificationOnKillService() {
