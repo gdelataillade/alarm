@@ -11,27 +11,39 @@ import android.content.Context
 import android.content.Intent
 import androidx.annotation.NonNull
 import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.Log
 
 class AlarmPlugin: FlutterPlugin, MethodCallHandler {
     private lateinit var context: Context
-    private lateinit var channel : MethodChannel
+    private lateinit var methodChannel : MethodChannel
+    private lateinit var eventChannel: EventChannel
 
     companion object {
         @JvmStatic
-        lateinit var binaryMessenger: BinaryMessenger
+        var eventSink: EventChannel.EventSink? = null
     }
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         context = flutterPluginBinding.applicationContext
-        channel = MethodChannel(flutterPluginBinding.binaryMessenger, "com.gdelataillade.alarm/alarm")
-        channel.setMethodCallHandler(this)
-        binaryMessenger = flutterPluginBinding.binaryMessenger
+
+        methodChannel = MethodChannel(flutterPluginBinding.binaryMessenger, "com.gdelataillade.alarm/alarm")
+        methodChannel.setMethodCallHandler(this)
+
+        eventChannel = EventChannel(flutterPluginBinding.binaryMessenger, "com.gdelataillade.alarm/events")
+        eventChannel.setStreamHandler(object : EventChannel.StreamHandler {
+            override fun onListen(arguments: Any?, events: EventChannel.EventSink) {
+                eventSink = events
+            }
+
+            override fun onCancel(arguments: Any?) {
+                eventSink = null
+            }
+        })
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
@@ -156,6 +168,7 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
     }
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
-        channel.setMethodCallHandler(null)
+        methodChannel.setMethodCallHandler(null)
+        eventChannel.setStreamHandler(null)
     }
 }
