@@ -1,3 +1,6 @@
+## 3.0.14
+* [Android] Update PendingIntent flags in AlarmReceiver.
+
 ## 3.0.13
 * [iOS] Fix EXC_BAD_ACCESS errors.
 * [Android] Improve error handling.
