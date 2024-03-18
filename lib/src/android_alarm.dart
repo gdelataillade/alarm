@@ -7,29 +7,35 @@ import 'package:flutter/services.dart';
 
 /// Uses method channel to interact with the native platform.
 class AndroidAlarm {
-  /// Method channel for the alarm.
+  /// Method channel for the alarm operations.
   static const platform = MethodChannel('com.gdelataillade.alarm/alarm');
+
+  /// Event channel for the alarm events.
+  static const eventChannel = EventChannel('com.gdelataillade.alarm/events');
 
   /// Whether there are other alarms set.
   static bool get hasOtherAlarms => AlarmStorage.getSavedAlarms().length > 1;
 
-  /// Initializes the method channel.
-  static Future<void> init() async {
-    platform.setMethodCallHandler(handleMethodCall);
-  }
+  /// Starts listening to the alarm events.
+  static void init() => listenToAlarmEvents();
 
-  /// Handles the method call from the native platform.
-  static Future<dynamic> handleMethodCall(MethodCall call) async {
-    try {
-      if (call.method == 'alarmRinging') {
-        final arguments = call.arguments as Map<dynamic, dynamic>;
-        final id = arguments['id'] as int;
-        final settings = Alarm.getAlarm(id);
-        if (settings != null) Alarm.ringStream.add(settings);
-      }
-    } catch (e) {
-      alarmPrint('Handle method call "${call.method}" error: $e');
-    }
+  /// Listens to the alarm events.
+  static void listenToAlarmEvents() {
+    eventChannel.receiveBroadcastStream().listen(
+      (dynamic event) {
+        try {
+          final eventMap = Map<String, dynamic>.from(event as Map);
+          final id = eventMap['id'] as int;
+          final settings = Alarm.getAlarm(id);
+          if (settings != null) Alarm.ringStream.add(settings);
+        } catch (e) {
+          alarmPrint('Error receiving alarm events: $e');
+        }
+      },
+      onError: (dynamic error, StackTrace stackTrace) {
+        alarmPrint('Error listening to alarm events: $error, $stackTrace');
+      },
+    );
   }
 
   /// Schedules a native alarm with given [settings] with its notification.

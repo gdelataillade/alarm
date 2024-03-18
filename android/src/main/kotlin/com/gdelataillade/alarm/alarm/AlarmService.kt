@@ -14,12 +14,10 @@ import android.os.IBinder
 import android.os.PowerManager
 import android.os.Build
 import io.flutter.Log
-import io.flutter.plugin.common.MethodChannel
 import io.flutter.embedding.engine.dart.DartExecutor
 import io.flutter.embedding.engine.FlutterEngine
 
 class AlarmService : Service() {
-    private var channel: MethodChannel? = null
     private var audioService: AudioService? = null
     private var vibrationService: VibrationService? = null
     private var volumeService: VolumeService? = null
@@ -32,15 +30,6 @@ class AlarmService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-
-        try {
-            val messenger = AlarmPlugin.binaryMessenger
-            if (messenger != null) {
-                channel = MethodChannel(messenger, "com.gdelataillade.alarm/alarm")
-            }
-        } catch (e: Exception) {
-            Log.e("AlarmService", "Error while creating method channel: $e")
-        }
 
         audioService = AudioService(this)
         vibrationService = VibrationService(this)
@@ -93,15 +82,7 @@ class AlarmService : Service() {
             Log.e("AlarmService", "Error in starting foreground service", e)
         }
 
-        try {
-            if (channel != null) {
-                channel?.invokeMethod("alarmRinging", mapOf("id" to id))
-            } else {
-                Log.e("AlarmService", "Method channel is null")
-            }
-        } catch (e: Exception) {
-            Log.e("AlarmService", "Error while invoking alarmRinging channel: $e")
-        }
+        AlarmPlugin.eventSink?.success(mapOf("id" to id))
 
         if (volume >= 0.0 && volume <= 1.0) {
             volumeService?.setVolume(volume, showSystemUI)
