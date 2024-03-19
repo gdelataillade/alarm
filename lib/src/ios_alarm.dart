@@ -18,6 +18,11 @@ class IOSAlarm {
   /// Map of foreground/background subscriptions.
   static Map<int, StreamSubscription<FGBGType>?> fgbgSubscriptions = {};
 
+  /// Initializes the method channel.
+  static Future<void> init() async {
+    methodChannel.setMethodCallHandler(handleMethodCall);
+  }
+
   /// Calls the native function `setAlarm` and listens to alarm ring state.
   ///
   /// Also set periodic timer and listens for app state changes to trigger
@@ -103,6 +108,38 @@ class IOSAlarm {
     if (res) alarmPrint('Alarm with id $id stopped');
 
     return res;
+  }
+
+  /// Handles method calls from the native platform.
+  ///
+  /// When time zone is changed, onAlarmRescheduled is called from Swift
+  /// to update the alarm's trigger time.
+  static Future<void> handleMethodCall(MethodCall call) async {
+    if (call.method == 'onAlarmRescheduled') {
+      try {
+        // Extracting parameters sent from Swift
+        final arguments = call.arguments as Map<String, dynamic>;
+        final id = arguments['id'] as int;
+        final newTriggerTime = arguments['newTriggerTime'] as double;
+
+        print(
+          'onAlarmRescheduled called with id $id and newTriggerTime $newTriggerTime',
+        );
+
+        final alarm = Alarm.getAlarm(id);
+        if (alarm == null) return;
+        final dateTime =
+            DateTime.fromMillisecondsSinceEpoch(newTriggerTime.toInt());
+        alarmPrint('Alarm with id $id rescheduled to $dateTime');
+        await Alarm.set(
+          alarmSettings: alarm.copyWith(
+            dateTime: dateTime,
+          ),
+        );
+      } catch (e) {
+        alarmPrint('Handle method call "${call.method}" error: $e');
+      }
+    }
   }
 
   /// Checks whether alarm is ringing by getting the native audio player's

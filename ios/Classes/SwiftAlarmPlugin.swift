@@ -13,6 +13,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     #endif
 
     private var registrar: FlutterPluginRegistrar!
+    private var channel: FlutterMethodChannel?
     static let sharedInstance = SwiftAlarmPlugin()
     static let backgroundTaskIdentifier: String = "com.gdelataillade.fetch"
 
@@ -20,6 +21,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         let channel = FlutterMethodChannel(name: "com.gdelataillade/alarm", binaryMessenger: registrar.messenger())
         let instance = SwiftAlarmPlugin()
 
+        instance.channel = channel
         instance.registrar = registrar
         registrar.addMethodCallDelegate(instance, channel: channel)
     }
@@ -382,13 +384,14 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     private func checkTimeZoneChange() {
         let currentTimeZone = TimeZone.current.identifier
 
-        alarms.forEach { id, alarmConfig in
+        alarms.forEach { (id, alarmConfig) in
             if alarmConfig.timeZone != currentTimeZone {
                 // Detected a time zone change, now recalculate the alarm trigger time
                 let timeDifference = calculateTimeDifference(from: alarmConfig.timeZone, to: currentTimeZone)
-                if let newTriggerTime = adjustAlarmTime(alarmConfig.triggerTime, by: timeDifference) {
+                // Safely unwrap triggerTime before using it
+                if let triggerTime = alarmConfig.triggerTime,
+                let newTriggerTime = adjustAlarmTime(triggerTime, by: timeDifference) {
                     stopAlarm(id: id, cancelNotif: true, result: { _ in })
-                    // call setAlarm with updated trigger time
                     let args: [String: Any] = [
                         "id": id,
                         "delayInSeconds": newTriggerTime.timeIntervalSinceNow,
@@ -399,13 +402,13 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                         "volume": alarmConfig.volume ?? 1.0,
                         "notificationTitle": "Alarm",
                         "notificationBody": "Alarm is ringing",
-                        "notifOnKillEnabled": notifOnKillEnabled,
-                        "notifTitleOnAppKill": notificationTitleOnKill,
-                        "notifDescriptionOnAppKill": notificationBodyOnKill
+                        "notifOnKillEnabled": notifOnKillEnabled ?? true,
+                        "notifTitleOnAppKill": notificationTitleOnKill ?? "",
+                        "notifDescriptionOnAppKill": notificationBodyOnKill ?? ""
                     ]
                     setAlarm(call: FlutterMethodCall(methodName: "setAlarm", arguments: args), result: { _ in })
-                    // Also warn the Flutter side when possible to tell him that an alarm has been rescheduled
-                    // so it has to update its local storage
+                    // Also warn the Flutter side to update its local storage with the new trigger time
+                    self.channel?.invokeMethod("onAlarmRescheduled", arguments: ["id": id, "newTriggerTime": newTriggerTime.timeIntervalSince1970])
                 }
             }
         }
@@ -418,9 +421,10 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         return difference
     }
 
-    private func adjustAlarmTime(_ originalTime: Date, by timeDifference: TimeInterval) -> Date {
+    private func adjustAlarmTime(_ originalTime: Date, by timeDifference: TimeInterval) -> Date? {
         return originalTime.addingTimeInterval(timeDifference)
     }
+
 
     private func stopNotificationOnKillService() {
         safeModifyResources {
