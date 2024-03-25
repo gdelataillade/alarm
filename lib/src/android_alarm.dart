@@ -26,6 +26,18 @@ class AndroidAlarm {
         final id = arguments['id'] as int;
         final settings = Alarm.getAlarm(id);
         if (settings != null) Alarm.ringStream.add(settings);
+      } else if (call.method == 'onAlarmRescheduled') {
+        final arguments = call.arguments as Map<dynamic, dynamic>;
+        final id = arguments['id'] as int;
+        final newTriggerTime = arguments['newTriggerTime'] as double;
+        final settings = Alarm.getAlarm(id);
+        final dateTime =
+            DateTime.fromMillisecondsSinceEpoch(newTriggerTime.toInt() * 1000);
+        if (settings != null) {
+          await Alarm.set(
+            alarmSettings: settings.copyWith(dateTime: dateTime),
+          );
+        }
       }
     } catch (e) {
       alarmPrint('Handle method call "${call.method}" error: $e');
