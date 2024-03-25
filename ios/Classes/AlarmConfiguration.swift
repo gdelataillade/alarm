@@ -9,11 +9,13 @@ class AlarmConfiguration {
     let volume: Float?
     var triggerTime: Date?
     var timeZone: String
+    var notificationTitle: String
+    var notificationBody: String
     var audioPlayer: AVAudioPlayer?
     var timer: Timer?
     var task: DispatchWorkItem?
 
-    init(id: Int, assetAudio: String, vibrationsEnabled: Bool, loopAudio: Bool, fadeDuration: Double, volume: Float?) {
+    init(id: Int, assetAudio: String, vibrationsEnabled: Bool, loopAudio: Bool, fadeDuration: Double, volume: Float?, notificationTitle: String, notificationBody: String) {
         self.id = id
         self.assetAudio = assetAudio
         self.vibrationsEnabled = vibrationsEnabled
@@ -21,5 +23,7 @@ class AlarmConfiguration {
         self.fadeDuration = fadeDuration
         self.volume = volume
         self.timeZone = TimeZone.current.identifier
+        self.notificationTitle = notificationTitle
+        self.notificationBody = notificationBody
     }
 }
