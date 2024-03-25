@@ -384,6 +384,9 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     private func checkTimeZoneChange() {
         let currentTimeZone = TimeZone.current.identifier
 
+        NSLog("SwiftAlarmPlugin: Background check !")
+        NSLog("SwiftAlarmPlugin: Current time zone: \(currentTimeZone)")
+
         alarms.forEach { (id, alarmConfig) in
             if alarmConfig.timeZone != currentTimeZone {
                 // Detected a time zone change, now recalculate the alarm trigger time
