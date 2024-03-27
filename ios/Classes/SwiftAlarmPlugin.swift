@@ -13,7 +13,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     #endif
 
     private var registrar: FlutterPluginRegistrar!
-    private var channel: FlutterMethodChannel?
+    static var channel: FlutterMethodChannel?
     static let sharedInstance = SwiftAlarmPlugin()
     static let backgroundTaskIdentifier: String = "com.gdelataillade.fetch"
 
@@ -21,7 +21,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         let channel = FlutterMethodChannel(name: "com.gdelataillade/alarm", binaryMessenger: registrar.messenger())
         let instance = SwiftAlarmPlugin()
 
-        instance.channel = channel
+        SwiftAlarmPlugin.channel = channel
         instance.registrar = registrar
         registrar.addMethodCallDelegate(instance, channel: channel)
     }
@@ -411,15 +411,18 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                     NSLog("SwiftAlarmPlugin: New trigger time is \(delayInSeconds) seconds from now, rescheduling alarm")
 
                     // If the new trigger time is in the past
-                    if newTriggerTime.timeIntervalSinceNow < 0 {
+                    if delayInSeconds < 0 {
                         NSLog("SwiftAlarmPlugin: New trigger time is in the past, triggering alarm immediately")
                         NotificationManager.shared.triggerNotification(id: String(id), title: alarmConfig.notificationTitle, body: alarmConfig.notificationBody) { error in
                             if let error = error {
                                 NSLog("[SwiftAlarmPlugin] Error triggering notification: \(error.localizedDescription)")
                             }
                         }
-                        SwiftAlarmPlugin.alarms[id]?.timer?.invalidate()
+                        SwiftAlarmPlugin.alarms[id]?.timer?.invalidate()                        
                         self.handleAlarmAfterDelay(id: id)
+                        guard let alarm = SwiftAlarmPlugin.alarms[id] else { return }
+                        alarm.audioPlayer?.stop()
+                        alarm.audioPlayer?.play()
                     } else {
                         NotificationManager.shared.scheduleNotification(id: String(id), delayInSeconds: delayInSeconds, title: alarmConfig.notificationTitle, body: alarmConfig.notificationBody) { error in
                             if let error = error {
@@ -448,7 +451,9 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                     }
 
                     // Also warn the Flutter side to update its local storage with the new trigger time
-                    self.channel?.invokeMethod("onAlarmRescheduled", arguments: ["id": id, "newTriggerTime": delayInSeconds])
+                    DispatchQueue.main.async {
+                        SwiftAlarmPlugin.channel?.invokeMethod("onAlarmRescheduled", arguments: ["id": id, "newTriggerTime": delayInSeconds])
+                    }
                 }
             }
         }
