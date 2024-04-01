@@ -35,10 +35,9 @@ class Alarm {
       if (showDebugLogs) print('[Alarm] $message');
     };
 
-    await Future.wait([
-      if (android) AndroidAlarm.init(),
-      AlarmStorage.init(),
-    ]);
+    if (android) AndroidAlarm.init();
+    await AlarmStorage.init();
+
     await checkAlarm();
   }
 

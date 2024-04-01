@@ -82,6 +82,7 @@ class AudioService(private val context: Context) {
             if (isPlaying) {
                 stop()
             }
+            reset()
             release()
         }
         mediaPlayers.remove(id)
@@ -121,6 +122,7 @@ class AudioService(private val context: Context) {
             if (mediaPlayer.isPlaying) {
                 mediaPlayer.stop()
             }
+            mediaPlayer.reset()
             mediaPlayer.release()
         }
         mediaPlayers.clear()
