@@ -9,6 +9,7 @@ import 'package:alarm/src/ios_alarm.dart';
 import 'package:alarm/utils/alarm_exception.dart';
 import 'package:alarm/utils/extensions.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_fgbg/flutter_fgbg.dart';
 
 /// Custom print function designed for Alarm plugin.
 DebugPrintCallback alarmPrint = debugPrintThrottled;
@@ -21,8 +22,14 @@ class Alarm {
   /// Whether it's Android device.
   static bool get android => defaultTargetPlatform == TargetPlatform.android;
 
+  /// Returns all the scheduled alarms.
+  static List<AlarmSettings> get alarms => AlarmStorage.getSavedAlarms();
+
   /// Stream of the ringing status.
   static final ringStream = StreamController<AlarmSettings>();
+
+  /// Stream of the foreground/background status.
+  static StreamSubscription<FGBGType>? fgbgSubscription;
 
   /// Initializes Alarm services.
   ///
@@ -39,16 +46,17 @@ class Alarm {
     await AlarmStorage.init();
 
     await checkAlarm();
+    await checkTimeZoneChange();
   }
 
   /// Checks if some alarms were set on previous session.
   /// If it's the case then reschedules them.
   static Future<void> checkAlarm() async {
-    final alarms = AlarmStorage.getSavedAlarms();
+    final savedAlarms = alarms;
 
     if (iOS) await stopAll();
 
-    for (final alarm in alarms) {
+    for (final alarm in savedAlarms) {
       final now = DateTime.now();
       if (alarm.dateTime.isAfter(now)) {
         await set(alarmSettings: alarm);
@@ -66,7 +74,7 @@ class Alarm {
   static Future<bool> set({required AlarmSettings alarmSettings}) async {
     alarmSettingsValidation(alarmSettings);
 
-    for (final alarm in Alarm.getAlarms()) {
+    for (final alarm in alarms) {
       if (alarm.id == alarmSettings.id ||
           alarm.dateTime.isSameSecond(alarmSettings.dateTime)) {
         await Alarm.stop(alarm.id);
@@ -88,6 +96,44 @@ class Alarm {
     }
 
     return false;
+  }
+
+  /// Checks if the time zone has changed and reschedules the alarms if needed.
+  /// If new time zone is in the past, alarm is lost.
+  static Future<void> checkTimeZoneChange() async {
+    final now = DateTime.now();
+    // print(
+    // 'Current time zone offset (${now.timeZoneName}): ${now.timeZoneOffset.inHours} hours');
+
+    final lastTimeZoneOffsetSaved = AlarmStorage.getLastSavedTimeZoneOffset();
+    if (lastTimeZoneOffsetSaved == null) {
+      // print('No time zone saved. Saving current time zone...');
+      await AlarmStorage.saveTimeZone();
+      return;
+    }
+    // print('Last time zone saved: $lastTimeZoneOffsetSaved hours');
+
+    final difference = now.timeZoneOffset.inHours - lastTimeZoneOffsetSaved;
+
+    if (difference == 0) return;
+
+    alarmPrint(
+      'Time zone changed detected. New time zone is ${now.timeZoneName}.',
+    );
+    alarmPrint(
+      'Difference of ${difference}h. Rescheduling ${alarms.length} alarm(s)...',
+    );
+
+    await AlarmStorage.saveTimeZone();
+
+    for (final alarm in alarms) {
+      final newDateTime = alarm.dateTime.subtract(Duration(hours: difference));
+      final newAlarm = alarm.copyWith(dateTime: newDateTime);
+      alarmPrint(
+        'Rescheduling alarm ${alarm.id} from ${alarm.dateTime} to $newDateTime',
+      );
+      await set(alarmSettings: newAlarm);
+    }
   }
 
   /// Validates [alarmSettings] fields.
@@ -144,8 +190,6 @@ class Alarm {
 
   /// Stops all the alarms.
   static Future<void> stopAll() async {
-    final alarms = AlarmStorage.getSavedAlarms();
-
     for (final alarm in alarms) {
       await stop(alarm.id);
     }
@@ -161,8 +205,6 @@ class Alarm {
 
   /// Returns alarm by given id. Returns null if not found.
   static AlarmSettings? getAlarm(int id) {
-    final alarms = AlarmStorage.getSavedAlarms();
-
     for (final alarm in alarms) {
       if (alarm.id == id) return alarm;
     }
@@ -172,5 +214,12 @@ class Alarm {
   }
 
   /// Returns all the alarms.
+  @Deprecated('This method will be removed soon, use `alarms` getter instead.')
   static List<AlarmSettings> getAlarms() => AlarmStorage.getSavedAlarms();
+
+  /// Disposes the Alarm service when it's no longer needed.
+  static void dispose() {
+    fgbgSubscription?.cancel();
+    ringStream.close();
+  }
 }

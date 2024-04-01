@@ -85,4 +85,13 @@ class AlarmStorage {
   static String getNotificationOnAppKillBody() =>
       prefs.getString(notificationOnAppKillBody) ??
       'You killed the app. Please reopen so your alarms can be rescheduled.';
+
+  /// Saves current time zone offset.
+  static Future<void> saveTimeZone() => prefs.setInt(
+        'timeZoneOffset',
+        DateTime.now().timeZoneOffset.inHours,
+      );
+
+  /// Returns last saved time zone offset.
+  static int? getLastSavedTimeZoneOffset() => prefs.getInt('timeZoneOffset');
 }

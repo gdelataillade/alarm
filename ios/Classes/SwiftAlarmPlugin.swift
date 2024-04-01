@@ -379,95 +379,22 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 }
             }
         }
-
         checkTimeZoneChange()
     }
 
-    // If time zone changed, reschedule all alarms
     private func checkTimeZoneChange() {
-        let currentTimeZone = TimeZone.current.identifier
+        let currentTimeZoneIdentifier = TimeZone.current.identifier
 
-        NSLog("SwiftAlarmPlugin: Background check !")
-        NSLog("SwiftAlarmPlugin: Current time zone: \(currentTimeZone)")
+        SwiftAlarmPlugin.alarms.forEach { id, alarmConfig in
+            guard let originalTriggerTime = alarmConfig.triggerTime else { return }
+            let originalTimeZoneIdentifier = alarmConfig.timeZone
 
-        NSLog("SwiftAlarmPlugin: alarms number: \(SwiftAlarmPlugin.alarms.count)")
-        SwiftAlarmPlugin.alarms.forEach { (id, alarmConfig) in
-            NSLog("SwiftAlarmPlugin: Alarm id: \(id)")
-            NSLog("SwiftAlarmPlugin: Alarm time zone: \(alarmConfig.timeZone)")
-            NSLog("SwiftAlarmPlugin: Current time zone: \(currentTimeZone)")
-            if alarmConfig.timeZone != currentTimeZone {
-                // Detected a time zone change, now recalculate the alarm trigger time
-                let timeDifference = calculateTimeDifference(from: alarmConfig.timeZone, to: currentTimeZone)
-                // Safely unwrap triggerTime before using it
-                if let triggerTime = alarmConfig.triggerTime,
-                let newTriggerTime = adjustAlarmTime(triggerTime, by: timeDifference) {
-                    NSLog("SwiftAlarmPlugin: Time zone change detected for alarm with id \(id)")
-                    NSLog("SwiftAlarmPlugin: Current GMT date time: \(NSDate())")
-                    NSLog("SwiftAlarmPlugin: Seconds from GMT : \(TimeZone.current.secondsFromGMT()) seconds")
-                    NSLog("SwiftAlarmPlugin: Old trigger time : \(triggerTime)")
-                    NSLog("SwiftAlarmPlugin: New trigger time : \(newTriggerTime)")
-
-                    let delayInSeconds = Int(floor(newTriggerTime.timeIntervalSinceNow)) - TimeZone.current.secondsFromGMT()
-                    NSLog("SwiftAlarmPlugin: New trigger time is \(delayInSeconds) seconds from now, rescheduling alarm")
-
-                    // If the new trigger time is in the past
-                    if delayInSeconds < 0 {
-                        NSLog("SwiftAlarmPlugin: New trigger time is in the past, triggering alarm immediately")
-                        NotificationManager.shared.triggerNotification(id: String(id), title: alarmConfig.notificationTitle, body: alarmConfig.notificationBody) { error in
-                            if let error = error {
-                                NSLog("[SwiftAlarmPlugin] Error triggering notification: \(error.localizedDescription)")
-                            }
-                        }
-                        SwiftAlarmPlugin.alarms[id]?.timer?.invalidate()                        
-                        self.handleAlarmAfterDelay(id: id)
-                        guard let alarm = SwiftAlarmPlugin.alarms[id] else { return }
-                        alarm.audioPlayer?.stop()
-                        alarm.audioPlayer?.play()
-                    } else {
-                        NotificationManager.shared.scheduleNotification(id: String(id), delayInSeconds: delayInSeconds, title: alarmConfig.notificationTitle, body: alarmConfig.notificationBody) { error in
-                            if let error = error {
-                                NSLog("[SwiftAlarmPlugin] Error rescheduling notification: \(error.localizedDescription)")
-                            }
-                        }
-                        DispatchQueue.main.async {
-                            guard let alarm = SwiftAlarmPlugin.alarms[id] else { return }
-                            
-                            // Stop the old timer
-                            alarm.timer?.invalidate()
-                            alarm.timer = nil
-
-                            // Start a new timer with the updated delay
-                            alarm.audioPlayer?.stop()
-                            
-                            if let deviceCurrentTime = alarm.audioPlayer?.deviceCurrentTime {
-                                let newPlayTime = deviceCurrentTime + TimeInterval(delayInSeconds)
-                                alarm.audioPlayer?.play(atTime: newPlayTime)
-                            }
-                            
-                            alarm.timer = Timer.scheduledTimer(timeInterval: TimeInterval(delayInSeconds), target: self, selector: #selector(self.executeTask(_:)), userInfo: id, repeats: false)
-                            
-                            NSLog("SwiftAlarmPlugin: Rescheduled alarm with id \(id) to trigger at \(newTriggerTime)")
-                        }
-                    }
-
-                    // Also warn the Flutter side to update its local storage with the new trigger time
-                    DispatchQueue.main.async {
-                        SwiftAlarmPlugin.channel?.invokeMethod("onAlarmRescheduled", arguments: ["id": id, "newTriggerTime": delayInSeconds])
-                    }
-                }
+            if currentTimeZoneIdentifier != originalTimeZoneIdentifier {
+                // just show notification with custom title and body
+                // title: hey user, we detected a time zone change
+                // descr: tap to reopen the app and reschedule automatically your alarms
             }
         }
-    }
-
-    private func calculateTimeDifference(from oldTimeZoneIdentifier: String, to newTimeZoneIdentifier: String) -> TimeInterval {
-        let oldTimeZone = TimeZone(identifier: oldTimeZoneIdentifier)!
-        let newTimeZone = TimeZone(identifier: newTimeZoneIdentifier)!
-        let difference = TimeInterval(newTimeZone.secondsFromGMT() - oldTimeZone.secondsFromGMT())
-        return difference
-    }
-
-    private func adjustAlarmTime(_ originalTime: Date, by timeDifference: TimeInterval) -> Date? {
-        return originalTime.addingTimeInterval(timeDifference)
     }
 
     private func stopNotificationOnKillService() {

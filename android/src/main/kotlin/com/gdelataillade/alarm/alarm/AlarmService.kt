@@ -51,7 +51,7 @@ class AlarmService : Service() {
         }
 
         val assetAudioPath = intent?.getStringExtra("assetAudioPath")
-        val loopAudio = intent?.getBooleanExtra("loopAudio", true)
+        val loopAudio = intent?.getBooleanExtra("loopAudio", true) ?: true
         val vibrate = intent?.getBooleanExtra("vibrate", true)
         val volume = intent?.getDoubleExtra("volume", -1.0) ?: -1.0
         val fadeDuration = intent?.getDoubleExtra("fadeDuration", 0.0)
@@ -141,6 +141,7 @@ class AlarmService : Service() {
         audioService?.cleanUp()
         vibrationService?.stopVibrating()
         volumeService?.restorePreviousVolume(showSystemUI)
+        volumeService?.abandonAudioFocus()
 
         stopForeground(true)
 
