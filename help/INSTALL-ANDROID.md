@@ -44,7 +44,7 @@ Finally, if you want your notifications to show in full screen even when the dev
 ```
 
 ## Step 4
-Inside the <application> tag of your `AndroidManifest.xml`, add the following declarations:
+Inside the <application> tag of your `AndroidManifest.xml`, add the following declarations (if you need notification-on-kill feature):
 ```xml
 <application>
   [...]
@@ -53,12 +53,30 @@ Inside the <application> tag of your `AndroidManifest.xml`, add the following de
 </application>
 ```
 
-This setup is essential for managing notifications, especially when the app is terminated or the device is rebooted.
+This setup is essential for showing a notification when the app is terminated. You can enable this notification with `Alarm.setNotificationOnAppKillContent`.
+
+## Step 5
+To guarantee that your alarm's foreground service can trigger when the app is in the background, it's recommanded to verify and request the necessary permission for scheduling exact alarms on Android 12+ devices. This step is particularly important due to varying device policies.
+
+Leverage the [permission_handler](https://pub.dev/packages/permission_handler) package to check and request this permission seamlessly within your Flutter application. Here's an example to integrate into your code:
+
+```Dart
+Future<void> checkAndroidScheduleExactAlarmPermission() async {
+  final status = await Permission.scheduleExactAlarm.status;
+  print('Schedule exact alarm permission: $status.');
+  if (status.isDenied) {
+    print('Requesting schedule exact alarm permission...');
+    final res = await Permission.scheduleExactAlarm.request();
+    print('Schedule exact alarm permission ${res.isGranted ? '' : 'not'} granted.');
+  }
+}
+```
 
 ## Additional Resources
 
 For a practical implementation example, you can refer to the example's Android manifest & build.gradle in the plugin repository. This might help you better understand the setup and integration:
 
+[Schedule exact alarm permission check](https://github.com/gdelataillade/alarm/blob/main/example/lib/screens/home.dart)
 [Example build.gradle](https://github.com/gdelataillade/alarm/blob/main/example/android/app/build.gradle)
 [Example AndroidManifest.xml](https://github.com/gdelataillade/alarm/blob/main/example/android/app/src/main/AndroidManifest.xml)
 
