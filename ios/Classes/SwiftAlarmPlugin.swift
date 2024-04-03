@@ -82,7 +82,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
               let notificationTitle = args["notificationTitle"] as? String,
               let notificationBody = args["notificationBody"] as? String,
               let assetAudio = args["assetAudio"] as? String else {
-            result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Arguments are not in the expected format: \(call.arguments)", details: nil))
+            result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Arguments are not in the expected format: \(String(describing: call.arguments))", details: nil))
             return
         }
 
@@ -386,15 +386,71 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         let currentTimeZoneIdentifier = TimeZone.current.identifier
 
         SwiftAlarmPlugin.alarms.forEach { id, alarmConfig in
-            guard let originalTriggerTime = alarmConfig.triggerTime else { return }
-            let originalTimeZoneIdentifier = alarmConfig.timeZone
+            guard let originalTimeZoneIdentifier = alarmConfig.timeZone else { return }
 
-            if currentTimeZoneIdentifier != originalTimeZoneIdentifier {
-                // just show notification with custom title and body
-                // title: hey user, we detected a time zone change
-                // descr: tap to reopen the app and reschedule automatically your alarms
+            do {
+                let differenceInMinutes = try getTimeDifferenceInMinutes(from: originalTimeZoneIdentifier, to: currentTimeZoneIdentifier)
+                if differenceInMinutes != 0.0 {
+                    NSLog("SwiftAlarmPlugin: Time zone change detected for alarm \(id): \(originalTimeZoneIdentifier) -> \(currentTimeZoneIdentifier)")
+                    NSLog("SwiftAlarmPlugin: Time difference: \(differenceInMinutes) minutes")
+                    let newDateTime = alarmConfig.triggerTime?.addingTimeInterval(-differenceInMinutes * 60.0)
+                    let newDelay = newDateTime?.timeIntervalSinceNow ?? 0.0
+                    guard let alarm = SwiftAlarmPlugin.alarms[id], let audioPlayer = alarm.audioPlayer else { return }
+                    NSLog("SwiftAlarmPlugin: New delay: \(newDelay) seconds")
+                    if newDelay > 0.0 {
+                        safeModifyResources {
+                            NotificationManager.shared.scheduleNotification(id: String(id), delayInSeconds: Int(floor(newDelay)), title: alarm.notificationTitle, body: alarm.notificationBody, completion: { error in
+                                if let error = error {
+                                    NSLog("SwiftAlarmPlugin: Error scheduling notification after time zone change: \(error.localizedDescription)")
+                                }
+                            })
+                            audioPlayer.stop()
+                            audioPlayer.play(atTime: audioPlayer.deviceCurrentTime + newDelay)
+                            alarm.triggerTime = newDateTime
+                            alarm.timeZone = currentTimeZoneIdentifier
+                            alarm.timer?.invalidate()
+                            alarm.task?.cancel()
+                            alarm.task = DispatchWorkItem(block: {
+                                self.handleAlarmAfterDelay(id: id)
+                            })
+                            alarm.timer = Timer.scheduledTimer(timeInterval: newDelay, target: self, selector: #selector(self.executeTask(_:)), userInfo: id, repeats: false)
+                        }
+                    } else {
+                        NotificationManager.shared.cancelNotification(id: String(id))
+                        audioPlayer.stop()
+                        alarm.timer?.invalidate()
+                        alarm.task?.cancel()
+                        SwiftAlarmPlugin.alarms.removeValue(forKey: id)
+                        stopSilentSound()
+                        stopNotificationOnKillService()
+                    }
+                }
+            } catch {
+                NSLog("SwiftAlarmPlugin: Error calculating time difference: \(error)")
             }
         }
+    }
+
+    func getTimeDifferenceInMinutes(from zoneIdentifier1: String, to zoneIdentifier2: String) throws -> Double {
+        // Get TimeZone objects for the identifiers
+        guard let timeZone1 = TimeZone(identifier: zoneIdentifier1) else {
+            return 0.0
+        }
+        guard let timeZone2 = TimeZone(identifier: zoneIdentifier2) else {
+            return 0.0
+        }
+
+        // Create a reference date (e.g., current UTC time)
+        let referenceDate = Date()
+
+        // Get offsets in seconds for both time zones relative to the reference date
+        let offset1 = timeZone1.secondsFromGMT(for: referenceDate)
+        let offset2 = timeZone2.secondsFromGMT(for: referenceDate)
+
+        // Calculate the difference in minutes (as double)
+        let differenceInMinutes = Double(offset2 - offset1) / 60.0
+
+        return differenceInMinutes
     }
 
     private func stopNotificationOnKillService() {

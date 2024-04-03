@@ -47,6 +47,12 @@ class Alarm {
 
     await checkAlarm();
     await checkTimeZoneChange();
+
+    fgbgSubscription = FGBGEvents.stream.listen((event) {
+      if (event == FGBGType.foreground) {
+        checkTimeZoneChange();
+      }
+    });
   }
 
   /// Checks if some alarms were set on previous session.
@@ -102,32 +108,40 @@ class Alarm {
   /// If new time zone is in the past, alarm is lost.
   static Future<void> checkTimeZoneChange() async {
     final now = DateTime.now();
-    // print(
-    // 'Current time zone offset (${now.timeZoneName}): ${now.timeZoneOffset.inHours} hours');
 
     final lastTimeZoneOffsetSaved = AlarmStorage.getLastSavedTimeZoneOffset();
     if (lastTimeZoneOffsetSaved == null) {
-      // print('No time zone saved. Saving current time zone...');
       await AlarmStorage.saveTimeZone();
       return;
     }
-    // print('Last time zone saved: $lastTimeZoneOffsetSaved hours');
 
-    final difference = now.timeZoneOffset.inHours - lastTimeZoneOffsetSaved;
-
+    final difference = now.timeZoneOffset.inMinutes - lastTimeZoneOffsetSaved;
     if (difference == 0) return;
 
     alarmPrint(
       'Time zone changed detected. New time zone is ${now.timeZoneName}.',
     );
     alarmPrint(
-      'Difference of ${difference}h. Rescheduling ${alarms.length} alarm(s)...',
+      'Difference of ${difference}m. Rescheduling ${alarms.length} alarm(s)...',
     );
 
     await AlarmStorage.saveTimeZone();
 
     for (final alarm in alarms) {
-      final newDateTime = alarm.dateTime.subtract(Duration(hours: difference));
+      final newDateTime = alarm.dateTime.subtract(
+        Duration(minutes: difference),
+      );
+
+      if (newDateTime.isBefore(now)) {
+        if (await Alarm.isRinging(alarm.id)) {
+          ringStream.add(alarm);
+        } else {
+          alarmPrint('Alarm ${alarm.id} is lost. New time is in the past.');
+          await stop(alarm.id);
+        }
+        return;
+      }
+
       final newAlarm = alarm.copyWith(dateTime: newDateTime);
       alarmPrint(
         'Rescheduling alarm ${alarm.id} from ${alarm.dateTime} to $newDateTime',

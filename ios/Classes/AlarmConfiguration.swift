@@ -8,7 +8,7 @@ class AlarmConfiguration {
     let fadeDuration: Double
     let volume: Float?
     var triggerTime: Date?
-    var timeZone: String
+    var timeZone: String?
     var notificationTitle: String
     var notificationBody: String
     var audioPlayer: AVAudioPlayer?

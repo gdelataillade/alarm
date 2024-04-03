@@ -38,7 +38,7 @@ class NotificationManager {
                 completion(error)
                 return
             }
-            
+
             let content = self.createContent(title: title, body: body)
             let trigger = UNTimeIntervalNotificationTrigger(timeInterval: TimeInterval(delayInSeconds), repeats: false)
             let request = UNNotificationRequest(identifier: "alarm-\(id)", content: content, trigger: trigger)
