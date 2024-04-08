@@ -26,7 +26,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
     private var alarms: [Int: AlarmConfiguration] = [:]
 
-    private var silentAudioPlayer: AVAudioPlayer?
+    static private var silentAudioPlayer: AVAudioPlayer?
     private let resourceAccessQueue = DispatchQueue(label: "com.gdelataillade.alarm.resourceAccessQueue")
 
     private var notifOnKillEnabled: Bool!
@@ -187,15 +187,15 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
 
     private func startSilentSound() {
-        let filename = registrar.lookupKey(forAsset: "assets/long_blank.mp3", fromPackage: "alarm")
+        let filename = registrar.lookupKey(forAsset: "assets/blank.mp3", fromPackage: "alarm")
         if let audioPath = Bundle.main.path(forResource: filename, ofType: nil) {
             let audioUrl = URL(fileURLWithPath: audioPath)
             do {
-                self.silentAudioPlayer = try AVAudioPlayer(contentsOf: audioUrl)
-                self.silentAudioPlayer?.numberOfLoops = -1
-                self.silentAudioPlayer?.volume = 0.1
+                SwiftAlarmPlugin.silentAudioPlayer = try AVAudioPlayer(contentsOf: audioUrl)
+                SwiftAlarmPlugin.silentAudioPlayer?.numberOfLoops = -1
+                SwiftAlarmPlugin.silentAudioPlayer?.volume = 0.1
                 self.playSilent = true
-                self.silentAudioPlayer?.play()
+                self.loopSilentSound()
                 NotificationCenter.default.addObserver(self, selector: #selector(handleInterruption), name: AVAudioSession.interruptionNotification, object: nil)
             } catch {
                 NSLog("[SwiftAlarmPlugin] Error: Could not create and play silent audio player: \(error)")
@@ -214,10 +214,10 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
         switch type {
             case .began:
-                self.silentAudioPlayer?.play()
+            SwiftAlarmPlugin.silentAudioPlayer?.play()
                 NSLog("SwiftAlarmPlugin: Interruption began")
             case .ended:
-                self.silentAudioPlayer?.play()
+            SwiftAlarmPlugin.silentAudioPlayer?.play()
                 NSLog("SwiftAlarmPlugin: Interruption ended")
             default:
                 break
@@ -225,10 +225,10 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
 
     private func loopSilentSound() {
-        self.silentAudioPlayer?.play()
+        SwiftAlarmPlugin.silentAudioPlayer?.play()
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            self.silentAudioPlayer?.pause()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+            SwiftAlarmPlugin.silentAudioPlayer?.pause()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 9.0) {
                 if self.playSilent {
                     self.loopSilentSound()
                 }
@@ -307,7 +307,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             if self.alarms.isEmpty {
                 self.playSilent = false
                 DispatchQueue.main.async {
-                    self.silentAudioPlayer?.stop()
+                    SwiftAlarmPlugin.silentAudioPlayer?.stop()
                     NotificationCenter.default.removeObserver(self)
                     SwiftAlarmPlugin.cancelBackgroundTasks()
                 }
@@ -351,8 +351,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     private func backgroundFetch() {
         self.mixOtherAudios()
 
-        self.silentAudioPlayer?.pause()
-        self.silentAudioPlayer?.play()
+        SwiftAlarmPlugin.silentAudioPlayer?.pause()
+        SwiftAlarmPlugin.silentAudioPlayer?.play()
 
         safeModifyResources {
             let ids = Array(self.alarms.keys)
