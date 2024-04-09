@@ -27,7 +27,7 @@ apply plugin: 'kotlin-android'
 android {
     namespace 'com.gdelataillade.alarm.alarm'
 
-    compileSdkVersion 33
+    compileSdkVersion 34
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
