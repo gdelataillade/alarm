@@ -6,7 +6,7 @@ If you are using a plugin version below `3.0.0`, follow [these installation step
 In your `android/app/build.gradle`, make sure you have the following config:
 ```Gradle
 android {
-  compileSdkVersion 33
+  compileSdkVersion 34
   [...]
   defaultConfig {
     [...]
