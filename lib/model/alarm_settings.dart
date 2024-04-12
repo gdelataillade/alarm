@@ -108,6 +108,11 @@ class AlarmSettings {
 
   /// Whether to turn screen on and display full screen notification
   /// when android alarm notification is triggered. Enabled by default.
+  ///
+  /// Some devices will need the Autostart permission to show the full screen
+  /// notification. You can check if the permission is granted and request it
+  /// with the [auto_start_flutter](https://pub.dev/packages/auto_start_flutter)
+  /// package.
   final bool androidFullScreenIntent;
 
   /// Returns a hash code for this `AlarmSettings` instance using
