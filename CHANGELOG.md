@@ -1,3 +1,8 @@
+## 3.1.0
+* [Android] Fix ring stream issue.
+* [Android] Increment compileSdkVersion to 34.
+* [Android] Update installation steps & documentation.
+
 ## 3.0.14
 * [Android] Update PendingIntent flags in AlarmReceiver.
 

@@ -112,7 +112,7 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('alarm 3.0.14')),
+      appBar: AppBar(title: const Text('alarm 3.1.0')),
       body: SafeArea(
         child: alarms.isNotEmpty
             ? ListView.separated(
