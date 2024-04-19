@@ -1,3 +1,6 @@
+## 3.1.1
+* [Android] Fix notifications icon for some OEM.
+
 ## 3.1.0
 * [Android] Fix ring stream issue.
 * [Android] Increment compileSdkVersion to 34.
