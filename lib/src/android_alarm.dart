@@ -79,7 +79,9 @@ class AndroidAlarm {
       }
     }
 
-    alarmPrint('Alarm with id ${settings.id} scheduled');
+    alarmPrint(
+      '''Alarm with id ${settings.id} scheduled at ${settings.dateTime}''',
+    );
 
     return true;
   }
