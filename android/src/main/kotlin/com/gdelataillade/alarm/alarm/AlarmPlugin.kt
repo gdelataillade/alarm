@@ -64,16 +64,25 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
             }
             "stopAlarm" -> {
                 val id = call.argument<Int>("id")
-                val stopIntent = Intent(context, AlarmService::class.java)
-                stopIntent.action = "STOP_ALARM"
-                stopIntent.putExtra("id", id)
-                context.stopService(stopIntent)
+                if (id == null) {
+                    result.error("INVALID_ID", "Alarm ID is null", null)
+                    return
+                }
+
+                // Check if the alarm is currently ringing
+                if (AlarmService.ringingAlarmIds.contains(id)) {
+                    // If the alarm is ringing, stop the alarm service for this ID
+                    val stopIntent = Intent(context, AlarmService::class.java)
+                    stopIntent.action = "STOP_ALARM"
+                    stopIntent.putExtra("id", id)
+                    context.stopService(stopIntent)
+                }
 
                 // Intent to cancel the future alarm if it's set
                 val alarmIntent = Intent(context, AlarmReceiver::class.java)
                 val pendingIntent = PendingIntent.getBroadcast(
                     context, 
-                    id!!, 
+                    id, 
                     alarmIntent, 
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
