@@ -1,3 +1,6 @@
+## 3.1.2
+* [Android] Fix alarm stop on app open.
+
 ## 3.1.1
 * [Android] Fix notifications icon for some OEM.
 
