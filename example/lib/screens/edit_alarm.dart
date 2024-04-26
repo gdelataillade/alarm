@@ -1,12 +1,13 @@
+import 'dart:io';
+
 import 'package:alarm/alarm.dart';
 import 'package:alarm/model/alarm_settings.dart';
 import 'package:flutter/material.dart';
 
 class ExampleAlarmEditScreen extends StatefulWidget {
-  final AlarmSettings? alarmSettings;
+  const ExampleAlarmEditScreen({super.key, this.alarmSettings});
 
-  const ExampleAlarmEditScreen({Key? key, this.alarmSettings})
-      : super(key: key);
+  final AlarmSettings? alarmSettings;
 
   @override
   State<ExampleAlarmEditScreen> createState() => _ExampleAlarmEditScreenState();
@@ -68,7 +69,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
 
     if (res != null) {
       setState(() {
-        final DateTime now = DateTime.now();
+        final now = DateTime.now();
         selectedDateTime = now.copyWith(
           hour: res.hour,
           minute: res.minute,
@@ -97,6 +98,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       assetAudioPath: assetAudio,
       notificationTitle: 'Alarm example',
       notificationBody: 'Your alarm ($id) is ringing',
+      enableNotificationOnKill: Platform.isIOS,
     );
     return alarmSettings;
   }
@@ -129,7 +131,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
                 child: Text(
-                  "Cancel",
+                  'Cancel',
                   style: Theme.of(context)
                       .textTheme
                       .titleLarge!
@@ -141,7 +143,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
                 child: loading
                     ? const CircularProgressIndicator()
                     : Text(
-                        "Save",
+                        'Save',
                         style: Theme.of(context)
                             .textTheme
                             .titleLarge!

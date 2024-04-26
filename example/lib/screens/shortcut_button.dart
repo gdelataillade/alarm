@@ -1,12 +1,16 @@
+import 'dart:io';
+
 import 'package:alarm/alarm.dart';
 import 'package:alarm/model/alarm_settings.dart';
 import 'package:flutter/material.dart';
 
 class ExampleAlarmHomeShortcutButton extends StatefulWidget {
-  final void Function() refreshAlarms;
+  const ExampleAlarmHomeShortcutButton({
+    required this.refreshAlarms,
+    super.key,
+  });
 
-  const ExampleAlarmHomeShortcutButton({Key? key, required this.refreshAlarms})
-      : super(key: key);
+  final void Function() refreshAlarms;
 
   @override
   State<ExampleAlarmHomeShortcutButton> createState() =>
@@ -18,7 +22,7 @@ class _ExampleAlarmHomeShortcutButtonState
   bool showMenu = false;
 
   Future<void> onPressButton(int delayInHours) async {
-    DateTime dateTime = DateTime.now().add(Duration(hours: delayInHours));
+    var dateTime = DateTime.now().add(Duration(hours: delayInHours));
     double? volume;
 
     if (delayInHours != 0) {
@@ -36,6 +40,7 @@ class _ExampleAlarmHomeShortcutButtonState
       notificationTitle: 'Alarm example',
       notificationBody:
           'Shortcut button alarm with delay of $delayInHours hours',
+      enableNotificationOnKill: Platform.isIOS,
     );
 
     await Alarm.set(alarmSettings: alarmSettings);
@@ -55,7 +60,7 @@ class _ExampleAlarmHomeShortcutButtonState
             onPressed: () => onPressButton(0),
             backgroundColor: Colors.red,
             heroTag: null,
-            child: const Text("RING NOW", textAlign: TextAlign.center),
+            child: const Text('RING NOW', textAlign: TextAlign.center),
           ),
         ),
         if (showMenu)
@@ -64,15 +69,15 @@ class _ExampleAlarmHomeShortcutButtonState
             children: [
               TextButton(
                 onPressed: () => onPressButton(24),
-                child: const Text("+24h"),
+                child: const Text('+24h'),
               ),
               TextButton(
                 onPressed: () => onPressButton(36),
-                child: const Text("+36h"),
+                child: const Text('+36h'),
               ),
               TextButton(
                 onPressed: () => onPressButton(48),
-                child: const Text("+48h"),
+                child: const Text('+48h'),
               ),
             ],
           ),

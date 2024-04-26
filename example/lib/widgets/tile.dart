@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 
 class ExampleAlarmTile extends StatelessWidget {
+  const ExampleAlarmTile({
+    required this.title,
+    required this.onPressed,
+    super.key,
+    this.onDismissed,
+  });
+
   final String title;
   final void Function() onPressed;
   final void Function()? onDismissed;
-
-  const ExampleAlarmTile({
-    Key? key,
-    required this.title,
-    required this.onPressed,
-    this.onDismissed,
-  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

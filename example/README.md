@@ -1,3 +1,5 @@
+[![style: very good analysis](https://img.shields.io/badge/style-very_good_analysis-B22C89.svg)](https://pub.dev/packages/very_good_analysis)
+
 # alarm_example
 
 Demonstrates how to use the alarm plugin.

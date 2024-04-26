@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class ExampleAlarmHomeScreen extends StatefulWidget {
-  const ExampleAlarmHomeScreen({Key? key}) : super(key: key);
+  const ExampleAlarmHomeScreen({super.key});
 
   @override
   State<ExampleAlarmHomeScreen> createState() => _ExampleAlarmHomeScreenState();
@@ -29,9 +29,7 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
       checkAndroidScheduleExactAlarmPermission();
     }
     loadAlarms();
-    subscription ??= Alarm.ringStream.stream.listen(
-      (alarmSettings) => navigateToRingScreen(alarmSettings),
-    );
+    subscription ??= Alarm.ringStream.stream.listen(navigateToRingScreen);
   }
 
   void loadAlarms() {
@@ -44,7 +42,7 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
   Future<void> navigateToRingScreen(AlarmSettings alarmSettings) async {
     await Navigator.push(
       context,
-      MaterialPageRoute(
+      MaterialPageRoute<void>(
         builder: (context) =>
             ExampleAlarmRingScreen(alarmSettings: alarmSettings),
       ),
@@ -54,17 +52,18 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
 
   Future<void> navigateToAlarmScreen(AlarmSettings? settings) async {
     final res = await showModalBottomSheet<bool?>(
-        context: context,
-        isScrollControlled: true,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        builder: (context) {
-          return FractionallySizedBox(
-            heightFactor: 0.75,
-            child: ExampleAlarmEditScreen(alarmSettings: settings),
-          );
-        });
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      builder: (context) {
+        return FractionallySizedBox(
+          heightFactor: 0.75,
+          child: ExampleAlarmEditScreen(alarmSettings: settings),
+        );
+      },
+    );
 
     if (res != null && res == true) loadAlarms();
   }
@@ -75,7 +74,7 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
       alarmPrint('Requesting notification permission...');
       final res = await Permission.notification.request();
       alarmPrint(
-        'Notification permission ${res.isGranted ? '' : 'not '}granted.',
+        'Notification permission ${res.isGranted ? '' : 'not '}granted',
       );
     }
   }
@@ -86,7 +85,7 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
       alarmPrint('Requesting external storage permission...');
       final res = await Permission.storage.request();
       alarmPrint(
-        'External storage permission ${res.isGranted ? '' : 'not'} granted.',
+        'External storage permission ${res.isGranted ? '' : 'not'} granted',
       );
     }
   }
@@ -98,7 +97,7 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
       alarmPrint('Requesting schedule exact alarm permission...');
       final res = await Permission.scheduleExactAlarm.request();
       alarmPrint(
-        'Schedule exact alarm permission ${res.isGranted ? '' : 'not'} granted.',
+        'Schedule exact alarm permission ${res.isGranted ? '' : 'not'} granted',
       );
     }
   }
@@ -134,7 +133,7 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
               )
             : Center(
                 child: Text(
-                  "No alarms set",
+                  'No alarms set',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
