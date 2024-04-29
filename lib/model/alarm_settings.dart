@@ -5,10 +5,6 @@ import 'package:flutter/widgets.dart';
 @immutable
 class AlarmSettings {
   /// Model that contains all the settings to customize and set an alarm.
-  ///
-  ///
-  /// Note that if you want to show a notification when alarm is triggered, both
-  ///  [notificationTitle] and [notificationBody] must not be null nor empty.
   const AlarmSettings({
     required this.id,
     required this.dateTime,
@@ -100,10 +96,14 @@ class AlarmSettings {
   /// Body of the notification to be shown when alarm is triggered.
   final String notificationBody;
 
-  /// Whether to show a notification when application is killed to warn
-  /// the user that the alarms won't ring anymore. Enabled by default.
+  /// Whether to show a notification when application is killed by user.
   ///
-  /// Not necessary for Android. Recommanded for iOS.
+  /// - Android: the alarm should still trigger even if the app is killed,
+  /// if configured correctly and with the right permissions.
+  /// - iOS: the alarm will not trigger if the app is killed.
+  ///
+  /// Recommended: set to `Platform.isIOS` to enable it only
+  /// on iOS. Defaults to `true`.
   final bool enableNotificationOnKill;
 
   /// Whether to turn screen on and display full screen notification

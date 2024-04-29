@@ -1,3 +1,7 @@
+## 3.1.3
+**🔧 Android installation steps were updated [here](https://github.com/gdelataillade/alarm/blob/main/help/INSTALL-ANDROID.md).**
+* [Android] Remove notification large icon.
+
 ## 3.1.2
 * [Android] Fix alarm stop on app open.
 
