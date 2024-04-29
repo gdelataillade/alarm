@@ -13,6 +13,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     #endif
 
     private var registrar: FlutterPluginRegistrar!
+    static var channel: FlutterMethodChannel?
     static let sharedInstance = SwiftAlarmPlugin()
     static let backgroundTaskIdentifier: String = "com.gdelataillade.fetch"
 
@@ -20,11 +21,12 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         let channel = FlutterMethodChannel(name: "com.gdelataillade/alarm", binaryMessenger: registrar.messenger())
         let instance = SwiftAlarmPlugin()
 
+        SwiftAlarmPlugin.channel = channel
         instance.registrar = registrar
         registrar.addMethodCallDelegate(instance, channel: channel)
     }
 
-    private var alarms: [Int: AlarmConfiguration] = [:]
+    static var alarms: [Int: AlarmConfiguration] = [:]
 
     private var silentAudioPlayer: AVAudioPlayer?
     private let resourceAccessQueue = DispatchQueue(label: "com.gdelataillade.alarm.resourceAccessQueue")
@@ -77,8 +79,10 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
               let loopAudio = args["loopAudio"] as? Bool,
               let fadeDuration = args["fadeDuration"] as? Double,
               let vibrationsEnabled = args["vibrate"] as? Bool,
+              let notificationTitle = args["notificationTitle"] as? String,
+              let notificationBody = args["notificationBody"] as? String,
               let assetAudio = args["assetAudio"] as? String else {
-            result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Arguments are not in the expected format: \(call.arguments)", details: nil))
+            result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Arguments are not in the expected format: \(String(describing: call.arguments))", details: nil))
             return
         }
 
@@ -93,14 +97,14 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             vibrationsEnabled: vibrationsEnabled,
             loopAudio: loopAudio,
             fadeDuration: fadeDuration,
-            volume: volumeFloat
+            volume: volumeFloat,
+            notificationTitle: notificationTitle,
+            notificationBody: notificationBody
         )
-        self.alarms[id] = alarmConfig
+        SwiftAlarmPlugin.alarms[id] = alarmConfig
 
-        let notificationTitle = args["notificationTitle"] as? String
-        let notificationBody = args["notificationBody"] as? String
-        if let title = notificationTitle, let body = notificationBody, delayInSeconds >= 1.0 {
-            NotificationManager.shared.scheduleNotification(id: String(id), delayInSeconds: Int(floor(delayInSeconds)), title: title, body: body) { error in
+        if delayInSeconds >= 1.0 {
+            NotificationManager.shared.scheduleNotification(id: String(id), delayInSeconds: Int(floor(delayInSeconds)), title: notificationTitle, body: notificationBody) { error in
                 if let error = error {
                     NSLog("[SwiftAlarmPlugin] Error scheduling notification: \(error.localizedDescription)")
                 }
@@ -138,14 +142,14 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
                 audioPlayer.play(atTime: time + 0.5)
 
-                self.alarms[id]?.audioPlayer = audioPlayer
-                self.alarms[id]?.triggerTime = dateTime
-                self.alarms[id]?.task = DispatchWorkItem(block: {
+                SwiftAlarmPlugin.alarms[id]?.audioPlayer = audioPlayer
+                SwiftAlarmPlugin.alarms[id]?.triggerTime = dateTime
+                SwiftAlarmPlugin.alarms[id]?.task = DispatchWorkItem(block: {
                     self.handleAlarmAfterDelay(id: id)
                 })
 
                 DispatchQueue.main.async {
-                    self.alarms[id]?.timer = Timer.scheduledTimer(timeInterval: delayInSeconds, target: self, selector: #selector(self.executeTask(_:)), userInfo: id, repeats: false)
+                    SwiftAlarmPlugin.alarms[id]?.timer = Timer.scheduledTimer(timeInterval: delayInSeconds, target: self, selector: #selector(self.executeTask(_:)), userInfo: id, repeats: false)
                 }
                 SwiftAlarmPlugin.scheduleAppRefresh()
             }
@@ -181,7 +185,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
 
     @objc func executeTask(_ timer: Timer) {
-        if let id = timer.userInfo as? Int, let task = alarms[id]?.task {
+        if let id = timer.userInfo as? Int, let task = SwiftAlarmPlugin.alarms[id]?.task {
             task.perform()
         }
     }
@@ -238,7 +242,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
     private func handleAlarmAfterDelay(id: Int) {
         safeModifyResources {
-            guard let alarm = self.alarms[id], let audioPlayer = alarm.audioPlayer else {
+            guard let alarm = SwiftAlarmPlugin.alarms[id], let audioPlayer = alarm.audioPlayer else {
                 return
             }
 
@@ -286,11 +290,11 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             }
 
             // Clean up all alarm related resources
-            if let alarm = self.alarms[id] {
+            if let alarm = SwiftAlarmPlugin.alarms[id] {
                 alarm.timer?.invalidate()
                 alarm.task?.cancel()
                 alarm.audioPlayer?.stop()
-                self.alarms.removeValue(forKey: id)
+                SwiftAlarmPlugin.alarms.removeValue(forKey: id)
             }
         }
 
@@ -304,7 +308,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         self.mixOtherAudios()
 
         safeModifyResources {
-            if self.alarms.isEmpty {
+            if SwiftAlarmPlugin.alarms.isEmpty {
                 self.playSilent = false
                 DispatchQueue.main.async {
                     self.silentAudioPlayer?.stop()
@@ -340,7 +344,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
 
     private func audioCurrentTime(id: Int, result: FlutterResult) {
-        if let audioPlayer = self.alarms[id]?.audioPlayer {
+        if let audioPlayer = SwiftAlarmPlugin.alarms[id]?.audioPlayer {
             let time = Double(audioPlayer.currentTime)
             result(time)
         } else {
@@ -354,18 +358,19 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         self.silentAudioPlayer?.pause()
         self.silentAudioPlayer?.play()
 
+        NSLog("SwiftAlarmPlugin: BG Fetch: number of alarms: \(SwiftAlarmPlugin.alarms.count)")
+
         safeModifyResources {
-            let ids = Array(self.alarms.keys)
+            let ids = Array(SwiftAlarmPlugin.alarms.keys)
 
             for id in ids {
-                NSLog("SwiftAlarmPlugin: Background check alarm with id \(id)")
-                if let audioPlayer = self.alarms[id]?.audioPlayer, let dateTime = self.alarms[id]?.triggerTime {
+                if let audioPlayer = SwiftAlarmPlugin.alarms[id]?.audioPlayer, let dateTime = SwiftAlarmPlugin.alarms[id]?.triggerTime {
                     let currentTime = audioPlayer.deviceCurrentTime
                     let time = currentTime + dateTime.timeIntervalSinceNow
                     audioPlayer.play(atTime: time)
                 }
 
-                if let alarm = self.alarms[id], let delayInSeconds = alarm.triggerTime?.timeIntervalSinceNow {
+                if let alarm = SwiftAlarmPlugin.alarms[id], let delayInSeconds = alarm.triggerTime?.timeIntervalSinceNow {
                     DispatchQueue.main.async {
                         self.safeModifyResources {
                             alarm.timer = Timer.scheduledTimer(timeInterval: delayInSeconds, target: self, selector: #selector(self.executeTask(_:)), userInfo: id, repeats: false)
@@ -374,11 +379,83 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 }
             }
         }
+        checkTimeZoneChange()
+    }
+
+    private func checkTimeZoneChange() {
+        let currentTimeZoneIdentifier = TimeZone.current.identifier
+
+        SwiftAlarmPlugin.alarms.forEach { id, alarmConfig in
+            guard let originalTimeZoneIdentifier = alarmConfig.timeZone else { return }
+
+            do {
+                let differenceInMinutes = try getTimeDifferenceInMinutes(from: originalTimeZoneIdentifier, to: currentTimeZoneIdentifier)
+                if differenceInMinutes != 0.0 {
+                    NSLog("SwiftAlarmPlugin: Time zone change detected for alarm \(id): \(originalTimeZoneIdentifier) -> \(currentTimeZoneIdentifier)")
+                    NSLog("SwiftAlarmPlugin: Time difference: \(differenceInMinutes) minutes")
+                    let newDateTime = alarmConfig.triggerTime?.addingTimeInterval(-differenceInMinutes * 60.0)
+                    let newDelay = newDateTime?.timeIntervalSinceNow ?? 0.0
+                    guard let alarm = SwiftAlarmPlugin.alarms[id], let audioPlayer = alarm.audioPlayer else { return }
+                    NSLog("SwiftAlarmPlugin: New delay: \(newDelay) seconds")
+                    if newDelay > 0.0 {
+                        safeModifyResources {
+                            NotificationManager.shared.scheduleNotification(id: String(id), delayInSeconds: Int(floor(newDelay)), title: alarm.notificationTitle, body: alarm.notificationBody, completion: { error in
+                                if let error = error {
+                                    NSLog("SwiftAlarmPlugin: Error scheduling notification after time zone change: \(error.localizedDescription)")
+                                }
+                            })
+                            audioPlayer.stop()
+                            audioPlayer.play(atTime: audioPlayer.deviceCurrentTime + newDelay)
+                            alarm.triggerTime = newDateTime
+                            alarm.timeZone = currentTimeZoneIdentifier
+                            alarm.timer?.invalidate()
+                            alarm.task?.cancel()
+                            alarm.task = DispatchWorkItem(block: {
+                                self.handleAlarmAfterDelay(id: id)
+                            })
+                            alarm.timer = Timer.scheduledTimer(timeInterval: newDelay, target: self, selector: #selector(self.executeTask(_:)), userInfo: id, repeats: false)
+                        }
+                    } else {
+                        NotificationManager.shared.cancelNotification(id: String(id))
+                        audioPlayer.stop()
+                        alarm.timer?.invalidate()
+                        alarm.task?.cancel()
+                        SwiftAlarmPlugin.alarms.removeValue(forKey: id)
+                        stopSilentSound()
+                        stopNotificationOnKillService()
+                    }
+                }
+            } catch {
+                NSLog("SwiftAlarmPlugin: Error calculating time difference: \(error)")
+            }
+        }
+    }
+
+    func getTimeDifferenceInMinutes(from zoneIdentifier1: String, to zoneIdentifier2: String) throws -> Double {
+        // Get TimeZone objects for the identifiers
+        guard let timeZone1 = TimeZone(identifier: zoneIdentifier1) else {
+            return 0.0
+        }
+        guard let timeZone2 = TimeZone(identifier: zoneIdentifier2) else {
+            return 0.0
+        }
+
+        // Create a reference date (e.g., current UTC time)
+        let referenceDate = Date()
+
+        // Get offsets in seconds for both time zones relative to the reference date
+        let offset1 = timeZone1.secondsFromGMT(for: referenceDate)
+        let offset2 = timeZone2.secondsFromGMT(for: referenceDate)
+
+        // Calculate the difference in minutes (as double)
+        let differenceInMinutes = Double(offset2 - offset1) / 60.0
+
+        return differenceInMinutes
     }
 
     private func stopNotificationOnKillService() {
         safeModifyResources {
-            if self.alarms.isEmpty && self.observerAdded {
+            if SwiftAlarmPlugin.alarms.isEmpty && self.observerAdded {
                 NotificationCenter.default.removeObserver(self, name: UIApplication.willTerminateNotification, object: nil)
                 self.observerAdded = false
             }
@@ -457,6 +534,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         if #available(iOS 13.0, *) {
             BGTaskScheduler.shared.register(forTaskWithIdentifier: backgroundTaskIdentifier, using: nil) { task in
                 self.scheduleAppRefresh()
+                NSLog("SwiftAlarmPlugin: registerBackgroundTasks: number of alarms: \(SwiftAlarmPlugin.alarms.count)") 
                 sharedInstance.backgroundFetch()
                 task.setTaskCompleted(success: true)
             }
