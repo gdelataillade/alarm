@@ -39,7 +39,6 @@ class NotificationHandler(private val context: Context) {
 
     fun buildNotification(title: String, body: String, fullScreen: Boolean, pendingIntent: PendingIntent): Notification {
         val appIconResId = context.packageManager.getApplicationInfo(context.packageName, 0).icon
-        val largeIcon = BitmapFactory.decodeResource(context.resources, appIconResId)
         val intent = context.packageManager.getLaunchIntentForPackage(context.packageName) ?: Intent()
         val notificationPendingIntent = PendingIntent.getActivity(
             context, 
@@ -56,7 +55,6 @@ class NotificationHandler(private val context: Context) {
 
         notificationBuilder
             .setSmallIcon(appIconResId)
-            .setLargeIcon(largeIcon)
             .setContentTitle(title)
             .setContentText(body)
             .setPriority(NotificationCompat.PRIORITY_MAX)
