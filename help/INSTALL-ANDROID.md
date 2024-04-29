@@ -72,8 +72,10 @@ Future<void> checkAndroidScheduleExactAlarmPermission() async {
 }
 ```
 
-## Additional Resources
+## Step 6
+If you want to use the `androidFullScreenIntent` feature, some OEM (Samsung, Honor, Huawei, Xiaomi, Oppo, Asus, etc...) will require to grant the [auto_start_flutter](https://pub.dev/packages/auto_start_flutter) permission.
 
+## Additional Resources
 For a practical implementation example, you can refer to the example's Android manifest & build.gradle in the plugin repository. This might help you better understand the setup and integration:
 
 [Schedule exact alarm permission check](https://github.com/gdelataillade/alarm/blob/main/example/lib/screens/home.dart)
