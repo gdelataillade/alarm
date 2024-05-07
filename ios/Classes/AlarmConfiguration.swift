@@ -10,14 +10,16 @@ class AlarmConfiguration {
     var triggerTime: Date?
     var audioPlayer: AVAudioPlayer?
     var timer: Timer?
+    var numberOfLoops: Int
     var task: DispatchWorkItem?
 
-    init(id: Int, assetAudio: String, vibrationsEnabled: Bool, loopAudio: Bool, fadeDuration: Double, volume: Float?) {
+    init(id: Int, assetAudio: String, vibrationsEnabled: Bool, loopAudio: Bool, fadeDuration: Double, volume: Float?, numberOfLoops: Int) {
         self.id = id
         self.assetAudio = assetAudio
         self.vibrationsEnabled = vibrationsEnabled
         self.loopAudio = loopAudio
         self.fadeDuration = fadeDuration
         self.volume = volume
+        self.numberOfLoops = numberOfLoops
     }
 }

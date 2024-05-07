@@ -68,6 +68,31 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
     }
 
+    func calculateTimeAfterAddingSeconds(_ seconds: Double) -> (hour: Int, minute: Int)? {
+    // Obtenez la date et l'heure actuelles
+    let now = Date()
+
+    // Créez une instance de Calendar
+    let calendar = Calendar.current
+
+    // Ajoutez les secondes spécifiées à la date actuelle
+    if let newDate = calendar.date(byAdding: .second, value: Int(seconds), to: now) {
+        // Obtenez les composants d'heure et de minute de la nouvelle date
+        let hour = calendar.component(.hour, from: newDate)
+        let minute = calendar.component(.minute, from: newDate)
+        return (hour, minute)
+    } else {
+        // En cas d'erreur lors de l'ajout des secondes
+        return nil
+    }
+}
+    func secondsToHoursMinutes(seconds: Double) -> (Int, Int) {
+        let secondsInt = Int(seconds)
+        let hours = secondsInt / 3600
+        let minutes = (secondsInt % 3600) / 60
+        return (hours, minutes)
+    }
+
     private func setAlarm(call: FlutterMethodCall, result: FlutterResult) {
         self.mixOtherAudios()
 
@@ -77,7 +102,12 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
               let loopAudio = args["loopAudio"] as? Bool,
               let fadeDuration = args["fadeDuration"] as? Double,
               let vibrationsEnabled = args["vibrate"] as? Bool,
-              let assetAudio = args["assetAudio"] as? String else {
+              let assetAudio = args["assetAudio"] as? String, 
+              let spamNotifOnKillIos = args["spamNotifOnKillIos"] as? Bool,
+              let nbrOfRepeat = args["nbrOfRepeat"] as? Int,
+              let duration = args["duration"] as? Int,
+              let notificationSound = args["notificationSound"] as? String
+              else {
             result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Arguments are not in the expected format: \(call.arguments)", details: nil))
             return
         }
@@ -93,7 +123,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             vibrationsEnabled: vibrationsEnabled,
             loopAudio: loopAudio,
             fadeDuration: fadeDuration,
-            volume: volumeFloat
+            volume: volumeFloat,
+            numberOfLoops: nbrOfRepeat ?? 10
         )
         self.alarms[id] = alarmConfig
 
@@ -106,7 +137,15 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 }
             }
         }
-
+        if spamNotifOnKillIos == true {
+            let (hour, minute) = calculateTimeAfterAddingSeconds(args["delayInSeconds"] as? Double ?? 0) ?? (7, 30)
+            var title = notificationTitle ?? "TEST"
+            let body = notificationBody ?? "TEST"
+            let sound = UNNotificationSound(named: UNNotificationSoundName(rawValue: notificationSound ?? ""))
+            NotificationManager.shared.programLocalNotif(nbrOfRepeat: nbrOfRepeat ?? 10,  duration: duration ?? 10, hour: hour, minute: minute + 1, title: title, body: body, sound: sound)
+        }
+        
+        
         notifOnKillEnabled = (args["notifOnKillEnabled"] as! Bool)
         notificationTitleOnKill = (args["notifTitleOnAppKill"] as! String)
         notificationBodyOnKill = (args["notifDescriptionOnAppKill"] as! String)
@@ -156,6 +195,22 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
     }
 
+    func getAudioURL(forAsset assetAudio: String) -> URL? {
+        if assetAudio.hasPrefix("assets/") {
+            // Load audio from assets
+            let filename = registrar.lookupKey(forAsset: assetAudio)
+            guard let audioPath = Bundle.main.url(forResource: filename, withExtension: nil) else {
+                NSLog("[SwiftAlarmPlugin] Audio file not found: \(assetAudio)")
+                return nil
+            }
+            return audioPath
+        } else {
+            // Load audio from documents directory
+            let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+            return documentsDirectory.appendingPathComponent(assetAudio)
+        }
+}
+
     private func loadAudioPlayer(withAsset assetAudio: String, forId id: Int) -> AVAudioPlayer? {
         let audioURL: URL
         if assetAudio.hasPrefix("assets/") {
@@ -182,6 +237,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
     @objc func executeTask(_ timer: Timer) {
         if let id = timer.userInfo as? Int, let task = alarms[id]?.task {
+            NotificationManager.shared.cancelNotificationBis(nbrOfRepeat: alarms[id]?.numberOfLoops ?? 10)
             task.perform()
         }
     }
@@ -273,6 +329,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     private func stopAlarm(id: Int, cancelNotif: Bool, result: FlutterResult) {
         if cancelNotif {
             NotificationManager.shared.cancelNotification(id: String(id))
+            NotificationManager.shared.cancelNotificationBis(nbrOfRepeat: self.alarms[id]?.numberOfLoops ?? 10)
         }
 
         self.mixOtherAudios()
@@ -388,7 +445,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     // Show notification on app kill
     @objc func applicationWillTerminate(_ notification: Notification) {
         scheduleImmediateNotification()
-        // scheduleDelayedNotification()
     }
 
     func scheduleImmediateNotification() {

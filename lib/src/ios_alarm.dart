@@ -51,6 +51,10 @@ class IOSAlarm {
                   AlarmStorage.getNotificationOnAppKillTitle(),
               'notifDescriptionOnAppKill':
                   AlarmStorage.getNotificationOnAppKillBody(),
+              'spamNotifOnKillIos': settings.spamNotifOnKillIos,
+              'nbrOfRepeat': settings.nbrOfRepeat,
+              'duration': settings.duration,
+              'notificationSound': settings.notificationSound
             },
           ) ??
           false;

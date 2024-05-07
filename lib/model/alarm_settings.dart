@@ -17,24 +17,30 @@ class AlarmSettings {
     this.fadeDuration = 0.0,
     this.enableNotificationOnKill = true,
     this.androidFullScreenIntent = true,
+    this.spamNotifOnKillIos = true,
+    this.nbrOfRepeat = 10,
+    this.duration = 10,
+    this.notificationSound = "",
   });
 
   /// Constructs an `AlarmSettings` instance from the given JSON data.
   factory AlarmSettings.fromJson(Map<String, dynamic> json) => AlarmSettings(
-        id: json['id'] as int,
-        dateTime: DateTime.fromMicrosecondsSinceEpoch(json['dateTime'] as int),
-        assetAudioPath: json['assetAudioPath'] as String,
-        loopAudio: json['loopAudio'] as bool,
-        vibrate: json['vibrate'] as bool? ?? true,
-        volume: json['volume'] as double?,
-        fadeDuration: json['fadeDuration'] as double,
-        notificationTitle: json['notificationTitle'] as String? ?? '',
-        notificationBody: json['notificationBody'] as String? ?? '',
-        enableNotificationOnKill:
-            json['enableNotificationOnKill'] as bool? ?? true,
-        androidFullScreenIntent:
-            json['androidFullScreenIntent'] as bool? ?? true,
-      );
+      id: json['id'] as int,
+      dateTime: DateTime.fromMicrosecondsSinceEpoch(json['dateTime'] as int),
+      assetAudioPath: json['assetAudioPath'] as String,
+      loopAudio: json['loopAudio'] as bool,
+      vibrate: json['vibrate'] as bool? ?? true,
+      volume: json['volume'] as double?,
+      fadeDuration: json['fadeDuration'] as double,
+      notificationTitle: json['notificationTitle'] as String? ?? '',
+      notificationBody: json['notificationBody'] as String? ?? '',
+      enableNotificationOnKill:
+          json['enableNotificationOnKill'] as bool? ?? true,
+      androidFullScreenIntent: json['androidFullScreenIntent'] as bool? ?? true,
+      spamNotifOnKillIos: json['spamNotifOnKillIos'] as bool? ?? true,
+      nbrOfRepeat: json['nbrOfRepeat'] as int? ?? 10,
+      duration: json['duration'] as int? ?? 10,
+      notificationSound: json['notificationSound'] as String? ?? '');
 
   /// Unique identifier assiocated with the alarm. Cannot be 0 or -1;
   final int id;
@@ -115,6 +121,23 @@ class AlarmSettings {
   /// package.
   final bool androidFullScreenIntent;
 
+  ///If you want to have spam of notification when the app is kill
+  ///! only available for IOS !
+  final bool spamNotifOnKillIos;
+
+  ///Number of notification you want when the app is kill
+  ///! only available for IOS !
+  final int nbrOfRepeat;
+
+  ///duration between each notification when the app is kill
+  ///! only available for IOS !
+  final int duration;
+
+  ///name of the sound of the notification exemple "marimba.mp3"
+  ///you need to import the music in the ios project by xcode
+  ///! only available for IOS !
+  final String notificationSound;
+
   /// Returns a hash code for this `AlarmSettings` instance using
   /// Jenkins hash function.
   @override
@@ -131,6 +154,10 @@ class AlarmSettings {
     hash = hash ^ (notificationTitle.hashCode);
     hash = hash ^ (notificationBody.hashCode);
     hash = hash ^ enableNotificationOnKill.hashCode;
+    hash = hash ^ spamNotifOnKillIos.hashCode;
+    hash = hash ^ nbrOfRepeat.hashCode;
+    hash = hash ^ duration.hashCode;
+    hash = hash ^ (notificationSound.hashCode);
     hash = hash & 0x3fffffff;
 
     return hash;
@@ -150,22 +177,29 @@ class AlarmSettings {
     String? notificationBody,
     bool? enableNotificationOnKill,
     bool? androidFullScreenIntent,
+    bool? spamNotifOnKillIos,
+    int? nbrOfRepeat,
+    int? duration,
+    String? notificationSound,
   }) {
     return AlarmSettings(
-      id: id ?? this.id,
-      dateTime: dateTime ?? this.dateTime,
-      assetAudioPath: assetAudioPath ?? this.assetAudioPath,
-      loopAudio: loopAudio ?? this.loopAudio,
-      vibrate: vibrate ?? this.vibrate,
-      volume: volume ?? this.volume,
-      fadeDuration: fadeDuration ?? this.fadeDuration,
-      notificationTitle: notificationTitle ?? this.notificationTitle,
-      notificationBody: notificationBody ?? this.notificationBody,
-      enableNotificationOnKill:
-          enableNotificationOnKill ?? this.enableNotificationOnKill,
-      androidFullScreenIntent:
-          androidFullScreenIntent ?? this.androidFullScreenIntent,
-    );
+        id: id ?? this.id,
+        dateTime: dateTime ?? this.dateTime,
+        assetAudioPath: assetAudioPath ?? this.assetAudioPath,
+        loopAudio: loopAudio ?? this.loopAudio,
+        vibrate: vibrate ?? this.vibrate,
+        volume: volume ?? this.volume,
+        fadeDuration: fadeDuration ?? this.fadeDuration,
+        notificationTitle: notificationTitle ?? this.notificationTitle,
+        notificationBody: notificationBody ?? this.notificationBody,
+        enableNotificationOnKill:
+            enableNotificationOnKill ?? this.enableNotificationOnKill,
+        androidFullScreenIntent:
+            androidFullScreenIntent ?? this.androidFullScreenIntent,
+        spamNotifOnKillIos: spamNotifOnKillIos ?? this.spamNotifOnKillIos,
+        nbrOfRepeat: nbrOfRepeat ?? this.nbrOfRepeat,
+        duration: duration ?? this.duration,
+        notificationSound: notificationSound ?? this.notificationSound);
   }
 
   /// Converts this `AlarmSettings` instance to JSON data.
@@ -181,6 +215,10 @@ class AlarmSettings {
         'notificationBody': notificationBody,
         'enableNotificationOnKill': enableNotificationOnKill,
         'androidFullScreenIntent': androidFullScreenIntent,
+        'spamNotifOnKillIos': spamNotifOnKillIos,
+        'nbrOfRepeat': nbrOfRepeat,
+        'duration': duration,
+        'notificationSound': notificationSound
       };
 
   /// Returns all the properties of `AlarmSettings` for debug purposes.
@@ -209,5 +247,9 @@ class AlarmSettings {
           notificationTitle == other.notificationTitle &&
           notificationBody == other.notificationBody &&
           enableNotificationOnKill == other.enableNotificationOnKill &&
+          spamNotifOnKillIos == other.spamNotifOnKillIos &&
+        nbrOfRepeat == other.nbrOfRepeat &&
+        duration == other.duration &&
+        notificationSound == other.notificationSound &&
           androidFullScreenIntent == other.androidFullScreenIntent;
 }

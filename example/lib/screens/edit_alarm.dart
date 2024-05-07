@@ -90,16 +90,16 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
         : widget.alarmSettings!.id;
 
     final alarmSettings = AlarmSettings(
-      id: id,
-      dateTime: selectedDateTime,
-      loopAudio: loopAudio,
-      vibrate: vibrate,
-      volume: volume,
-      assetAudioPath: assetAudio,
-      notificationTitle: 'Alarm example',
-      notificationBody: 'Your alarm ($id) is ringing',
-      enableNotificationOnKill: Platform.isIOS,
-    );
+        id: id,
+        dateTime: selectedDateTime,
+        loopAudio: loopAudio,
+        vibrate: vibrate,
+        volume: volume,
+        assetAudioPath: assetAudio,
+        notificationTitle: 'Alarm example',
+        notificationBody: 'Your alarm ($id) is ringing',
+        enableNotificationOnKill: Platform.isIOS,
+        notificationSound: 'marimba.mp3');
     return alarmSettings;
   }
 
