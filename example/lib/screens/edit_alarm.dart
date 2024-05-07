@@ -99,7 +99,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
         notificationTitle: 'Alarm example',
         notificationBody: 'Your alarm ($id) is ringing',
         enableNotificationOnKill: Platform.isIOS,
-        notificationSound: 'marimba.mp3');
+      );
     return alarmSettings;
   }
 

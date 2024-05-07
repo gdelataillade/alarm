@@ -37,21 +37,13 @@ class NotificationManager {
 extension NotificationManager {
     
     /// Allows you to schedule local notifications
-    /// - Parameters:
-    ///   - nbrOfRepeat: 10 by default, this number must not be zero or negative.
-    ///   - hour: Enter the scheduled wake-up time here, or the time at which the notification should go off.
-    ///   - minute: Enter the scheduled wake-up time here, or the time at which the notification should go off.
     func programLocalNotif(nbrOfRepeat: Int = 10, duration: Int = 10,hour: Int, minute: Int, title: String, body: String, sound: UNNotificationSound?) {
         for indexOfNotif in 0..<nbrOfRepeat {
             let request = UNNotificationRequest(identifier: "notif\(indexOfNotif)",
                                                 content: notifContentMaker(title: title, body: body, sound: sound),
                                                 trigger: triggerMaker(timeInterval: indexOfNotif, at: hour, minute, duration))
             
-            UNUserNotificationCenter.current().add(request) { error in
-                if error != nil {
-                    // ADD the Flutter log here to catch the error with a message like: "Something went wrong in the local notifications programming [notif\(indexOf Notif)]"
-                } 
-            }
+            UNUserNotificationCenter.current().add(request)
         }
     }
     
@@ -76,11 +68,6 @@ extension NotificationManager {
     }
     
     /// This function schedules the notification time.
-    /// - Parameters:
-    ///   - add: This setting allows you to have intervals of 10 seconds between each notification: add * 10
-    ///   - hour: Notification trigger time (hour)
-    ///   - minute: Notification trigger time (minute)
-    /// - Returns: The full and effective date of triggering the notification
     private func scheduleNotifications(_ add: Int,_ hour: Int,_ minute: Int,_ duration: Int = 10) -> DateComponents {
         var dateComponents = DateComponents()
         dateComponents.hour = hour
@@ -97,7 +84,6 @@ extension NotificationManager {
         dateComponents.minute? += minutesToAdd
         dateComponents.second? += secondsLeft
 
-        // Vérifier et ajuster si nécessaire
         if let minute = dateComponents.minute, minute >= 60 {
             dateComponents.minute = minute % 60
             dateComponents.hour? += minute / 60

@@ -51,10 +51,14 @@ class IOSAlarm {
                   AlarmStorage.getNotificationOnAppKillTitle(),
               'notifDescriptionOnAppKill':
                   AlarmStorage.getNotificationOnAppKillBody(),
-              'spamNotifOnKillIos': settings.spamNotifOnKillIos,
-              'nbrOfRepeat': settings.nbrOfRepeat,
-              'duration': settings.duration,
-              'notificationSound': settings.notificationSound
+              'spamNotifOnKillIos':
+                  settings.iOSSpamNotificationSettings.spamNotifOnKillIos,
+              'nbrOfNotification':
+                  settings.iOSSpamNotificationSettings.nbrOfNotification,
+              'durationBetweenNotification': settings
+                  .iOSSpamNotificationSettings.durationBetweenNotification,
+              'notificationSound':
+                  settings.iOSSpamNotificationSettings.notificationSound
             },
           ) ??
           false;

@@ -54,7 +54,6 @@ class AlarmStorage {
   static List<AlarmSettings> getSavedAlarms() {
     final alarms = <AlarmSettings>[];
     final keys = prefs.getKeys();
-
     for (final key in keys) {
       if (key.startsWith(prefix)) {
         final res = prefs.getString(key);

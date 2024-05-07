@@ -69,20 +69,15 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
 
     func calculateTimeAfterAddingSeconds(_ seconds: Double) -> (hour: Int, minute: Int)? {
-    // Obtenez la date et l'heure actuelles
     let now = Date()
 
-    // Créez une instance de Calendar
     let calendar = Calendar.current
 
-    // Ajoutez les secondes spécifiées à la date actuelle
     if let newDate = calendar.date(byAdding: .second, value: Int(seconds), to: now) {
-        // Obtenez les composants d'heure et de minute de la nouvelle date
         let hour = calendar.component(.hour, from: newDate)
         let minute = calendar.component(.minute, from: newDate)
         return (hour, minute)
     } else {
-        // En cas d'erreur lors de l'ajout des secondes
         return nil
     }
 }
@@ -104,8 +99,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
               let vibrationsEnabled = args["vibrate"] as? Bool,
               let assetAudio = args["assetAudio"] as? String, 
               let spamNotifOnKillIos = args["spamNotifOnKillIos"] as? Bool,
-              let nbrOfRepeat = args["nbrOfRepeat"] as? Int,
-              let duration = args["duration"] as? Int,
+              let nbrOfRepeat = args["nbrOfNotification"] as? Int,
+              let duration = args["durationBetweenNotification"] as? Int,
               let notificationSound = args["notificationSound"] as? String
               else {
             result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Arguments are not in the expected format: \(call.arguments)", details: nil))
