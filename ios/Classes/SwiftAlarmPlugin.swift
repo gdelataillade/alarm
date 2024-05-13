@@ -193,9 +193,9 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             do {
                 SwiftAlarmPlugin.silentAudioPlayer = try AVAudioPlayer(contentsOf: audioUrl)
                 SwiftAlarmPlugin.silentAudioPlayer?.numberOfLoops = -1
-                SwiftAlarmPlugin.silentAudioPlayer?.volume = 0.1
+                SwiftAlarmPlugin.silentAudioPlayer?.volume = 0.01
                 self.playSilent = true
-                self.loopSilentSound()
+                SwiftAlarmPlugin.silentAudioPlayer?.play()
                 NotificationCenter.default.addObserver(self, selector: #selector(handleInterruption), name: AVAudioSession.interruptionNotification, object: nil)
             } catch {
                 NSLog("[SwiftAlarmPlugin] Error: Could not create and play silent audio player: \(error)")
@@ -206,22 +206,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
 
     @objc func handleInterruption(notification: Notification) {
-        guard let info = notification.userInfo,
-            let typeValue = info[AVAudioSessionInterruptionTypeKey] as? UInt,
-            let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
-            return
-        }
-
-        switch type {
-            case .began:
-            SwiftAlarmPlugin.silentAudioPlayer?.play()
-                NSLog("SwiftAlarmPlugin: Interruption began")
-            case .ended:
-            SwiftAlarmPlugin.silentAudioPlayer?.play()
-                NSLog("SwiftAlarmPlugin: Interruption ended")
-            default:
-                break
-            }
+        SwiftAlarmPlugin.silentAudioPlayer?.play()
     }
 
     private func loopSilentSound() {
@@ -351,7 +336,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     private func backgroundFetch() {
         self.mixOtherAudios()
 
-        SwiftAlarmPlugin.silentAudioPlayer?.pause()
         SwiftAlarmPlugin.silentAudioPlayer?.play()
 
         safeModifyResources {
