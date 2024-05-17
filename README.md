@@ -44,7 +44,7 @@ final alarmSettings = AlarmSettings(
   fadeDuration: 3.0,
   notificationTitle: 'This is the title',
   notificationBody: 'This is the body',
-  enableNotificationOnKill: true,
+  enableNotificationOnKill: Platform.isIOS,
 );
 ```
 
@@ -137,6 +137,16 @@ The more time the app spends in the background, the higher the chance the OS mig
 While periodic alarms can be implemented on Android, this is not feasible for iOS. To maintain consistency between both platforms, I will not be adding this feature to the package (except if a solution is found). As an alternative, you could store the scheduled days for alarms and reset them for the upcoming week each time the app is launched.
 
 Related issue [here](https://github.com/gdelataillade/alarm/issues/47#issuecomment-1820896276).
+
+### Why does my app crash on iOS?
+
+Crashes such as `EXC_BAD_ACCESS KERN_INVALID_ADDRESS` occur if `Alarm.set` and `Alarm.stop` methods are called concurrently, as they both modify shared resources. To prevent this, ensure each method call is completed before starting the next by using the `await` keyword in Dart:
+```dart
+await Alarm.set
+await Alarm.stop
+```
+This approach ensures safe and exclusive access to shared resources, preventing crashes.
+
 
 ### Why was my app rejected by the App Store for guideline issues?
 

@@ -86,7 +86,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
 
   AlarmSettings buildAlarmSettings() {
     final id = creating
-        ? DateTime.now().millisecondsSinceEpoch % 10000
+        ? DateTime.now().millisecondsSinceEpoch % 10000 + 1
         : widget.alarmSettings!.id;
 
     final alarmSettings = AlarmSettings(

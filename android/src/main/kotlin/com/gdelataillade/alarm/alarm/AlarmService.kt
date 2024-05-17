@@ -42,31 +42,29 @@ class AlarmService : Service() {
             return START_NOT_STICKY
         }
 
-        val action = intent?.action
-        val id = intent?.getIntExtra("id", 0) ?: 0
-
-        if (action == "STOP_ALARM" && id != -1) {
+        val action = intent.action
+        val id = intent.getIntExtra("id", 0)
+        if (action == "STOP_ALARM" && id != 0) {
             stopAlarm(id)
             return START_NOT_STICKY
         }
 
-        val assetAudioPath = intent?.getStringExtra("assetAudioPath")
-        val loopAudio = intent?.getBooleanExtra("loopAudio", true)
-        val vibrate = intent?.getBooleanExtra("vibrate", true)
-        val volume = intent?.getDoubleExtra("volume", -1.0) ?: -1.0
-        val fadeDuration = intent?.getDoubleExtra("fadeDuration", 0.0)
-        val notificationTitle = intent?.getStringExtra("notificationTitle")
-        val notificationBody = intent?.getStringExtra("notificationBody")
-        val fullScreenIntent = intent?.getBooleanExtra("fullScreenIntent", true)
-        showSystemUI = intent?.getBooleanExtra("showSystemUI", true) ?: true
+        val assetAudioPath = intent.getStringExtra("assetAudioPath") ?: return START_NOT_STICKY // Fallback if null
+        val loopAudio = intent.getBooleanExtra("loopAudio", true)
+        val vibrate = intent.getBooleanExtra("vibrate", true)
+        val volume = intent.getDoubleExtra("volume", -1.0)
+        val fadeDuration = intent.getDoubleExtra("fadeDuration", 0.0)
+        val notificationTitle = intent.getStringExtra("notificationTitle") ?: "Default Title" // Default if null
+        val notificationBody = intent.getStringExtra("notificationBody") ?: "Default Body" // Default if null
+        val fullScreenIntent = intent.getBooleanExtra("fullScreenIntent", true)
 
+        // Handling notification
         val notificationHandler = NotificationHandler(this)
+        val appIntent = applicationContext.packageManager.getLaunchIntentForPackage(applicationContext.packageName)
+        val pendingIntent = PendingIntent.getActivity(this, id, appIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        val notification = notificationHandler.buildNotification(notificationTitle, notificationBody, fullScreenIntent, pendingIntent)
 
-        val intent = applicationContext.packageManager.getLaunchIntentForPackage(applicationContext.packageName)
-        val pendingIntent = PendingIntent.getActivity(this, id!!, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-
-        val notification = notificationHandler.buildNotification(notificationTitle!!, notificationBody!!, fullScreenIntent!!, pendingIntent)
-
+        // Starting foreground service safely
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 startForeground(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
@@ -74,12 +72,11 @@ class AlarmService : Service() {
                 startForeground(id, notification)
             }
         } catch (e: ForegroundServiceStartNotAllowedException) {
-            // Specific handling for ForegroundServiceStartNotAllowedException
             Log.e("AlarmService", "Foreground service start not allowed", e)
+            return START_NOT_STICKY // Return if cannot start foreground service
         } catch (e: SecurityException) {
             Log.e("AlarmService", "Security exception in starting foreground service", e)
-        } catch (e: Exception) {
-            Log.e("AlarmService", "Error in starting foreground service", e)
+            return START_NOT_STICKY // Return on security exception
         }
 
         AlarmPlugin.eventSink?.success(mapOf("id" to id))
@@ -116,13 +113,17 @@ class AlarmService : Service() {
 
     fun stopAlarm(id: Int) {
         try {
-            ringingAlarmIds = audioService?.getPlayingMediaPlayersIds()!!
+            val playingIds = audioService?.getPlayingMediaPlayersIds() ?: listOf()
+            ringingAlarmIds = playingIds
 
+            // Safely call methods on 'volumeService' and 'audioService'
             volumeService?.restorePreviousVolume(showSystemUI)
             volumeService?.abandonAudioFocus()
 
             audioService?.stopAudio(id)
-            if (audioService?.isMediaPlayerEmpty()!!) {
+
+            // Check if media player is empty safely
+            if (audioService?.isMediaPlayerEmpty() == true) {
                 vibrationService?.stopVibrating()
                 stopSelf()
             }
