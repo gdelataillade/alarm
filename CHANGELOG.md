@@ -1,3 +1,6 @@
+## 3.1.4
+* [Android] Add more type safety.
+
 ## 3.1.3
 **🔧 Android installation steps were updated [here](https://github.com/gdelataillade/alarm/blob/main/help/INSTALL-ANDROID.md).**
 * [Android] Remove notification large icon.
