@@ -138,6 +138,16 @@ While periodic alarms can be implemented on Android, this is not feasible for iO
 
 Related issue [here](https://github.com/gdelataillade/alarm/issues/47#issuecomment-1820896276).
 
+### Why does my app crash on iOS?
+
+Crashes such as `EXC_BAD_ACCESS KERN_INVALID_ADDRESS` occur if `Alarm.set` and `Alarm.stop` methods are called concurrently, as they both modify shared resources. To prevent this, ensure each method call is completed before starting the next by using the `await` keyword in Dart:
+```
+await Alarm.set
+await Alarm.stop
+```
+This approach ensures safe and exclusive access to shared resources, preventing crashes.
+
+
 ### Why was my app rejected by the App Store for guideline issues?
 
 The rejection may relate to plugin's background audio functionality, essential for alarm apps. Clarify in your submission that background activity is crucial for your alarm app to notify users effectively. Ensure compliance with Apple's guidelines on background processes.

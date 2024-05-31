@@ -10,6 +10,8 @@ import 'package:alarm/utils/alarm_exception.dart';
 import 'package:alarm/utils/extensions.dart';
 import 'package:flutter/foundation.dart';
 
+export 'package:alarm/model/alarm_settings.dart';
+
 /// Custom print function designed for Alarm plugin.
 DebugPrintCallback alarmPrint = debugPrintThrottled;
 
