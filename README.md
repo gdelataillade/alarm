@@ -141,7 +141,7 @@ Related issue [here](https://github.com/gdelataillade/alarm/issues/47#issuecomme
 ### Why does my app crash on iOS?
 
 Crashes such as `EXC_BAD_ACCESS KERN_INVALID_ADDRESS` occur if `Alarm.set` and `Alarm.stop` methods are called concurrently, as they both modify shared resources. To prevent this, ensure each method call is completed before starting the next by using the `await` keyword in Dart:
-```dart
+```
 await Alarm.set
 await Alarm.stop
 ```
