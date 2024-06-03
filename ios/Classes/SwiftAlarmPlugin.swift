@@ -26,7 +26,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
     private var alarms: [Int: AlarmConfiguration] = [:]
 
-    private var silentAudioPlayer: AVAudioPlayer?
+    static private var silentAudioPlayer: AVAudioPlayer?
     private let resourceAccessQueue = DispatchQueue(label: "com.gdelataillade.alarm.resourceAccessQueue")
 
     private var notifOnKillEnabled: Bool!
@@ -187,15 +187,15 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
 
     private func startSilentSound() {
-        let filename = registrar.lookupKey(forAsset: "assets/long_blank.mp3", fromPackage: "alarm")
+        let filename = registrar.lookupKey(forAsset: "assets/blank_30.mp3", fromPackage: "alarm")
         if let audioPath = Bundle.main.path(forResource: filename, ofType: nil) {
             let audioUrl = URL(fileURLWithPath: audioPath)
             do {
-                self.silentAudioPlayer = try AVAudioPlayer(contentsOf: audioUrl)
-                self.silentAudioPlayer?.numberOfLoops = -1
-                self.silentAudioPlayer?.volume = 0.1
+                SwiftAlarmPlugin.silentAudioPlayer = try AVAudioPlayer(contentsOf: audioUrl)
+                SwiftAlarmPlugin.silentAudioPlayer?.numberOfLoops = -1
+                SwiftAlarmPlugin.silentAudioPlayer?.volume = 0.1
                 self.playSilent = true
-                self.silentAudioPlayer?.play()
+                SwiftAlarmPlugin.silentAudioPlayer?.play()
                 NotificationCenter.default.addObserver(self, selector: #selector(handleInterruption), name: AVAudioSession.interruptionNotification, object: nil)
             } catch {
                 NSLog("[SwiftAlarmPlugin] Error: Could not create and play silent audio player: \(error)")
@@ -206,28 +206,13 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
 
     @objc func handleInterruption(notification: Notification) {
-        guard let info = notification.userInfo,
-            let typeValue = info[AVAudioSessionInterruptionTypeKey] as? UInt,
-            let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
-            return
-        }
-
-        switch type {
-            case .began:
-                self.silentAudioPlayer?.play()
-                NSLog("SwiftAlarmPlugin: Interruption began")
-            case .ended:
-                self.silentAudioPlayer?.play()
-                NSLog("SwiftAlarmPlugin: Interruption ended")
-            default:
-                break
-            }
+        SwiftAlarmPlugin.silentAudioPlayer?.play()
     }
 
     private func loopSilentSound() {
-        self.silentAudioPlayer?.play()
+        SwiftAlarmPlugin.silentAudioPlayer?.play()
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            self.silentAudioPlayer?.pause()
+            SwiftAlarmPlugin.silentAudioPlayer?.pause()
             DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
                 if self.playSilent {
                     self.loopSilentSound()
@@ -306,10 +291,10 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         safeModifyResources {
             if self.alarms.isEmpty {
                 self.playSilent = false
+                SwiftAlarmPlugin.cancelBackgroundTasks()
                 DispatchQueue.main.async {
-                    self.silentAudioPlayer?.stop()
+                    SwiftAlarmPlugin.silentAudioPlayer?.stop()
                     NotificationCenter.default.removeObserver(self)
-                    SwiftAlarmPlugin.cancelBackgroundTasks()
                 }
             }
         }
@@ -348,32 +333,23 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
     }
 
-    private func backgroundFetch() {
+    @available(iOS 13.0, *)
+    private func backgroundFetch(task: BGTask) {
         self.mixOtherAudios()
 
-        self.silentAudioPlayer?.pause()
-        self.silentAudioPlayer?.play()
+        NSLog("SwiftAlarmPlugin: Background fetch triggered")
 
-        safeModifyResources {
-            let ids = Array(self.alarms.keys)
-
-            for id in ids {
-                NSLog("SwiftAlarmPlugin: Background check alarm with id \(id)")
-                if let audioPlayer = self.alarms[id]?.audioPlayer, let dateTime = self.alarms[id]?.triggerTime {
-                    let currentTime = audioPlayer.deviceCurrentTime
-                    let time = currentTime + dateTime.timeIntervalSinceNow
-                    audioPlayer.play(atTime: time)
-                }
-
-                if let alarm = self.alarms[id], let delayInSeconds = alarm.triggerTime?.timeIntervalSinceNow {
-                    DispatchQueue.main.async {
-                        self.safeModifyResources {
-                            alarm.timer = Timer.scheduledTimer(timeInterval: delayInSeconds, target: self, selector: #selector(self.executeTask(_:)), userInfo: id, repeats: false)
-                        }
-                    }
-                }
-            }
+        guard let silentAudioPlayer = SwiftAlarmPlugin.silentAudioPlayer else {
+            NSLog("SwiftAlarmPlugin: Failed to initialize silent audio player")
+            task.setTaskCompleted(success: false)
+            return
         }
+
+        silentAudioPlayer.play()
+
+        task.setTaskCompleted(success: true)
+        NSLog("SwiftAlarmPlugin: Background fetch completed successfully.")
+        SwiftAlarmPlugin.scheduleAppRefresh()
     }
 
     private func stopNotificationOnKillService() {
@@ -456,12 +432,10 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     static public func registerBackgroundTasks() {
         if #available(iOS 13.0, *) {
             BGTaskScheduler.shared.register(forTaskWithIdentifier: backgroundTaskIdentifier, using: nil) { task in
-                self.scheduleAppRefresh()
-                sharedInstance.backgroundFetch()
-                task.setTaskCompleted(success: true)
+                sharedInstance.backgroundFetch(task: task)
             }
         } else {
-            NSLog("SwiftAlarmPlugin: BGTaskScheduler not available for your version of iOS lower than 13.0")
+            NSLog("SwiftAlarmPlugin: BGTaskScheduler not available for iOS versions lower than 13.0")
         }
     }
 
@@ -469,15 +443,15 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     static func scheduleAppRefresh() {
         if #available(iOS 13.0, *) {
             let request = BGAppRefreshTaskRequest(identifier: backgroundTaskIdentifier)
+            request.earliestBeginDate = Date(timeIntervalSinceNow: 15 * 60) // 15 minutes
 
-            request.earliestBeginDate = Date(timeIntervalSinceNow: 15 * 60)
             do {
                 try BGTaskScheduler.shared.submit(request)
             } catch {
                 NSLog("SwiftAlarmPlugin: Could not schedule app refresh: \(error)")
             }
         } else {
-            NSLog("SwiftAlarmPlugin: BGTaskScheduler not available for your version of iOS lower than 13.0")
+            NSLog("SwiftAlarmPlugin: BGTaskScheduler not available for iOS versions lower than 13.0")
         }
     }
 
@@ -486,7 +460,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         if #available(iOS 13.0, *) {
             BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: backgroundTaskIdentifier)
         } else {
-            NSLog("SwiftAlarmPlugin: BGTaskScheduler not available for your version of iOS lower than 13.0")
+            NSLog("SwiftAlarmPlugin: BGTaskScheduler not available for iOS versions lower than 13.0")
         }
     }
 }
