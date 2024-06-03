@@ -1,6 +1,6 @@
 name: alarm_example
 description: Demonstrates how to use the alarm plugin.
-version: 0.1.2
+version: 1.0.0+2
 
 publish_to: 'none'
 
