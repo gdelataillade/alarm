@@ -123,6 +123,10 @@ Some Android manufacturers prefer battery life over proper functionality of your
 Most common solution is to educate users to disable **battery optimization** settings.
 *Source: [android_alarm_manager_plus FAQ](https://pub.dev/packages/android_alarm_manager_plus#faq)*
 
+### Why can’t I dismiss my Android alarm notification?
+
+The alarm plugin uses Android’s Foreground Service to ensure the alarm can trigger even if the app is killed. For Android 12+, notifications from foreground services cannot be dismissed due to new Android rules. This ensures users are always aware of ongoing processes that might affect battery life or device performance.
+
 ### How can I increase the reliability of the alarm ringing?
 
 The more time the app spends in the background, the higher the chance the OS might stop it from running due to memory or battery optimizations. Here's how you can optimize:
