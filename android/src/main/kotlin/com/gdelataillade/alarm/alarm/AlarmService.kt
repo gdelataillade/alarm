@@ -3,6 +3,7 @@ package com.gdelataillade.alarm.alarm
 import com.gdelataillade.alarm.services.AudioService
 import com.gdelataillade.alarm.services.VibrationService
 import com.gdelataillade.alarm.services.VolumeService
+import com.gdelataillade.alarm.models.NotificationActionSettings
 
 import android.app.Service
 import android.app.PendingIntent
@@ -16,6 +17,7 @@ import android.os.Build
 import io.flutter.Log
 import io.flutter.embedding.engine.dart.DartExecutor
 import io.flutter.embedding.engine.FlutterEngine
+import org.json.JSONObject
 
 class AlarmService : Service() {
     private var audioService: AudioService? = null
@@ -38,14 +40,22 @@ class AlarmService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent == null) {
+            Log.d("AlarmService", "Intent is null, stopping service")
             stopSelf()
             return START_NOT_STICKY
         }
 
         val action = intent.action
+        Log.d("AlarmService", "Received action: $action")
         val id = intent.getIntExtra("id", 0)
         if (action == "STOP_ALARM" && id != 0) {
             stopAlarm(id)
+            return START_NOT_STICKY
+        } else if (action == NotificationHandler.ACTION_STOP) {
+            Log.d("AlarmService", "Action button clicked: STOP")
+            return START_NOT_STICKY
+        } else if (action == NotificationHandler.ACTION_SNOOZE) {
+            Log.d("AlarmService", "Action button clicked: SNOOZE")
             return START_NOT_STICKY
         }
 
@@ -58,11 +68,16 @@ class AlarmService : Service() {
         val notificationBody = intent.getStringExtra("notificationBody") ?: "Default Body" // Default if null
         val fullScreenIntent = intent.getBooleanExtra("fullScreenIntent", true)
 
+        val notificationActionSettingsJson = intent.getStringExtra("notificationActionSettings")
+            val notificationActionSettings = notificationActionSettingsJson?.let {
+                NotificationActionSettings.fromJson(JSONObject(it))
+            }
+
         // Handling notification
         val notificationHandler = NotificationHandler(this)
         val appIntent = applicationContext.packageManager.getLaunchIntentForPackage(applicationContext.packageName)
         val pendingIntent = PendingIntent.getActivity(this, id, appIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-        val notification = notificationHandler.buildNotification(notificationTitle, notificationBody, fullScreenIntent, pendingIntent)
+        val notification = notificationHandler.buildNotification(notificationTitle, notificationBody, fullScreenIntent, pendingIntent, notificationActionSettings, id)
 
         // Starting foreground service safely
         try {

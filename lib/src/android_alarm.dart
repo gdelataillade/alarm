@@ -58,6 +58,8 @@ class AndroidAlarm {
           'notificationTitle': settings.notificationTitle,
           'notificationBody': settings.notificationBody,
           'fullScreenIntent': settings.androidFullScreenIntent,
+          'notificationActionSettings':
+              settings.notificationActionSettings.toJson(),
         },
       );
     } catch (e) {

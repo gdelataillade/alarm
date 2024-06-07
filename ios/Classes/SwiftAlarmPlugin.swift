@@ -158,7 +158,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
     private func loadAudioPlayer(withAsset assetAudio: String, forId id: Int) -> AVAudioPlayer? {
         let audioURL: URL
-        if assetAudio.hasPrefix("assets/") {
+        if assetAudio.hasPrefix("assets/") || assetAudio.hasPrefix("asset/") {
             // Load audio from assets
             let filename = registrar.lookupKey(forAsset: assetAudio)
             guard let audioPath = Bundle.main.path(forResource: filename, ofType: nil) else {

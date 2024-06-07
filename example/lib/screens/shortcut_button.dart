@@ -40,6 +40,13 @@ class _ExampleAlarmHomeShortcutButtonState
       notificationBody:
           'Shortcut button alarm with delay of $delayInHours hours',
       enableNotificationOnKill: Platform.isIOS,
+      notificationActionSettings: const NotificationActionSettings(
+        hasStopButton: true,
+        hasSnoozeButton: true,
+        stopButtonText: 'STOP !',
+        snoozeButtonText: 'SNOOZE !',
+        snoozeDurationInSeconds: 5,
+      ),
     );
 
     await Alarm.set(alarmSettings: alarmSettings);

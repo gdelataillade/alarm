@@ -11,6 +11,7 @@ import 'package:alarm/utils/extensions.dart';
 import 'package:flutter/foundation.dart';
 
 export 'package:alarm/model/alarm_settings.dart';
+export 'package:alarm/model/notification_action_settings.dart';
 
 /// Custom print function designed for Alarm plugin.
 DebugPrintCallback alarmPrint = debugPrintThrottled;
