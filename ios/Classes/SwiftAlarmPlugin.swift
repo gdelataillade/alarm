@@ -89,17 +89,19 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
               let loopAudio = args["loopAudio"] as? Bool,
               let fadeDuration = args["fadeDuration"] as? Double,
               let vibrationsEnabled = args["vibrate"] as? Bool,
-              let assetAudio = args["assetAudio"] as? String,
-              let _ = args["volume"] as? Float,
-              let actionSettingsDict = args["notificationActionSettings"] as? [String: Any] else {
+              let assetAudio = args["assetAudio"] as? String else {
             let argumentsDescription = "\(call.arguments ?? "nil")"
-            result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Arguments are not in the expected format: \(argumentsDescription)", details: nil))
+            result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Regular arguments are not in the expected format: \(argumentsDescription)", details: nil))
+            return
+        }
+        
+        guard let actionSettingsDict = args["notificationActionSettings"] as? [String: Any] else {
+            result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] notificationActionSettings argument is missing or not in the expected format", details: nil))
             return
         }
 
-        // Since fromJson does not return an optional, directly use it without guard let
         let actionSettings = NotificationActionSettings.fromJson(json: actionSettingsDict)
-        
+
         NSLog("SwiftAlarmPlugin: NotificationActionSettings: \(actionSettings)")
 
         var volumeFloat: Float? = nil
