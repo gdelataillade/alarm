@@ -142,6 +142,7 @@ class AlarmService : Service() {
         audioService?.cleanUp()
         vibrationService?.stopVibrating()
         volumeService?.restorePreviousVolume(showSystemUI)
+        volumeService?.abandonAudioFocus()
 
         stopForeground(true)
 

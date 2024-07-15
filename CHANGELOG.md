@@ -1,3 +1,7 @@
+## 3.1.5
+* [Android] Fix volume/focus post-alarm.
+* Export `AlarmSettings` class in `Alarm` class.
+
 ## 3.1.4
 * [Android] Add more type safety.
 
