@@ -50,6 +50,8 @@ class IOSAlarm {
                   AlarmStorage.getNotificationOnAppKillTitle(),
               'notifDescriptionOnAppKill':
                   AlarmStorage.getNotificationOnAppKillBody(),
+              'notificationSettings':
+                  settings.notificationActionSettings.toJson(),
             },
           ) ??
           false;

@@ -13,12 +13,12 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     #endif
 
     private var registrar: FlutterPluginRegistrar!
-    static let sharedInstance = SwiftAlarmPlugin()
+    static let shared = SwiftAlarmPlugin()
     static let backgroundTaskIdentifier: String = "com.gdelataillade.fetch"
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: "com.gdelataillade/alarm", binaryMessenger: registrar.messenger())
-        let instance = SwiftAlarmPlugin()
+        let instance = SwiftAlarmPlugin.shared
 
         instance.registrar = registrar
         registrar.addMethodCallDelegate(instance, channel: channel)
@@ -62,6 +62,18 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
     }
 
+    func stopAlarmFromNotification(id: Int) {
+        safeModifyResources {
+            self.stopAlarm(id: id, cancelNotif: true, result: { _ in })
+        }
+    }
+
+    func snoozeAlarmFromNotification(id: Int, snoozeDurationInSeconds: Int) {
+        safeModifyResources {
+            self.stopAlarm(id: id, cancelNotif: true, result: { _ in })
+        }
+    }
+
     func safeModifyResources(_ modificationBlock: @escaping () -> Void) {
         resourceAccessQueue.async {
             modificationBlock()
@@ -77,10 +89,18 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
               let loopAudio = args["loopAudio"] as? Bool,
               let fadeDuration = args["fadeDuration"] as? Double,
               let vibrationsEnabled = args["vibrate"] as? Bool,
-              let assetAudio = args["assetAudio"] as? String else {
-            result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Arguments are not in the expected format: \(call.arguments)", details: nil))
+              let assetAudio = args["assetAudio"] as? String,
+              let _ = args["volume"] as? Float,
+              let actionSettingsDict = args["notificationActionSettings"] as? [String: Any] else {
+            let argumentsDescription = "\(call.arguments ?? "nil")"
+            result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Arguments are not in the expected format: \(argumentsDescription)", details: nil))
             return
         }
+
+        // Since fromJson does not return an optional, directly use it without guard let
+        let actionSettings = NotificationActionSettings.fromJson(json: actionSettingsDict)
+        
+        NSLog("SwiftAlarmPlugin: NotificationActionSettings: \(actionSettings)")
 
         var volumeFloat: Float? = nil
         if let volumeValue = args["volume"] as? Double {
@@ -100,7 +120,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         let notificationTitle = args["notificationTitle"] as? String
         let notificationBody = args["notificationBody"] as? String
         if let title = notificationTitle, let body = notificationBody, delayInSeconds >= 1.0 {
-            NotificationManager.shared.scheduleNotification(id: String(id), delayInSeconds: Int(floor(delayInSeconds)), title: title, body: body) { error in
+            NotificationManager.shared.scheduleNotification(id: id, delayInSeconds: Int(floor(delayInSeconds)), title: title, body: body, actionSettings: actionSettings) { error in
                 if let error = error {
                     NSLog("[SwiftAlarmPlugin] Error scheduling notification: \(error.localizedDescription)")
                 }
@@ -272,7 +292,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
     private func stopAlarm(id: Int, cancelNotif: Bool, result: FlutterResult) {
         if cancelNotif {
-            NotificationManager.shared.cancelNotification(id: String(id))
+            NotificationManager.shared.cancelNotification(id: id)
         }
 
         self.mixOtherAudios()
@@ -457,7 +477,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         if #available(iOS 13.0, *) {
             BGTaskScheduler.shared.register(forTaskWithIdentifier: backgroundTaskIdentifier, using: nil) { task in
                 self.scheduleAppRefresh()
-                sharedInstance.backgroundFetch()
+                shared.backgroundFetch()
                 task.setTaskCompleted(success: true)
             }
         } else {
