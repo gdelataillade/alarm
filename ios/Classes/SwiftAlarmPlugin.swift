@@ -65,8 +65,11 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 self.notificationTitleOnKill = (args["notifTitleOnAppKill"] as! String)
                 self.notificationBodyOnKill = (args["notifDescriptionOnAppKill"] as! String)
                 result(true)
+            case "getSavedAlarms":
+                let savedAlarmsLocal = AlarmStorage.shared.getSavedAlarms()
+                let alarmsJson = savedAlarmsLocal.map { AlarmSettings.toJson(alarmSettings: $0) }
+                result(alarmsJson)
             default:
-                // Removed unnecessary DispatchQueue.main.sync
                 result(FlutterMethodNotImplemented)
             }
         }
@@ -78,15 +81,13 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
         NSLog("SwiftAlarmPlugin: stopAlarmFromNotification...")
         // channel.invokeMethod("alarmStoppedFromNotification", arguments: ["id": id])
-
-        AlarmStorage.shared.unsaveAlarm(id: id)
     }
 
     func snoozeAlarmFromNotification(id: Int, snoozeDurationInSeconds: Int) {
-        // safeModifyResources {
-        //     self.stopAlarm(id: id, cancelNotif: true, result: { _ in })
-        // }
-        channel.invokeMethod("alarmSnoozedFromNotification", arguments: ["id": id, "snoozeDurationInSeconds": snoozeDurationInSeconds])
+        safeModifyResources {
+            self.stopAlarm(id: id, cancelNotif: true, result: { _ in })
+        }
+        // channel.invokeMethod("alarmSnoozedFromNotification", arguments: ["id": id, "snoozeDurationInSeconds": snoozeDurationInSeconds])
     }
 
     func safeModifyResources(_ modificationBlock: @escaping () -> Void) {
@@ -105,10 +106,9 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             return
         }
 
-        let actionSettings = alarmSettings.notificationActionSettings
+        AlarmStorage.shared.saveAlarm(alarmSettings: alarmSettings)
 
         NSLog("SwiftAlarmPlugin: AlarmSettings: \(alarmSettings)")
-        NSLog("SwiftAlarmPlugin: NotificationActionSettings: \(actionSettings)")
 
         var volumeFloat: Float? = nil
         if let volumeValue = alarmSettings.volume {
@@ -117,6 +117,9 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
         let id = alarmSettings.id
         let delayInSeconds = alarmSettings.dateTime.timeIntervalSinceNow
+
+        NSLog("SwiftAlarmPlugin: Alarm dateTime: \(alarmSettings.dateTime)")
+        NSLog("SwiftAlarmPlugin: Alarm scheduled in \(delayInSeconds) seconds")
 
         let alarmConfig = AlarmConfiguration(
             id: id,
@@ -131,7 +134,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         let notificationTitle = args["notificationTitle"] as? String
         let notificationBody = args["notificationBody"] as? String
         if let title = notificationTitle, let body = notificationBody, delayInSeconds >= 1.0 {
-            NotificationManager.shared.scheduleNotification(id: id, delayInSeconds: Int(floor(delayInSeconds)), title: title, body: body, actionSettings: actionSettings) { error in
+            NotificationManager.shared.scheduleNotification(id: id, delayInSeconds: Int(floor(delayInSeconds)), title: title, body: body, actionSettings: alarmSettings.notificationActionSettings) { error in
                 if let error = error {
                     NSLog("[SwiftAlarmPlugin] Error scheduling notification: \(error.localizedDescription)")
                 }
@@ -303,6 +306,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
 
     private func stopAlarm(id: Int, cancelNotif: Bool, result: FlutterResult) {
+        AlarmStorage.shared.unsaveAlarm(id: id)
+
         if cancelNotif {
             NotificationManager.shared.cancelNotification(id: id)
         }

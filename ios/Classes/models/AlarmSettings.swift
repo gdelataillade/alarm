@@ -29,7 +29,7 @@ struct AlarmSettings: Codable {
             return nil
         }
         
-        let dateTime = Date(timeIntervalSince1970: TimeInterval(dateTimeMillis) / 1000)
+        let dateTime = Date(timeIntervalSince1970: TimeInterval(dateTimeMillis) / 1000000)
         let volume = json["volume"] as? Double
         let notificationActionSettings = NotificationActionSettings.fromJson(json: notificationActionSettingsDict)
         
@@ -47,5 +47,22 @@ struct AlarmSettings: Codable {
             androidFullScreenIntent: androidFullScreenIntent,
             notificationActionSettings: notificationActionSettings
         )
+    }
+
+    static func toJson(alarmSettings: AlarmSettings) -> [String: Any] {
+        return [
+            "id": alarmSettings.id,
+            "dateTime": Int64(alarmSettings.dateTime.timeIntervalSince1970 * 1000000),
+            "assetAudioPath": alarmSettings.assetAudioPath,
+            "loopAudio": alarmSettings.loopAudio,
+            "vibrate": alarmSettings.vibrate,
+            "volume": alarmSettings.volume,
+            "fadeDuration": alarmSettings.fadeDuration,
+            "notificationTitle": alarmSettings.notificationTitle,
+            "notificationBody": alarmSettings.notificationBody,
+            "enableNotificationOnKill": alarmSettings.enableNotificationOnKill,
+            "androidFullScreenIntent": alarmSettings.androidFullScreenIntent,
+            "notificationActionSettings": NotificationActionSettings.toJson(notificationActionSettings: alarmSettings.notificationActionSettings)
+        ]
     }
 }

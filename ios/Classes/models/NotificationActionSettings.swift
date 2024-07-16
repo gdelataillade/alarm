@@ -16,4 +16,14 @@ struct NotificationActionSettings: Codable {
             snoozeDurationInSeconds: json["snoozeDurationInSeconds"] as? Int ?? 9 * 60
         )
     }
+
+    static func toJson(notificationActionSettings: NotificationActionSettings) -> [String: Any] {
+        return [
+            "hasStopButton": notificationActionSettings.hasStopButton,
+            "hasSnoozeButton": notificationActionSettings.hasSnoozeButton,
+            "stopButtonText": notificationActionSettings.stopButtonText,
+            "snoozeButtonText": notificationActionSettings.snoozeButtonText,
+            "snoozeDurationInSeconds": notificationActionSettings.snoozeDurationInSeconds
+        ]
+    }
 }

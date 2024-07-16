@@ -109,6 +109,10 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
                 stopNotificationOnKillService(context)
                 result.success(true)
             }
+            "getSavedAlarms" -> {
+                val alarms = AlarmStorage(context).getSavedAlarms()
+                result.success(alarms)
+            }
             else -> {
                 result.notImplemented()
             }
@@ -121,7 +125,8 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
             val alarm = AlarmSettings.fromJson(alarmJsonMap)
             if (alarm != null) {
                 Log.d("AlarmPlugin", "Alarm ID: ${alarm.id}")
-                
+                AlarmStorage(context).saveAlarm(alarm)
+
                 val alarmIntent = createAlarmIntent(context, call, id)
                 val delayInSeconds = (alarm.dateTime.time - System.currentTimeMillis()) / 1000
 
@@ -143,6 +148,8 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
     }
 
     fun stopAlarm(id: Int, result: Result? = null) {
+        AlarmStorage(context).unsaveAlarm(id)
+
         // Check if the alarm is currently ringing
         if (AlarmService.ringingAlarmIds.contains(id)) {
             // If the alarm is ringing, stop the alarm service for this ID

@@ -54,7 +54,7 @@ class IOSAlarm {
     int id,
     int snoozeDurationInSeconds,
   ) async {
-    final alarm = Alarm.getAlarm(id);
+    final alarm = await Alarm.getAlarm(id);
     if (alarm == null) {
       alarmPrint('Alarm with id $id was not found. Snooze failed.');
       return;
@@ -103,6 +103,9 @@ class IOSAlarm {
       id: id,
       onBackground: () => disposeTimer(id),
       onForeground: () async {
+        final alarms = await Alarm.getSavedAlarms();
+        print(alarms);
+
         if (fgbgSubscriptions[id] == null) return;
 
         final isRinging = await checkIfRinging(id);
@@ -134,6 +137,17 @@ class IOSAlarm {
     if (res) alarmPrint('Alarm with id $id stopped');
 
     return res;
+  }
+
+  /// Returns the list of saved alarms stored locally.
+  static Future<List<AlarmSettings>> getSavedAlarms() async {
+    final res = await methodChannel
+            .invokeMethod<List<AlarmSettings>?>('getSavedAlarms') ??
+        [];
+
+    return res
+        .map((e) => AlarmSettings.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   /// Checks whether alarm is ringing by getting the native audio player's
