@@ -66,23 +66,4 @@ class AlarmStorage {
 
     return alarms;
   }
-
-  /// Saves on app kill notification custom [title] and [body].
-  static Future<void> setNotificationContentOnAppKill(
-    String title,
-    String body,
-  ) =>
-      Future.wait([
-        prefs.setString(notificationOnAppKillTitle, title),
-        prefs.setString(notificationOnAppKillBody, body),
-      ]);
-
-  /// Returns notification on app kill [notificationOnAppKillTitle].
-  static String getNotificationOnAppKillTitle() =>
-      prefs.getString(notificationOnAppKillTitle) ?? 'Your alarms may not ring';
-
-  /// Returns notification on app kill [notificationOnAppKillBody].
-  static String getNotificationOnAppKillBody() =>
-      prefs.getString(notificationOnAppKillBody) ??
-      'You killed the app. Please reopen so your alarms can be rescheduled.';
 }

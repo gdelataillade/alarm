@@ -39,6 +39,7 @@ class Alarm {
     };
 
     if (android) AndroidAlarm.init();
+    if (iOS) IOSAlarm.init();
     await AlarmStorage.init();
 
     await checkAlarm();
@@ -83,7 +84,8 @@ class Alarm {
         alarmSettings,
         () => ringStream.add(alarmSettings),
       );
-    } else if (android) {
+    }
+    if (android) {
       return AndroidAlarm.set(
         alarmSettings,
         () => ringStream.add(alarmSettings),
@@ -132,11 +134,10 @@ class Alarm {
   ///
   /// [body] default value is `You killed the app.
   /// Please reopen so your alarm can ring.`
-  static Future<void> setNotificationOnAppKillContent(
-    String title,
-    String body,
-  ) =>
-      AlarmStorage.setNotificationContentOnAppKill(title, body);
+  static void setNotificationOnAppKillContent(String title, String body) {
+    if (iOS) IOSAlarm.setNotificationOnAppKill(title, body);
+    if (android) AndroidAlarm.setNotificationOnAppKill(title, body);
+  }
 
   /// Stops alarm.
   static Future<bool> stop(int id) async {

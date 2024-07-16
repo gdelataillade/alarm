@@ -53,7 +53,7 @@ Inside the <application> tag of your `AndroidManifest.xml`, add the following de
 </application>
 ```
 
-This setup is essential for showing a notification when the app is terminated. You can enable this notification with `Alarm.setNotificationOnAppKillContent`.
+Necessary if you want to enable an optional notification with `Alarm.setNotificationOnAppKillContent` to alert users if the app is terminated, hinting at a rare chance the alarm may not work.
 
 ## Step 5
 To guarantee that your alarm's foreground service can trigger when the app is in the background, it's recommanded to verify and request the necessary permission for scheduling exact alarms on Android 12+ devices. This step is particularly important due to varying device policies.

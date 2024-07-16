@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 /// Uses method channel to interact with the native platform.
 class AndroidAlarm {
   /// Method channel for the alarm operations.
-  static const platform = MethodChannel('com.gdelataillade.alarm/alarm');
+  static const methodChannel = MethodChannel('com.gdelataillade.alarm/alarm');
 
   /// Event channel for the alarm events.
   static const eventChannel = EventChannel('com.gdelataillade.alarm/events');
@@ -43,41 +43,12 @@ class AndroidAlarm {
     void Function()? onRing,
   ) async {
     try {
-      final delay = settings.dateTime.difference(DateTime.now());
-
-      await platform.invokeMethod(
+      await methodChannel.invokeMethod(
         'setAlarm',
-        {
-          'id': settings.id,
-          'delayInSeconds': delay.inSeconds,
-          'assetAudioPath': settings.assetAudioPath,
-          'loopAudio': settings.loopAudio,
-          'vibrate': settings.vibrate,
-          'volume': settings.volume,
-          'fadeDuration': settings.fadeDuration,
-          'notificationTitle': settings.notificationTitle,
-          'notificationBody': settings.notificationBody,
-          'fullScreenIntent': settings.androidFullScreenIntent,
-          'notificationActionSettings':
-              settings.notificationActionSettings.toJson(),
-        },
+        settings.toJson(),
       );
     } catch (e) {
-      throw AlarmException('nativeAndroidAlarm error: $e');
-    }
-
-    if (settings.enableNotificationOnKill && !hasOtherAlarms) {
-      try {
-        await platform.invokeMethod(
-          'setNotificationOnKillService',
-          {
-            'title': AlarmStorage.getNotificationOnAppKillTitle(),
-            'body': AlarmStorage.getNotificationOnAppKillBody(),
-          },
-        );
-      } catch (e) {
-        throw AlarmException('NotificationOnKillService error: $e');
-      }
+      throw AlarmException('AndroidAlarm.setAlarm error: $e');
     }
 
     alarmPrint(
@@ -91,7 +62,8 @@ class AndroidAlarm {
   /// can stop playing and dispose.
   static Future<bool> stop(int id) async {
     try {
-      final res = await platform.invokeMethod('stopAlarm', {'id': id}) as bool;
+      final res =
+          await methodChannel.invokeMethod('stopAlarm', {'id': id}) as bool;
       if (res) alarmPrint('Alarm with id $id stopped');
       if (!hasOtherAlarms) await stopNotificationOnKillService();
       return res;
@@ -104,7 +76,8 @@ class AndroidAlarm {
   /// Checks if the alarm with given [id] is ringing.
   static Future<bool> isRinging(int id) async {
     try {
-      final res = await platform.invokeMethod('isRinging', {'id': id}) as bool;
+      final res =
+          await methodChannel.invokeMethod('isRinging', {'id': id}) as bool;
       return res;
     } catch (e) {
       alarmPrint('Failed to check if alarm is ringing: $e');
@@ -112,10 +85,17 @@ class AndroidAlarm {
     }
   }
 
+  /// Sets the native notification on app kill title and body.
+  static Future<void> setNotificationOnAppKill(String title, String body) =>
+      methodChannel.invokeMethod<void>(
+        'setNotificationOnAppKillContent',
+        {'title': title, 'body': body},
+      );
+
   /// Disable the notification on kill service.
   static Future<void> stopNotificationOnKillService() async {
     try {
-      await platform.invokeMethod('stopNotificationOnKillService');
+      await methodChannel.invokeMethod('stopNotificationOnKillService');
     } catch (e) {
       throw AlarmException('NotificationOnKillService error: $e');
     }

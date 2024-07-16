@@ -1,6 +1,6 @@
 import Foundation
 
-struct NotificationActionSettings {
+struct NotificationActionSettings: Codable {
     var hasStopButton: Bool = false
     var hasSnoozeButton: Bool = false
     var stopButtonText: String = "Stop"

@@ -26,6 +26,9 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
     private lateinit var methodChannel: MethodChannel
     private lateinit var eventChannel: EventChannel
 
+    private val alarmIds: MutableList<Int> = mutableListOf()
+    private var notifOnKillEnabled: Boolean = false
+
     companion object {
         @JvmStatic
         var eventSink: EventChannel.EventSink? = null
@@ -78,9 +81,7 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
         when (call.method) {
             "setAlarm" -> {
-                val id = call.argument<Int>("id")!!
-                val delayInSeconds = call.argument<Int>("delayInSeconds")!!
-                setAlarm(id, delayInSeconds, call, result)
+                setAlarm(call, result)
             }
             "stopAlarm" -> {
                 val id = call.argument<Int>("id")
@@ -101,17 +102,11 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
                 val title = call.argument<String>("title")
                 val body = call.argument<String>("body")
 
-                val serviceIntent = Intent(context, NotificationOnKillService::class.java)
-                serviceIntent.putExtra("title", title)
-                serviceIntent.putExtra("body", body)
-
-                context.startService(serviceIntent)
-
+                setNotificationOnKillService(context, title, body)
                 result.success(true)
             }
             "stopNotificationOnKillService" -> {
-                val serviceIntent = Intent(context, NotificationOnKillService::class.java)
-                context.stopService(serviceIntent)
+                stopNotificationOnKillService(context)
                 result.success(true)
             }
             else -> {
@@ -120,16 +115,31 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
         }
     }
 
-    fun setAlarm(id: Int, delayInSeconds: Int, call: MethodCall, result: Result) {
-        val alarmIntent = createAlarmIntent(context, call, id)
+    fun setAlarm(call: MethodCall, result: Result) {
+        val alarmJsonMap = call.arguments as? Map<String, Any>
+        if (alarmJsonMap != null) {
+            val alarm = AlarmSettings.fromJson(alarmJsonMap)
+            if (alarm != null) {
+                Log.d("AlarmPlugin", "Alarm ID: ${alarm.id}")
+                
+                val alarmIntent = createAlarmIntent(context, call, id)
+                val delayInSeconds = (alarm.dateTime.time - System.currentTimeMillis()) / 1000
 
-        if (delayInSeconds <= 5) {
-            handleImmediateAlarm(context, alarmIntent, delayInSeconds)
+                if (delayInSeconds <= 5) {
+                    handleImmediateAlarm(context, alarmIntent, delayInSeconds)
+                } else {
+                    handleDelayedAlarm(context, alarmIntent, delayInSeconds, alarm.id, alarm.enableNotificationOnKill)
+                }
+                alarmIds.add(id)
+                Log.d("AlarmPlugin", "Alarm added to alarmIds: $alarmIds")
+
+                result.success(true)
+            } else {
+                result.error("INVALID_ALARM", "Failed to parse alarm JSON", null)
+            }
         } else {
-            handleDelayedAlarm(context, alarmIntent, delayInSeconds, id)
+            result.error("INVALID_ARGUMENTS", "Invalid arguments provided for setAlarm", null)
         }
-
-        result.success(true)
     }
 
     fun stopAlarm(id: Int, result: Result? = null) {
@@ -154,6 +164,11 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
         // Cancel the future alarm using AlarmManager
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         alarmManager.cancel(pendingIntent)
+
+        alarmIds.remove(id)
+        if (alarmIds.isEmpty() && notifOnKillEnabled) {
+            stopNotificationOnKillService(context)
+        }
 
         if (result != null) {
             result.success(true)
@@ -189,7 +204,7 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
         }, delayInSeconds * 1000L)
     }
 
-    fun handleDelayedAlarm(context: Context, intent: Intent, delayInSeconds: Int, id: Int) {
+    fun handleDelayedAlarm(context: Context, intent: Intent, delayInSeconds: Int, id: Int, enableNotificationOnKill: Boolean) {
         try {
             val triggerTime = System.currentTimeMillis() + delayInSeconds * 1000L
             val pendingIntent = PendingIntent.getBroadcast(
@@ -209,6 +224,10 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
             } else {
                 alarmManager.set(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
             }
+
+            if (enableNotificationOnKill && !notifOnKillEnabled) {
+                setNotificationOnKillService()
+            }
         } catch (e: ClassCastException) {
             Log.e("AlarmPlugin", "AlarmManager service type casting failed", e)
         } catch (e: IllegalStateException) {
@@ -216,6 +235,21 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
         } catch (e: Exception) {
             Log.e("AlarmPlugin", "Error in handling delayed alarm", e)
         }
+    }
+
+    fun setNotificationOnKillService(context: Context, title: String, body: String) {
+        val serviceIntent = Intent(context, NotificationOnKillService::class.java)
+        serviceIntent.putExtra("title", title)
+        serviceIntent.putExtra("body", body)
+
+        context.startService(serviceIntent)
+        notifOnKillEnabled = true
+    }
+
+    fun stopNotificationOnKillService(context: Context) {
+        val serviceIntent = Intent(context, NotificationOnKillService::class.java)
+        context.stopService(serviceIntent)
+        notifOnKillEnabled = false
     }
 
     fun snoozeAlarm(context: Context, id: Int, snoozeInSeconds: Int) {

@@ -1,6 +1,6 @@
 package com.gdelataillade.alarm.models
 
-import org.json.JSONObject
+import com.google.gson.Gson
 
 data class NotificationActionSettings(
     val hasStopButton: Boolean = false,
@@ -10,14 +10,14 @@ data class NotificationActionSettings(
     val snoozeDurationInSeconds: Int = 9 * 60
 ) {
     companion object {
-        fun fromJson(json: JSONObject): NotificationActionSettings {
-            return NotificationActionSettings(
-                hasStopButton = json.optBoolean("hasStopButton", false),
-                hasSnoozeButton = json.optBoolean("hasSnoozeButton", false),
-                stopButtonText = json.optString("stopButtonText", "Stop"),
-                snoozeButtonText = json.optString("snoozeButtonText", "Snooze"),
-                snoozeDurationInSeconds = json.optInt("snoozeDurationInSeconds", 9 * 60)
-            )
+        fun fromJson(json: Map<String, Any>): NotificationActionSettings {
+            val gson = Gson()
+            val jsonString = gson.toJson(json)
+            return gson.fromJson(jsonString, NotificationActionSettings::class.java)
         }
+    }
+
+    fun toJson(): String {
+        return Gson().toJson(this)
     }
 }

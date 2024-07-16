@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:alarm/alarm.dart';
-import 'package:alarm/service/alarm_storage.dart';
 import 'package:alarm/utils/alarm_exception.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 
@@ -17,6 +17,59 @@ class IOSAlarm {
   /// Map of foreground/background subscriptions.
   static Map<int, StreamSubscription<FGBGType>?> fgbgSubscriptions = {};
 
+  /// Initializes the method call handler.
+  static void init() => methodChannel.setMethodCallHandler(handleMethodCall);
+
+  /// Handles incoming method calls from the native platform.
+  static Future<void> handleMethodCall(MethodCall call) async {
+    debugPrint('handleMethodCall: ${call.method}');
+    // switch (call.method) {
+    //   case 'alarmStoppedFromNotification':
+    //     print('call.arguments: ${call.arguments}');
+    //     final arguments = call.arguments as Map<dynamic, dynamic>;
+    //     final id = arguments['id'] as int;
+    //   // await handleAlarmStoppedFromNotification(id);
+    //   case 'alarmSnoozedFromNotification':
+    //     print('call.arguments: ${call.arguments}');
+    //     final arguments = call.arguments as Map<dynamic, dynamic>;
+    //     final id = arguments['id'] as int;
+    //     final snoozeDurationInSeconds =
+    //         arguments['snoozeDurationInSeconds'] as int;
+    //   // await handleAlarmSnoozedFromNotification(id, snoozeDurationInSeconds);
+    //   default:
+    //     throw MissingPluginException('not implemented');
+    // }
+  }
+
+  /// Handles the alarm stopped from notification event.
+  static Future<void> handleAlarmStoppedFromNotification(int id) async {
+    // AlarmStorage.unsaveAlarm(id);
+    // disposeAlarm(id);
+    await Alarm.stop(id);
+    alarmPrint('Alarm with id $id was stopped from notification');
+  }
+
+  /// Handles the alarm snoozed from notification event.
+  static Future<void> handleAlarmSnoozedFromNotification(
+    int id,
+    int snoozeDurationInSeconds,
+  ) async {
+    final alarm = Alarm.getAlarm(id);
+    if (alarm == null) {
+      alarmPrint('Alarm with id $id was not found. Snooze failed.');
+      return;
+    }
+
+    await Alarm.stop(id);
+
+    final newAlarm = alarm.copyWith(
+      dateTime: DateTime.now().add(Duration(seconds: snoozeDurationInSeconds)),
+    );
+    await Alarm.set(alarmSettings: newAlarm);
+
+    alarmPrint('Alarm with id $id was snoozed for ${snoozeDurationInSeconds}s');
+  }
+
   /// Calls the native function `setAlarm` and listens to alarm ring state.
   ///
   /// Also set periodic timer and listens for app state changes to trigger
@@ -27,32 +80,9 @@ class IOSAlarm {
   ) async {
     final id = settings.id;
     try {
-      final delay = settings.dateTime
-          .difference(DateTime.now())
-          .inSeconds
-          .abs()
-          .toDouble();
-
       final res = await methodChannel.invokeMethod<bool?>(
             'setAlarm',
-            {
-              'id': id,
-              'assetAudio': settings.assetAudioPath,
-              'delayInSeconds': delay,
-              'loopAudio': settings.loopAudio,
-              'fadeDuration': settings.fadeDuration,
-              'vibrate': settings.vibrate,
-              'volume': settings.volume,
-              'notifOnKillEnabled': settings.enableNotificationOnKill,
-              'notificationTitle': settings.notificationTitle,
-              'notificationBody': settings.notificationBody,
-              'notifTitleOnAppKill':
-                  AlarmStorage.getNotificationOnAppKillTitle(),
-              'notifDescriptionOnAppKill':
-                  AlarmStorage.getNotificationOnAppKillBody(),
-              'notificationSettings':
-                  settings.notificationActionSettings.toJson(),
-            },
+            settings.toJson(),
           ) ??
           false;
 
@@ -142,6 +172,13 @@ class IOSAlarm {
       onRing?.call();
     });
   }
+
+  /// Sets the native notification on app kill title and body.
+  static Future<void> setNotificationOnAppKill(String title, String body) =>
+      methodChannel.invokeMethod<void>(
+        'setNotificationOnAppKillContent',
+        {'title': title, 'body': body},
+      );
 
   /// Disposes alarm timer.
   static void disposeTimer(int id) {
