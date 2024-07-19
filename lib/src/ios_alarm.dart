@@ -54,7 +54,7 @@ class IOSAlarm {
     int id,
     int snoozeDurationInSeconds,
   ) async {
-    final alarm = await Alarm.getAlarm(id);
+    final alarm = Alarm.getAlarm(id);
     if (alarm == null) {
       alarmPrint('Alarm with id $id was not found. Snooze failed.');
       return;
@@ -103,9 +103,6 @@ class IOSAlarm {
       id: id,
       onBackground: () => disposeTimer(id),
       onForeground: () async {
-        final alarms = await Alarm.getSavedAlarms();
-        print(alarms);
-
         if (fgbgSubscriptions[id] == null) return;
 
         final isRinging = await checkIfRinging(id);

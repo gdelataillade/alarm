@@ -3,7 +3,7 @@
 import 'dart:async';
 
 import 'package:alarm/model/alarm_settings.dart';
-// import 'package:alarm/service/alarm_storage.dart';
+import 'package:alarm/service/alarm_storage.dart';
 import 'package:alarm/src/android_alarm.dart';
 import 'package:alarm/src/ios_alarm.dart';
 import 'package:alarm/utils/alarm_exception.dart';
@@ -40,6 +40,7 @@ class Alarm {
 
     if (android) AndroidAlarm.init();
     if (iOS) IOSAlarm.init();
+    await AlarmStorage.init();
 
     await checkAlarm();
   }
@@ -47,7 +48,7 @@ class Alarm {
   /// Checks if some alarms were set on previous session.
   /// If it's the case then reschedules them.
   static Future<void> checkAlarm() async {
-    final alarms = await getSavedAlarms();
+    final alarms = getAlarms();
 
     if (iOS) await stopAll();
 
@@ -69,14 +70,14 @@ class Alarm {
   static Future<bool> set({required AlarmSettings alarmSettings}) async {
     alarmSettingsValidation(alarmSettings);
 
-    final savedAlarms = await getSavedAlarms();
-
-    for (final alarm in savedAlarms) {
+    for (final alarm in getAlarms()) {
       if (alarm.id == alarmSettings.id ||
           alarm.dateTime.isSameSecond(alarmSettings.dateTime)) {
         await Alarm.stop(alarm.id);
       }
     }
+
+    await AlarmStorage.saveAlarm(alarmSettings);
 
     if (iOS) {
       return IOSAlarm.setAlarm(
@@ -140,12 +141,14 @@ class Alarm {
 
   /// Stops alarm.
   static Future<bool> stop(int id) async {
+    await AlarmStorage.unsaveAlarm(id);
+
     return iOS ? await IOSAlarm.stopAlarm(id) : await AndroidAlarm.stop(id);
   }
 
   /// Stops all the alarms.
   static Future<void> stopAll() async {
-    final alarms = await getSavedAlarms();
+    final alarms = getAlarms();
 
     for (final alarm in alarms) {
       await stop(alarm.id);
@@ -158,14 +161,11 @@ class Alarm {
       : await AndroidAlarm.isRinging(id);
 
   /// Whether an alarm is set.
-  static Future<bool> hasAlarm() async {
-    final alarms = await getSavedAlarms();
-    return alarms.isNotEmpty;
-  }
+  static bool hasAlarm() => AlarmStorage.hasAlarm();
 
   /// Returns alarm by given id. Returns null if not found.
-  static Future<AlarmSettings?> getAlarm(int id) async {
-    final alarms = await getSavedAlarms();
+  static AlarmSettings? getAlarm(int id) {
+    final alarms = getAlarms();
 
     for (final alarm in alarms) {
       if (alarm.id == id) return alarm;
@@ -176,9 +176,5 @@ class Alarm {
   }
 
   /// Returns all the alarms.
-  static Future<List<AlarmSettings>> getSavedAlarms() async {
-    if (iOS) return IOSAlarm.getSavedAlarms();
-    if (android) return AndroidAlarm.getSavedAlarms();
-    return [];
-  }
+  static List<AlarmSettings> getAlarms() => AlarmStorage.getSavedAlarms();
 }

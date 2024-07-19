@@ -1,7 +1,7 @@
 import Foundation
 
 class AlarmStorage {
-    static let prefix = "__alarm_id__"
+    static let prefix = "flutter.__alarm_id__"
     static let shared = AlarmStorage()
     let userDefaults = UserDefaults.standard
 
@@ -9,7 +9,13 @@ class AlarmStorage {
     func saveAlarm(alarmSettings: AlarmSettings) {
         let key = "\(AlarmStorage.prefix)\(alarmSettings.id)"
         if let encoded = try? JSONEncoder().encode(alarmSettings) {
-            userDefaults.set(encoded, forKey: key)
+            if let jsonString = String(data: encoded, encoding: .utf8) {
+                userDefaults.set(encoded, forKey: key)
+            } else {
+                print("[AlarmStorage] Failed to convert Data to JSON String")
+            }
+        } else {
+            print("[AlarmStorage] Failed to encode AlarmSettings")
         }
     }
 
@@ -23,8 +29,24 @@ class AlarmStorage {
     func getSavedAlarms() -> [AlarmSettings] {
         var alarms: [AlarmSettings] = []
         for (key, value) in userDefaults.dictionaryRepresentation() {
-            if key.hasPrefix(AlarmStorage.prefix), let data = value as? Data, let alarm = try? JSONDecoder().decode(AlarmSettings.self, from: data) {
-                alarms.append(alarm)
+            if key.hasPrefix(AlarmStorage.prefix) {
+                if let jsonString = value as? String {
+                    // Convert String back to Data
+                    if let data = jsonString.data(using: .utf8) {
+                        do {
+                            // Attempt to decode the data into an AlarmSettings object
+                            let alarm = try JSONDecoder().decode(AlarmSettings.self, from: data)
+                            alarms.append(alarm)
+                        } catch {
+                            // If decoding fails, print the error
+                            print("[AlarmStorage] Failed to decode AlarmSettings: \(error)")
+                        }
+                    } else {
+                        print("[AlarmStorage] Failed to convert String to Data")
+                    }
+                } else {
+                    print("[AlarmStorage] Value is not of type String")
+                }
             }
         }
         return alarms

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:alarm/alarm.dart';
+import 'package:alarm/service/alarm_storage.dart';
 import 'package:alarm/utils/alarm_exception.dart';
 import 'package:flutter/services.dart';
 
@@ -12,20 +13,21 @@ class AndroidAlarm {
   static const eventChannel = EventChannel('com.gdelataillade.alarm/events');
 
   /// Whether there are other alarms set.
-  static Future<bool> get hasOtherAlarms async =>
-      (await getSavedAlarms()).length > 1;
+  static bool get hasOtherAlarms => AlarmStorage.getSavedAlarms().length > 1;
 
   /// Starts listening to the alarm events.
-  static void init() => listenToAlarmEvents();
+  static void init() {
+    // listenToAlarmEvents();
+  }
 
   /// Listens to the alarm events.
   static void listenToAlarmEvents() {
     eventChannel.receiveBroadcastStream().listen(
-      (dynamic event) async {
+      (dynamic event) {
         try {
           final eventMap = Map<String, dynamic>.from(event as Map);
           final id = eventMap['id'] as int;
-          final settings = await Alarm.getAlarm(id);
+          final settings = Alarm.getAlarm(id);
           if (settings != null) Alarm.ringStream.add(settings);
         } catch (e) {
           alarmPrint('Error receiving alarm events: $e');
@@ -65,7 +67,7 @@ class AndroidAlarm {
       final res =
           await methodChannel.invokeMethod('stopAlarm', {'id': id}) as bool;
       if (res) alarmPrint('Alarm with id $id stopped');
-      if (!(await hasOtherAlarms)) await stopNotificationOnKillService();
+      if (!hasOtherAlarms) await stopNotificationOnKillService();
       return res;
     } catch (e) {
       alarmPrint('Failed to stop alarm: $e');
@@ -83,17 +85,6 @@ class AndroidAlarm {
       alarmPrint('Failed to check if alarm is ringing: $e');
       return false;
     }
-  }
-
-  /// Returns the list of saved alarms stored locally.
-  static Future<List<AlarmSettings>> getSavedAlarms() async {
-    final res = await methodChannel
-            .invokeMethod<List<AlarmSettings>?>('getSavedAlarms') ??
-        [];
-
-    return res
-        .map((e) => AlarmSettings.fromJson(e as Map<String, dynamic>))
-        .toList();
   }
 
   /// Sets the native notification on app kill title and body.

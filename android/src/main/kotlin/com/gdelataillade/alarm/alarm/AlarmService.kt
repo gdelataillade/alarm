@@ -69,9 +69,12 @@ class AlarmService : Service() {
         val fullScreenIntent = intent.getBooleanExtra("fullScreenIntent", true)
 
         val notificationActionSettingsJson = intent.getStringExtra("notificationActionSettings")
-            val notificationActionSettings = notificationActionSettingsJson?.let {
-                NotificationActionSettings.fromJson(JSONObject(it))
-            }
+        val jsonObject = JSONObject(notificationActionSettingsJson)
+        val map: MutableMap<String, Any> = mutableMapOf()
+        jsonObject.keys().forEach { key ->
+            map[key] = jsonObject.get(key)
+        }
+        val notificationActionSettings = NotificationActionSettings.fromJson(map)
 
         // Handling notification
         val notificationHandler = NotificationHandler(this)

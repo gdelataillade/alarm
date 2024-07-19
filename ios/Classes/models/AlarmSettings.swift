@@ -16,7 +16,7 @@ struct AlarmSettings: Codable {
 
     static func fromJson(json: [String: Any]) -> AlarmSettings? {
         guard let id = json["id"] as? Int,
-              let dateTimeMillis = json["dateTime"] as? Int64,
+              let dateTimeMicros = json["dateTime"] as? Int64,
               let assetAudioPath = json["assetAudioPath"] as? String,
               let loopAudio = json["loopAudio"] as? Bool,
               let vibrate = json["vibrate"] as? Bool,
@@ -28,8 +28,12 @@ struct AlarmSettings: Codable {
               let notificationActionSettingsDict = json["notificationActionSettings"] as? [String: Any] else {
             return nil
         }
+
+        // Ensure the dateTimeMicros is within a valid range
+        let maxValidMicroseconds: Int64 = 9223372036854775 // Corresponding to year 2262
+        let safeDateTimeMicros = min(dateTimeMicros, maxValidMicroseconds)
         
-        let dateTime = Date(timeIntervalSince1970: TimeInterval(dateTimeMillis) / 1000000)
+        let dateTime = Date(timeIntervalSince1970: TimeInterval(safeDateTimeMicros) / 1_000_000)
         let volume = json["volume"] as? Double
         let notificationActionSettings = NotificationActionSettings.fromJson(json: notificationActionSettingsDict)
         
@@ -50,9 +54,17 @@ struct AlarmSettings: Codable {
     }
 
     static func toJson(alarmSettings: AlarmSettings) -> [String: Any] {
+        let timestamp = alarmSettings.dateTime.timeIntervalSince1970
+        let microsecondsPerSecond: Double = 1_000_000
+        let dateTimeMicros = timestamp * microsecondsPerSecond
+        
+        // Ensure the microseconds value does not overflow Int64 and is within a valid range
+        let maxValidMicroseconds: Double = 9223372036854775
+        let safeDateTimeMicros = dateTimeMicros <= maxValidMicroseconds ? Int64(dateTimeMicros) : Int64(maxValidMicroseconds)
+
         return [
             "id": alarmSettings.id,
-            "dateTime": Int64(alarmSettings.dateTime.timeIntervalSince1970 * 1000000),
+            "dateTime": safeDateTimeMicros,
             "assetAudioPath": alarmSettings.assetAudioPath,
             "loopAudio": alarmSettings.loopAudio,
             "vibrate": alarmSettings.vibrate,

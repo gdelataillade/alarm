@@ -65,10 +65,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 self.notificationTitleOnKill = (args["notifTitleOnAppKill"] as! String)
                 self.notificationBodyOnKill = (args["notifDescriptionOnAppKill"] as! String)
                 result(true)
-            case "getSavedAlarms":
-                let savedAlarmsLocal = AlarmStorage.shared.getSavedAlarms()
-                let alarmsJson = savedAlarmsLocal.map { AlarmSettings.toJson(alarmSettings: $0) }
-                result(alarmsJson)
             default:
                 result(FlutterMethodNotImplemented)
             }
@@ -76,6 +72,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
 
     func stopAlarmFromNotification(id: Int) {
+        AlarmStorage.shared.unsaveAlarm(id: id)
         safeModifyResources {
             self.stopAlarm(id: id, cancelNotif: true, result: { _ in })
         }
@@ -106,8 +103,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             return
         }
 
-        AlarmStorage.shared.saveAlarm(alarmSettings: alarmSettings)
-
         NSLog("SwiftAlarmPlugin: AlarmSettings: \(alarmSettings)")
 
         var volumeFloat: Float? = nil
@@ -118,7 +113,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         let id = alarmSettings.id
         let delayInSeconds = alarmSettings.dateTime.timeIntervalSinceNow
 
-        NSLog("SwiftAlarmPlugin: Alarm dateTime: \(alarmSettings.dateTime)")
         NSLog("SwiftAlarmPlugin: Alarm scheduled in \(delayInSeconds) seconds")
 
         let alarmConfig = AlarmConfiguration(
@@ -189,7 +183,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
 
     private func loadAudioPlayer(withAsset assetAudio: String, forId id: Int) -> AVAudioPlayer? {
-        NSLog("[SwiftAlarmPlugin] Loading audio player for asset: \(assetAudio)")
         let audioURL: URL
         if assetAudio.hasPrefix("assets/") || assetAudio.hasPrefix("asset/") {
             // Load audio from assets
@@ -306,8 +299,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
 
     private func stopAlarm(id: Int, cancelNotif: Bool, result: FlutterResult) {
-        AlarmStorage.shared.unsaveAlarm(id: id)
-
         if cancelNotif {
             NotificationManager.shared.cancelNotification(id: id)
         }

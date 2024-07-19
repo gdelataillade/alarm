@@ -32,8 +32,8 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
   }
 
   void loadAlarms() {
-    setState(() async {
-      alarms = await Alarm.getSavedAlarms();
+    setState(() {
+      alarms = Alarm.getAlarms();
       alarms.sort((a, b) => a.dateTime.isBefore(b.dateTime) ? 0 : 1);
     });
   }
