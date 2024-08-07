@@ -4,10 +4,7 @@ import com.google.gson.Gson
 
 data class NotificationActionSettings(
     val hasStopButton: Boolean = false,
-    val hasSnoozeButton: Boolean = false,
-    val stopButtonText: String = "Stop",
-    val snoozeButtonText: String = "Snooze",
-    val snoozeDurationInSeconds: Int = 9 * 60
+    val stopButtonText: String = "Stop"
 ) {
     companion object {
         fun fromJson(json: Map<String, Any>): NotificationActionSettings {

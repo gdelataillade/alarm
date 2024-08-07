@@ -15,7 +15,6 @@ class NotificationHandler(private val context: Context) {
         private const val CHANNEL_ID = "alarm_plugin_channel"
         private const val CHANNEL_NAME = "Alarm Notification"
         const val ACTION_STOP = "com.gdelataillade.alarm.ACTION_STOP"
-        const val ACTION_SNOOZE = "com.gdelataillade.alarm.ACTION_SNOOZE"
     }
 
     init {
@@ -37,6 +36,7 @@ class NotificationHandler(private val context: Context) {
         }
     }
 
+    // TODO: Add wake lock with loop param
     fun buildNotification(
         title: String,
         body: String,
@@ -55,17 +55,6 @@ class NotificationHandler(private val context: Context) {
             context,
             0,
             stopIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val snoozeIntent = Intent(context, AlarmReceiver::class.java).apply {
-            action = ACTION_SNOOZE
-            putExtra("id", alarmId)
-        }
-        val snoozePendingIntent = PendingIntent.getBroadcast(
-            context,
-            1,
-            snoozeIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
@@ -88,9 +77,6 @@ class NotificationHandler(private val context: Context) {
         notificationActionSettings?.let {
             if (it.hasStopButton) {
                 notificationBuilder.addAction(0, it.stopButtonText, stopPendingIntent)
-            }
-            if (it.hasSnoozeButton) {
-                notificationBuilder.addAction(0, it.snoozeButtonText, snoozePendingIntent)
             }
         }
 

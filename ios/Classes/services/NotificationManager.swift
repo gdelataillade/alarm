@@ -8,17 +8,12 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         super.init()
     }
 
-    private func setupNotificationActions(hasStopButton: Bool, hasSnoozeButton: Bool, stopButtonText: String, snoozeButtonText: String) {
+    private func setupNotificationActions(hasStopButton: Bool, stopButtonText: String) {
         var actions: [UNNotificationAction] = []
         
         if hasStopButton {
             let stopAction = UNNotificationAction(identifier: "STOP_ACTION", title: stopButtonText, options: [.destructive])
             actions.append(stopAction)
-        }
-        
-        if hasSnoozeButton {
-            let snoozeAction = UNNotificationAction(identifier: "SNOOZE_ACTION", title: snoozeButtonText, options: [])
-            actions.append(snoozeAction)
         }
         
         let category = UNNotificationCategory(identifier: "ALARM_CATEGORY", actions: actions, intentIdentifiers: [], options: [])
@@ -38,14 +33,14 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
                 return
             }
             
-            self.setupNotificationActions(hasStopButton: actionSettings.hasStopButton, hasSnoozeButton: actionSettings.hasSnoozeButton, stopButtonText: actionSettings.stopButtonText, snoozeButtonText: actionSettings.snoozeButtonText)
+            self.setupNotificationActions(hasStopButton: actionSettings.hasStopButton, stopButtonText: actionSettings.stopButtonText)
             
             let content = UNMutableNotificationContent()
             content.title = title
             content.body = body
             content.sound = nil
             content.categoryIdentifier = "ALARM_CATEGORY"
-            content.userInfo = ["id": id, "snoozeDurationInSeconds": actionSettings.snoozeDurationInSeconds]  // Include the id as an Integer in userInfo
+            content.userInfo = ["id": id]  // Include the id as an Integer in userInfo
 
             let trigger = UNTimeIntervalNotificationTrigger(timeInterval: TimeInterval(delayInSeconds), repeats: false)
             let request = UNNotificationRequest(identifier: "alarm-\(id)", content: content, trigger: trigger)
@@ -66,12 +61,6 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         case "STOP_ACTION":
             NSLog("Stop action triggered for notification: \(notification.request.identifier)")
             SwiftAlarmPlugin.shared.stopAlarmFromNotification(id: id)
-
-        case "SNOOZE_ACTION":
-            guard let snoozeDurationInSeconds = notification.request.content.userInfo["snoozeDurationInSeconds"] as? Int else { return }
-            NSLog("Snooze action triggered for notification: \(notification.request.identifier)")
-            SwiftAlarmPlugin.shared.snoozeAlarmFromNotification(id: id, snoozeDurationInSeconds: snoozeDurationInSeconds)
-
         default:
             break
         }

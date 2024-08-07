@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:alarm/alarm.dart';
-import 'package:alarm/service/alarm_storage.dart';
 import 'package:alarm/utils/alarm_exception.dart';
 import 'package:flutter/services.dart';
 
@@ -13,22 +12,28 @@ class AndroidAlarm {
   static const eventChannel = EventChannel('com.gdelataillade.alarm/events');
 
   /// Whether there are other alarms set.
-  static bool get hasOtherAlarms => AlarmStorage.getSavedAlarms().length > 1;
+  static bool get hasOtherAlarms => Alarm.getAlarms().length > 1;
 
-  /// Starts listening to the alarm events.
-  static void init() {
-    // listenToAlarmEvents();
-  }
+  /// Starts listening to the native alarm events.
+  static void init() => listenToNativeEvents();
 
   /// Listens to the alarm events.
-  static void listenToAlarmEvents() {
+  static void listenToNativeEvents() {
     eventChannel.receiveBroadcastStream().listen(
-      (dynamic event) {
+      (dynamic event) async {
         try {
           final eventMap = Map<String, dynamic>.from(event as Map);
-          final id = eventMap['id'] as int;
-          final settings = Alarm.getAlarm(id);
-          if (settings != null) Alarm.ringStream.add(settings);
+          final id = eventMap['id'] as int?;
+          final method = eventMap['method'] as String?;
+          if (id == null || method == null) return;
+
+          switch (method) {
+            case 'stop':
+              await Alarm.reload(id);
+            case 'ring':
+              final settings = Alarm.getAlarm(id);
+              if (settings != null) Alarm.ringStream.add(settings);
+          }
         } catch (e) {
           alarmPrint('Error receiving alarm events: $e');
         }
@@ -40,10 +45,7 @@ class AndroidAlarm {
   }
 
   /// Schedules a native alarm with given [settings] with its notification.
-  static Future<bool> set(
-    AlarmSettings settings,
-    void Function()? onRing,
-  ) async {
+  static Future<bool> set(AlarmSettings settings) async {
     try {
       await methodChannel.invokeMethod(
         'setAlarm',

@@ -77,14 +77,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             self.stopAlarm(id: id, cancelNotif: true, result: { _ in })
         }
         NSLog("SwiftAlarmPlugin: stopAlarmFromNotification...")
-        // channel.invokeMethod("alarmStoppedFromNotification", arguments: ["id": id])
-    }
-
-    func snoozeAlarmFromNotification(id: Int, snoozeDurationInSeconds: Int) {
-        safeModifyResources {
-            self.stopAlarm(id: id, cancelNotif: true, result: { _ in })
-        }
-        // channel.invokeMethod("alarmSnoozedFromNotification", arguments: ["id": id, "snoozeDurationInSeconds": snoozeDurationInSeconds])
+        channel.invokeMethod("alarmStoppedFromNotification", arguments: ["id": id])
     }
 
     func safeModifyResources(_ modificationBlock: @escaping () -> Void) {

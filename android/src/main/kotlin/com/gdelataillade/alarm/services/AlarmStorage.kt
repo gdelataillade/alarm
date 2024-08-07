@@ -27,9 +27,12 @@ class AlarmStorage(context: Context) {
 
     fun unsaveAlarm(id: Int) {
         val key = "$PREFIX$id"
+        Log.d("AlarmStorage", "Unsaving alarm with id: $id and key: $key")
         val editor = prefs.edit()
         editor.remove(key)
+        Log.d("AlarmStorage", "Removed alarm with key: $key from preferences")
         editor.apply()
+        Log.d("AlarmStorage", "Changes applied to preferences")
     }
 
 

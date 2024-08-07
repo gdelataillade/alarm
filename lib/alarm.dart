@@ -24,6 +24,9 @@ class Alarm {
   /// Whether it's Android device.
   static bool get android => defaultTargetPlatform == TargetPlatform.android;
 
+  /// Stream of the alarm updates.
+  static final updateStream = StreamController<int>();
+
   /// Stream of the ringing status.
   static final ringStream = StreamController<AlarmSettings>();
 
@@ -79,18 +82,10 @@ class Alarm {
 
     await AlarmStorage.saveAlarm(alarmSettings);
 
-    if (iOS) {
-      return IOSAlarm.setAlarm(
-        alarmSettings,
-        () => ringStream.add(alarmSettings),
-      );
-    }
-    if (android) {
-      return AndroidAlarm.set(
-        alarmSettings,
-        () => ringStream.add(alarmSettings),
-      );
-    }
+    if (iOS) return IOSAlarm.setAlarm(alarmSettings);
+    if (android) return AndroidAlarm.set(alarmSettings);
+
+    updateStream.add(alarmSettings.id);
 
     return false;
   }
@@ -142,6 +137,7 @@ class Alarm {
   /// Stops alarm.
   static Future<bool> stop(int id) async {
     await AlarmStorage.unsaveAlarm(id);
+    updateStream.add(id);
 
     return iOS ? await IOSAlarm.stopAlarm(id) : await AndroidAlarm.stop(id);
   }
@@ -177,4 +173,11 @@ class Alarm {
 
   /// Returns all the alarms.
   static List<AlarmSettings> getAlarms() => AlarmStorage.getSavedAlarms();
+
+  /// Reloads the shared preferences instance in the case modifications
+  /// were made in the native code, after a notification action.
+  static Future<void> reload(int id) async {
+    await AlarmStorage.prefs.reload();
+    updateStream.add(id);
+  }
 }

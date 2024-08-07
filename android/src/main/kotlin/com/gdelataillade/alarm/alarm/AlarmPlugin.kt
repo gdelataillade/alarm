@@ -14,6 +14,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import androidx.annotation.NonNull
+import java.util.Date
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
@@ -64,19 +65,19 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
         override fun onReceive(context: Context?, intent: Intent?) {
             Log.d("AlarmPlugin", "Received alarm notification action")
             val action = intent?.getStringExtra(AlarmReceiver.EXTRA_ALARM_ACTION)
-            val alarmId = intent?.getIntExtra("id", -1) ?: -1
+            val id = intent?.getIntExtra("id", -1) ?: -1
+
             when (action) {
                 NotificationHandler.ACTION_STOP -> {
-                    Log.d("AlarmPlugin", "Notification action: STOP, id: $alarmId")
-                    stopAlarm(alarmId)
-                }
-                NotificationHandler.ACTION_SNOOZE -> {
-                    Log.d("AlarmPlugin", "Notification action: SNOOZE, id: $alarmId")
-                    if (context == null || alarmId == -1) {
-                        Log.e("AlarmPlugin", "Snooze alarm error")
-                        return
+                    Log.d("AlarmPlugin", "Notification action: STOP, id: $id")
+                    stopAlarm(id)
+                    if (context != null) {
+                        AlarmStorage(context!!).unsaveAlarm(id)
+                        eventSink?.success(mapOf(
+                            "id" to id,
+                            "method" to "stop"
+                        ))
                     }
-                    snoozeAlarm(context, alarmId, 9 * 60)
                 }
             }
         }
@@ -252,12 +253,6 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
         val serviceIntent = Intent(context, NotificationOnKillService::class.java)
         context.stopService(serviceIntent)
         notifOnKillEnabled = false
-    }
-
-    fun snoozeAlarm(context: Context, id: Int, snoozeInSeconds: Int) {
-        Log.d("AlarmPlugin", "Snoozing alarm with id: $id")
-
-        // get alarm intent with id, stop it and reschedule with extras and snooze time
     }
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {

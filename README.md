@@ -66,6 +66,7 @@ notificationTitle |   `String`     | The title of the notification triggered whe
 notificationBody | `String` | The body of the notification.
 enableNotificationOnKill |   `bool`     | Whether to show a notification when application is killed to warn the user that the alarm he set may not ring. Enabled by default.
 androidFullScreenIntent |   `bool`     | Whether to turn screen on when android alarm notification is triggered. Enabled by default.
+notificationActionSettings | `NotificationActionSettings` | Settings for notification action buttons (only stop at the moment).
 
 Note that if `notificationTitle` and `notificationBody` are both empty, iOS will not show the notification and Android will show an empty notification.
 
@@ -181,7 +182,6 @@ We welcome contributions to this plugin! If you would like to make a change or a
 
 These are some features that I have in mind that could be useful:
 - [Android] Reschedule alarms after device reboot.
-- Notification actions: stop and snooze.
 - Use `ffigen` and `jnigen` binding generators to call native code more efficiently instead of using method channels.
 - Stop alarm sound when notification is dismissed.
 

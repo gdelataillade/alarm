@@ -45,17 +45,16 @@ class AlarmService : Service() {
             return START_NOT_STICKY
         }
 
+        // Only Android 12 and above ?
         val action = intent.action
-        Log.d("AlarmService", "Received action: $action")
+        Log.d("AlarmService", "-> Received action: $action")
         val id = intent.getIntExtra("id", 0)
         if (action == "STOP_ALARM" && id != 0) {
             stopAlarm(id)
             return START_NOT_STICKY
         } else if (action == NotificationHandler.ACTION_STOP) {
             Log.d("AlarmService", "Action button clicked: STOP")
-            return START_NOT_STICKY
-        } else if (action == NotificationHandler.ACTION_SNOOZE) {
-            Log.d("AlarmService", "Action button clicked: SNOOZE")
+            stopAlarm(id)
             return START_NOT_STICKY
         }
 
@@ -97,7 +96,10 @@ class AlarmService : Service() {
             return START_NOT_STICKY // Return on security exception
         }
 
-        AlarmPlugin.eventSink?.success(mapOf("id" to id))
+        AlarmPlugin.eventSink?.success(mapOf(
+            "id" to id,
+            "method" to "ring"
+        ))
 
         if (volume >= 0.0 && volume <= 1.0) {
             volumeService?.setVolume(volume, showSystemUI)

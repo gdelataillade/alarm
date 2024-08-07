@@ -42,10 +42,6 @@ class _ExampleAlarmHomeShortcutButtonState
       enableNotificationOnKill: Platform.isIOS,
       notificationActionSettings: const NotificationActionSettings(
         hasStopButton: true,
-        hasSnoozeButton: true,
-        stopButtonText: 'STOP',
-        snoozeButtonText: 'SNOOZE',
-        snoozeDurationInSeconds: 10,
       ),
     );
 

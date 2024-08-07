@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:alarm/alarm.dart';
 import 'package:alarm/utils/alarm_exception.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 
@@ -22,62 +21,26 @@ class IOSAlarm {
 
   /// Handles incoming method calls from the native platform.
   static Future<void> handleMethodCall(MethodCall call) async {
-    debugPrint('handleMethodCall: ${call.method}');
-    // switch (call.method) {
-    //   case 'alarmStoppedFromNotification':
-    //     print('call.arguments: ${call.arguments}');
-    //     final arguments = call.arguments as Map<dynamic, dynamic>;
-    //     final id = arguments['id'] as int;
-    //   // await handleAlarmStoppedFromNotification(id);
-    //   case 'alarmSnoozedFromNotification':
-    //     print('call.arguments: ${call.arguments}');
-    //     final arguments = call.arguments as Map<dynamic, dynamic>;
-    //     final id = arguments['id'] as int;
-    //     final snoozeDurationInSeconds =
-    //         arguments['snoozeDurationInSeconds'] as int;
-    //   // await handleAlarmSnoozedFromNotification(id, snoozeDurationInSeconds);
-    //   default:
-    //     throw MissingPluginException('not implemented');
-    // }
-  }
+    print('handleMethodCall: ${call.method}');
 
-  /// Handles the alarm stopped from notification event.
-  static Future<void> handleAlarmStoppedFromNotification(int id) async {
-    // AlarmStorage.unsaveAlarm(id);
-    // disposeAlarm(id);
-    await Alarm.stop(id);
-    alarmPrint('Alarm with id $id was stopped from notification');
-  }
+    final id = call.arguments['id'] as int?;
+    if (id == null) return;
 
-  /// Handles the alarm snoozed from notification event.
-  static Future<void> handleAlarmSnoozedFromNotification(
-    int id,
-    int snoozeDurationInSeconds,
-  ) async {
-    final alarm = Alarm.getAlarm(id);
-    if (alarm == null) {
-      alarmPrint('Alarm with id $id was not found. Snooze failed.');
-      return;
+    await Alarm.reload(id);
+
+    switch (call.method) {
+      case 'alarmStoppedFromNotification':
+        Alarm.updateStream.add(id);
+      default:
+        throw MissingPluginException('not implemented');
     }
-
-    await Alarm.stop(id);
-
-    final newAlarm = alarm.copyWith(
-      dateTime: DateTime.now().add(Duration(seconds: snoozeDurationInSeconds)),
-    );
-    await Alarm.set(alarmSettings: newAlarm);
-
-    alarmPrint('Alarm with id $id was snoozed for ${snoozeDurationInSeconds}s');
   }
 
   /// Calls the native function `setAlarm` and listens to alarm ring state.
   ///
   /// Also set periodic timer and listens for app state changes to trigger
   /// the alarm ring callback at the right time.
-  static Future<bool> setAlarm(
-    AlarmSettings settings,
-    void Function()? onRing,
-  ) async {
+  static Future<bool> setAlarm(AlarmSettings settings) async {
     final id = settings.id;
     try {
       final res = await methodChannel.invokeMethod<bool?>(
@@ -97,7 +60,11 @@ class IOSAlarm {
     }
 
     if (timers[id] != null && timers[id]!.isActive) timers[id]!.cancel();
-    timers[id] = periodicTimer(onRing, settings.dateTime, id);
+    timers[id] = periodicTimer(
+      () => Alarm.ringStream.add(settings),
+      settings.dateTime,
+      id,
+    );
 
     listenAppStateChange(
       id: id,
@@ -109,10 +76,14 @@ class IOSAlarm {
 
         if (isRinging) {
           disposeAlarm(id);
-          onRing?.call();
+          Alarm.ringStream.add(settings);
         } else {
           if (timers[id] != null && timers[id]!.isActive) timers[id]!.cancel();
-          timers[id] = periodicTimer(onRing, settings.dateTime, id);
+          timers[id] = periodicTimer(
+            () => Alarm.ringStream.add(settings),
+            settings.dateTime,
+            id,
+          );
         }
       },
     );
