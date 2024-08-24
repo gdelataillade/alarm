@@ -9,18 +9,15 @@ import io.flutter.Log
 
 class AlarmReceiver : BroadcastReceiver() {
     companion object {
-        const val ACTION_ALARM_NOTIFICATION = "com.gdelataillade.alarm.ALARM_NOTIFICATION"
         const val ACTION_ALARM_STOP = "com.gdelataillade.alarm.ACTION_STOP"
         const val EXTRA_ALARM_ACTION = "EXTRA_ALARM_ACTION"
-        const val EXTRA_ALARM_ID = "id"
     }
 
     override fun onReceive(context: Context, intent: Intent) {
         val action = intent.action
-        if (action == "com.gdelataillade.alarm.ACTION_STOP") {
+        if (action == ACTION_ALARM_STOP) {
             intent.putExtra(EXTRA_ALARM_ACTION, "STOP_ALARM")
         }
-        Log.d("AlarmReceiver", "Action received: $action")
 
         // Start Alarm Service
         val serviceIntent = Intent(context, AlarmService::class.java)

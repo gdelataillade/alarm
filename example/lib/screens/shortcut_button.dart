@@ -21,7 +21,7 @@ class _ExampleAlarmHomeShortcutButtonState
   bool showMenu = false;
 
   Future<void> onPressButton(int delayInHours) async {
-    var dateTime = DateTime.now().add(const Duration(seconds: 3));
+    var dateTime = DateTime.now();
     double? volume;
 
     if (delayInHours != 0) {
@@ -40,9 +40,6 @@ class _ExampleAlarmHomeShortcutButtonState
       notificationBody:
           'Shortcut button alarm with delay of $delayInHours hours',
       enableNotificationOnKill: Platform.isIOS,
-      notificationActionSettings: const NotificationActionSettings(
-        hasStopButton: true,
-      ),
     );
 
     await Alarm.set(alarmSettings: alarmSettings);

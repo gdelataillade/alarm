@@ -35,10 +35,6 @@ class AlarmStorage {
     /// Reloads the shared preferences instance in the case modifications
     /// were made in the native code, after a notification action.
     fgbgSubscription = FGBGEvents.stream.listen((event) => prefs.reload());
-
-    Timer.periodic(const Duration(seconds: 2), (timer) {
-      print(prefs.getKeys());
-    });
   }
 
   /// Saves alarm info in local storage so we can restore it later

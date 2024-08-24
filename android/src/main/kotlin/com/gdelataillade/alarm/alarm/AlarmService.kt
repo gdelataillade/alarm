@@ -41,16 +41,13 @@ class AlarmService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent == null) {
-            Log.d("AlarmService", "Intent is null, stopping service")
             stopSelf()
             return START_NOT_STICKY
         }
 
         // Only Android 12+ ?
         val id = intent.getIntExtra("id", 0)
-        val action = intent.getStringExtra("EXTRA_ALARM_ACTION")
-        Log.d("AlarmService", "-> Received id: $id")
-        Log.d("AlarmService", "-> Received action: $action")
+        val action = intent.getStringExtra(AlarmReceiver.EXTRA_ALARM_ACTION)
 
         if (action == "STOP_ALARM" && id != 0) {
             AlarmStorage(this).unsaveAlarm(id)
@@ -59,13 +56,6 @@ class AlarmService : Service() {
                 "method" to "stop"
             ))
             stopAlarm(id)
-            Log.d("AlarmService", "START_NOT_STICKY")
-            return START_NOT_STICKY
-        } else if (action == NotificationHandler.ACTION_STOP) {
-            // Useful ? Not for android 12+
-            Log.d("AlarmService", "Action button clicked: STOP")
-            stopAlarm(id)
-            Log.d("AlarmService", "START_NOT_STICKY")
             return START_NOT_STICKY
         }
 
@@ -93,14 +83,12 @@ class AlarmService : Service() {
         val notification = notificationHandler.buildNotification(notificationTitle, notificationBody, fullScreenIntent, pendingIntent, notificationActionSettings, id)
 
         // Starting foreground service safely
-        Log.d("AlarmService", "Starting foreground service...")
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 startForeground(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
             } else {
                 startForeground(id, notification)
             }
-            Log.d("AlarmService", "After startForeground call")
         } catch (e: ForegroundServiceStartNotAllowedException) {
             Log.e("AlarmService", "Foreground service start not allowed", e)
             return START_NOT_STICKY // Return if cannot start foreground service

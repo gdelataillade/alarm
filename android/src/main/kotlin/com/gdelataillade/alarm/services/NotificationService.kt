@@ -14,7 +14,6 @@ class NotificationHandler(private val context: Context) {
     companion object {
         private const val CHANNEL_ID = "alarm_plugin_channel"
         private const val CHANNEL_NAME = "Alarm Notification"
-        const val ACTION_STOP = "com.gdelataillade.alarm.ACTION_STOP"
     }
 
     init {
@@ -48,7 +47,7 @@ class NotificationHandler(private val context: Context) {
         val appIconResId = context.packageManager.getApplicationInfo(context.packageName, 0).icon
 
         val stopIntent = Intent(context, AlarmReceiver::class.java).apply {
-            action = ACTION_STOP
+            action = AlarmReceiver.ACTION_ALARM_STOP
             putExtra("id", alarmId)
         }
         val stopPendingIntent = PendingIntent.getBroadcast(

@@ -55,32 +55,6 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
                 eventSink = null
             }
         })
-
-        // Register broadcast receiver for notification actions
-        val filter = IntentFilter(AlarmReceiver.ACTION_ALARM_NOTIFICATION)
-        context.registerReceiver(alarmNotificationReceiver, filter)
-    }
-
-    private val alarmNotificationReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            Log.d("AlarmPlugin", "Received alarm notification action")
-            val action = intent?.getStringExtra(AlarmReceiver.EXTRA_ALARM_ACTION)
-            val id = intent?.getIntExtra("id", -1) ?: -1
-
-            when (action) {
-                NotificationHandler.ACTION_STOP -> {
-                    Log.d("AlarmPlugin", "Notification action: STOP, id: $id")
-                    stopAlarm(id)
-                    if (context != null) {
-                        AlarmStorage(context!!).unsaveAlarm(id)
-                        eventSink?.success(mapOf(
-                            "id" to id,
-                            "method" to "stop"
-                        ))
-                    }
-                }
-            }
-        }
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
@@ -134,8 +108,6 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
                     handleDelayedAlarm(context, alarmIntent, delayInSeconds.toInt(), alarm.id, alarm.enableNotificationOnKill)
                 }
                 alarmIds.add(alarm.id)
-                Log.d("AlarmPlugin", "Alarm added to alarmIds: $alarmIds")
-
                 result.success(true)
             } else {
                 result.error("INVALID_ALARM", "Failed to parse alarm JSON", null)
