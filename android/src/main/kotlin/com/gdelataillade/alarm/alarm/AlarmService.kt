@@ -1,6 +1,7 @@
 package com.gdelataillade.alarm.alarm
 
 import com.gdelataillade.alarm.services.AudioService
+import com.gdelataillade.alarm.services.AlarmStorage
 import com.gdelataillade.alarm.services.VibrationService
 import com.gdelataillade.alarm.services.VolumeService
 import com.gdelataillade.alarm.models.NotificationActionSettings
@@ -45,16 +46,26 @@ class AlarmService : Service() {
             return START_NOT_STICKY
         }
 
-        // Only Android 12 and above ?
-        val action = intent.action
-        Log.d("AlarmService", "-> Received action: $action")
+        // Only Android 12+ ?
         val id = intent.getIntExtra("id", 0)
+        val action = intent.getStringExtra("EXTRA_ALARM_ACTION")
+        Log.d("AlarmService", "-> Received id: $id")
+        Log.d("AlarmService", "-> Received action: $action")
+
         if (action == "STOP_ALARM" && id != 0) {
+            AlarmStorage(this).unsaveAlarm(id)
+            AlarmPlugin.eventSink?.success(mapOf(
+                "id" to id,
+                "method" to "stop"
+            ))
             stopAlarm(id)
+            Log.d("AlarmService", "START_NOT_STICKY")
             return START_NOT_STICKY
         } else if (action == NotificationHandler.ACTION_STOP) {
+            // Useful ? Not for android 12+
             Log.d("AlarmService", "Action button clicked: STOP")
             stopAlarm(id)
+            Log.d("AlarmService", "START_NOT_STICKY")
             return START_NOT_STICKY
         }
 
@@ -82,12 +93,14 @@ class AlarmService : Service() {
         val notification = notificationHandler.buildNotification(notificationTitle, notificationBody, fullScreenIntent, pendingIntent, notificationActionSettings, id)
 
         // Starting foreground service safely
+        Log.d("AlarmService", "Starting foreground service...")
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 startForeground(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
             } else {
                 startForeground(id, notification)
             }
+            Log.d("AlarmService", "After startForeground call")
         } catch (e: ForegroundServiceStartNotAllowedException) {
             Log.e("AlarmService", "Foreground service start not allowed", e)
             return START_NOT_STICKY // Return if cannot start foreground service
