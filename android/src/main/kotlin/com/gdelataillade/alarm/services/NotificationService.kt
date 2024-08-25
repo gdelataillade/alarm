@@ -35,7 +35,6 @@ class NotificationHandler(private val context: Context) {
         }
     }
 
-    // TODO: Add wake lock with loop param
     fun buildNotification(
         title: String,
         body: String,

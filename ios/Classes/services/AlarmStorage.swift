@@ -39,13 +39,13 @@ class AlarmStorage {
                             alarms.append(alarm)
                         } catch {
                             // If decoding fails, print the error
-                            print("[AlarmStorage] Failed to decode AlarmSettings: \(error)")
+                            NSLog("[AlarmStorage] Failed to decode AlarmSettings: \(error)")
                         }
                     } else {
-                        print("[AlarmStorage] Failed to convert String to Data")
+                        NSLog("[AlarmStorage] Failed to convert String to Data")
                     }
                 } else {
-                    print("[AlarmStorage] Value is not of type String")
+                    NSLog("[AlarmStorage] Value is not of type String")
                 }
             }
         }

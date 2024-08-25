@@ -100,6 +100,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       enableNotificationOnKill: Platform.isIOS,
       notificationActionSettings: const NotificationActionSettings(
         hasStopButton: true,
+        stopButtonText: 'Stop the alarm',
       ),
     );
     return alarmSettings;

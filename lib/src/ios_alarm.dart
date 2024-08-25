@@ -23,16 +23,7 @@ class IOSAlarm {
   static Future<void> handleMethodCall(MethodCall call) async {
     final arguments = call.arguments as Map<String, dynamic>;
     final id = arguments['id'] as int?;
-    if (id == null) return;
-
-    await Alarm.reload(id);
-
-    switch (call.method) {
-      case 'alarmStoppedFromNotification':
-        Alarm.updateStream.add(id);
-      default:
-        throw MissingPluginException('not implemented');
-    }
+    if (id != null) await Alarm.reload(id);
   }
 
   /// Calls the native function `setAlarm` and listens to alarm ring state.

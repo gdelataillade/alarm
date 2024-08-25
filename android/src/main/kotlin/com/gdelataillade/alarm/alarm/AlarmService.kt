@@ -45,7 +45,6 @@ class AlarmService : Service() {
             return START_NOT_STICKY
         }
 
-        // Only Android 12+ ?
         val id = intent.getIntExtra("id", 0)
         val action = intent.getStringExtra(AlarmReceiver.EXTRA_ALARM_ACTION)
 

@@ -123,6 +123,8 @@ class AlarmSettings {
   final bool androidFullScreenIntent;
 
   /// Settings for the notification actions.
+  ///
+  /// Won't work on iOS if app was killed. Disabled by default.
   final NotificationActionSettings notificationActionSettings;
 
   /// Returns a hash code for this `AlarmSettings` instance using

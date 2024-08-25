@@ -66,8 +66,6 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         }
     }
 
-    // MARK: - UNUserNotificationCenterDelegate
-
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
         handleAction(withIdentifier: response.actionIdentifier, for: response.notification)
         completionHandler()

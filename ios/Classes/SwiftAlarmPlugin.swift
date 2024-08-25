@@ -191,8 +191,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             audioURL = documentsDirectory.appendingPathComponent(assetAudio)
         }
 
-        NSLog("[SwiftAlarmPlugin] Audio URL: \(audioURL)")
-
         do {
             return try AVAudioPlayer(contentsOf: audioURL)
         } catch {

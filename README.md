@@ -45,6 +45,9 @@ final alarmSettings = AlarmSettings(
   notificationTitle: 'This is the title',
   notificationBody: 'This is the body',
   enableNotificationOnKill: Platform.isIOS,
+  notificationActionSettings: const NotificationActionSettings(
+    hasStopButton: true,
+  ),
 );
 ```
 
@@ -66,7 +69,7 @@ notificationTitle |   `String`     | The title of the notification triggered whe
 notificationBody | `String` | The body of the notification.
 enableNotificationOnKill |   `bool`     | Whether to show a notification when application is killed to warn the user that the alarm he set may not ring. Enabled by default.
 androidFullScreenIntent |   `bool`     | Whether to turn screen on when android alarm notification is triggered. Enabled by default.
-notificationActionSettings | `NotificationActionSettings` | Settings for notification action buttons (only stop at the moment).
+notificationActionSettings | `NotificationActionSettings` | Settings for notification action buttons (only stop at the moment). Won't work on iOS if app was killed. Disabled by default.
 
 Note that if `notificationTitle` and `notificationBody` are both empty, iOS will not show the notification and Android will show an empty notification.
 

@@ -1,3 +1,6 @@
+## 4.0.0-dev.1
+* Add notification action stop button.
+
 ## 3.1.5
 * [Android] Fix volume/focus post-alarm.
 * Export `AlarmSettings` class in `Alarm` class.
