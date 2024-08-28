@@ -7,7 +7,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "3.1.5"
+    version: "4.0.0-dev.1"
   async:
     dependency: transitive
     description:
@@ -89,10 +89,10 @@ packages:
     dependency: transitive
     description:
       name: flutter_fgbg
-      sha256: "08c4d2fd229e3df26083d5aecc3dea9ff4f2d188f8cd57aaf2b3f047bd08a047"
+      sha256: e02ad0738ba5fc7f331b62acb0d74aa540626a6441ae18fad685faa5ac4ad7a5
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.0"
+    version: "0.6.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter
