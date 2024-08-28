@@ -11,7 +11,6 @@ import alarm
   ) -> Bool {
     UNUserNotificationCenter.current().delegate = self
     SwiftAlarmPlugin.registerBackgroundTasks()
-
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
