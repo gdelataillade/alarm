@@ -1,3 +1,7 @@
+## 4.0.0-dev.2
+* [Android] Fix native GSON parsing error.
+* Update `flutter_fgbg` dependency.
+
 ## 4.0.0-dev.1
 * Add notification action stop button.
 
