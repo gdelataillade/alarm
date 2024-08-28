@@ -1,3 +1,6 @@
+## 3.1.7
+* Update kotlin version to `1.7.10`.
+
 ## 3.1.6
 * Update `flutter_fgbg` dependency to `0.6.0`.
 * Update `shared_preferences` dependency to `2.3.2`.
