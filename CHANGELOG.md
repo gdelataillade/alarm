@@ -1,3 +1,7 @@
+## 3.1.6
+* Update `flutter_fgbg` dependency to `0.6.0`.
+* Update `shared_preferences` dependency to `2.3.2`.
+
 ## 3.1.5
 * [Android] Fix volume/focus post-alarm.
 * Export `AlarmSettings` class in `Alarm` class.

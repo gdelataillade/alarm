@@ -126,7 +126,7 @@ class IOSAlarm {
     required void Function() onForeground,
     required void Function() onBackground,
   }) {
-    fgbgSubscriptions[id] = FGBGEvents.stream.listen((event) {
+    fgbgSubscriptions[id] = FGBGEvents.instance.stream.listen((event) {
       if (event == FGBGType.foreground) onForeground();
       if (event == FGBGType.background) onBackground();
     });

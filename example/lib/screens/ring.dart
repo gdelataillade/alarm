@@ -34,7 +34,9 @@ class ExampleAlarmRingScreen extends StatelessWidget {
                           now.minute,
                         ).add(const Duration(minutes: 1)),
                       ),
-                    ).then((_) => Navigator.pop(context));
+                    ).then((_) {
+                      if (context.mounted) Navigator.pop(context);
+                    });
                   },
                   child: Text(
                     'Snooze',
@@ -43,8 +45,9 @@ class ExampleAlarmRingScreen extends StatelessWidget {
                 ),
                 RawMaterialButton(
                   onPressed: () {
-                    Alarm.stop(alarmSettings.id)
-                        .then((_) => Navigator.pop(context));
+                    Alarm.stop(alarmSettings.id).then((_) {
+                      if (context.mounted) Navigator.pop(context);
+                    });
                   },
                   child: Text(
                     'Stop',

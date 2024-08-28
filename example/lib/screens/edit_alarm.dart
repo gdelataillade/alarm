@@ -106,14 +106,14 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
     if (loading) return;
     setState(() => loading = true);
     Alarm.set(alarmSettings: buildAlarmSettings()).then((res) {
-      if (res) Navigator.pop(context, true);
+      if (res && mounted) Navigator.pop(context, true);
       setState(() => loading = false);
     });
   }
 
   void deleteAlarm() {
     Alarm.stop(widget.alarmSettings!.id).then((res) {
-      if (res) Navigator.pop(context, true);
+      if (res && mounted) Navigator.pop(context, true);
     });
   }
 
