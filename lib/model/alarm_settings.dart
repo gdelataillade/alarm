@@ -1,10 +1,12 @@
+import 'package:alarm/model/notification_action_settings.dart';
 import 'package:flutter/widgets.dart';
+
+@immutable
 
 /// [AlarmSettings] is a model that contains all the settings to customize
 /// and set an alarm.
-@immutable
 class AlarmSettings {
-  /// Model that contains all the settings to customize and set an alarm.
+  /// Constructs an instance of `AlarmSettings`.
   const AlarmSettings({
     required this.id,
     required this.dateTime,
@@ -17,6 +19,7 @@ class AlarmSettings {
     this.fadeDuration = 0.0,
     this.enableNotificationOnKill = true,
     this.androidFullScreenIntent = true,
+    this.notificationActionSettings = const NotificationActionSettings(),
   });
 
   /// Constructs an `AlarmSettings` instance from the given JSON data.
@@ -34,6 +37,10 @@ class AlarmSettings {
             json['enableNotificationOnKill'] as bool? ?? true,
         androidFullScreenIntent:
             json['androidFullScreenIntent'] as bool? ?? true,
+        notificationActionSettings: NotificationActionSettings.fromJson(
+          json['notificationActionSettings'] as Map<String, dynamic>? ??
+              const {},
+        ),
       );
 
   /// Unique identifier assiocated with the alarm. Cannot be 0 or -1;
@@ -115,6 +122,11 @@ class AlarmSettings {
   /// package.
   final bool androidFullScreenIntent;
 
+  /// Settings for the notification actions.
+  ///
+  /// Won't work on iOS if app was killed. Disabled by default.
+  final NotificationActionSettings notificationActionSettings;
+
   /// Returns a hash code for this `AlarmSettings` instance using
   /// Jenkins hash function.
   @override
@@ -131,6 +143,8 @@ class AlarmSettings {
     hash = hash ^ (notificationTitle.hashCode);
     hash = hash ^ (notificationBody.hashCode);
     hash = hash ^ enableNotificationOnKill.hashCode;
+    hash = hash ^ androidFullScreenIntent.hashCode;
+    hash = hash ^ notificationActionSettings.hashCode;
     hash = hash & 0x3fffffff;
 
     return hash;
@@ -150,6 +164,7 @@ class AlarmSettings {
     String? notificationBody,
     bool? enableNotificationOnKill,
     bool? androidFullScreenIntent,
+    NotificationActionSettings? notificationActionSettings,
   }) {
     return AlarmSettings(
       id: id ?? this.id,
@@ -165,6 +180,8 @@ class AlarmSettings {
           enableNotificationOnKill ?? this.enableNotificationOnKill,
       androidFullScreenIntent:
           androidFullScreenIntent ?? this.androidFullScreenIntent,
+      notificationActionSettings:
+          notificationActionSettings ?? this.notificationActionSettings,
     );
   }
 
@@ -181,6 +198,7 @@ class AlarmSettings {
         'notificationBody': notificationBody,
         'enableNotificationOnKill': enableNotificationOnKill,
         'androidFullScreenIntent': androidFullScreenIntent,
+        'notificationActionSettings': notificationActionSettings.toJson(),
       };
 
   /// Returns all the properties of `AlarmSettings` for debug purposes.
@@ -209,5 +227,6 @@ class AlarmSettings {
           notificationTitle == other.notificationTitle &&
           notificationBody == other.notificationBody &&
           enableNotificationOnKill == other.enableNotificationOnKill &&
-          androidFullScreenIntent == other.androidFullScreenIntent;
+          androidFullScreenIntent == other.androidFullScreenIntent &&
+          notificationActionSettings == other.notificationActionSettings;
 }

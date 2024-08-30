@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:alarm/alarm.dart';
-import 'package:alarm/service/alarm_storage.dart';
 import 'package:alarm/utils/alarm_exception.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
@@ -17,40 +16,26 @@ class IOSAlarm {
   /// Map of foreground/background subscriptions.
   static Map<int, StreamSubscription<FGBGType>?> fgbgSubscriptions = {};
 
+  /// Initializes the method call handler.
+  static void init() => methodChannel.setMethodCallHandler(handleMethodCall);
+
+  /// Handles incoming method calls from the native platform.
+  static Future<void> handleMethodCall(MethodCall call) async {
+    final arguments = call.arguments as Map<String, dynamic>;
+    final id = arguments['id'] as int?;
+    if (id != null) await Alarm.reload(id);
+  }
+
   /// Calls the native function `setAlarm` and listens to alarm ring state.
   ///
   /// Also set periodic timer and listens for app state changes to trigger
   /// the alarm ring callback at the right time.
-  static Future<bool> setAlarm(
-    AlarmSettings settings,
-    void Function()? onRing,
-  ) async {
+  static Future<bool> setAlarm(AlarmSettings settings) async {
     final id = settings.id;
     try {
-      final delay = settings.dateTime
-          .difference(DateTime.now())
-          .inSeconds
-          .abs()
-          .toDouble();
-
       final res = await methodChannel.invokeMethod<bool?>(
             'setAlarm',
-            {
-              'id': id,
-              'assetAudio': settings.assetAudioPath,
-              'delayInSeconds': delay,
-              'loopAudio': settings.loopAudio,
-              'fadeDuration': settings.fadeDuration,
-              'vibrate': settings.vibrate,
-              'volume': settings.volume,
-              'notifOnKillEnabled': settings.enableNotificationOnKill,
-              'notificationTitle': settings.notificationTitle,
-              'notificationBody': settings.notificationBody,
-              'notifTitleOnAppKill':
-                  AlarmStorage.getNotificationOnAppKillTitle(),
-              'notifDescriptionOnAppKill':
-                  AlarmStorage.getNotificationOnAppKillBody(),
-            },
+            settings.toJson(),
           ) ??
           false;
 
@@ -65,7 +50,11 @@ class IOSAlarm {
     }
 
     if (timers[id] != null && timers[id]!.isActive) timers[id]!.cancel();
-    timers[id] = periodicTimer(onRing, settings.dateTime, id);
+    timers[id] = periodicTimer(
+      () => Alarm.ringStream.add(settings),
+      settings.dateTime,
+      id,
+    );
 
     listenAppStateChange(
       id: id,
@@ -77,10 +66,14 @@ class IOSAlarm {
 
         if (isRinging) {
           disposeAlarm(id);
-          onRing?.call();
+          Alarm.ringStream.add(settings);
         } else {
           if (timers[id] != null && timers[id]!.isActive) timers[id]!.cancel();
-          timers[id] = periodicTimer(onRing, settings.dateTime, id);
+          timers[id] = periodicTimer(
+            () => Alarm.ringStream.add(settings),
+            settings.dateTime,
+            id,
+          );
         }
       },
     );
@@ -102,6 +95,17 @@ class IOSAlarm {
     if (res) alarmPrint('Alarm with id $id stopped');
 
     return res;
+  }
+
+  /// Returns the list of saved alarms stored locally.
+  static Future<List<AlarmSettings>> getSavedAlarms() async {
+    final res = await methodChannel
+            .invokeMethod<List<AlarmSettings>?>('getSavedAlarms') ??
+        [];
+
+    return res
+        .map((e) => AlarmSettings.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   /// Checks whether alarm is ringing by getting the native audio player's
@@ -140,6 +144,13 @@ class IOSAlarm {
       onRing?.call();
     });
   }
+
+  /// Sets the native notification on app kill title and body.
+  static Future<void> setNotificationOnAppKill(String title, String body) =>
+      methodChannel.invokeMethod<void>(
+        'setNotificationOnAppKillContent',
+        {'title': title, 'body': body},
+      );
 
   /// Disposes alarm timer.
   static void disposeTimer(int id) {

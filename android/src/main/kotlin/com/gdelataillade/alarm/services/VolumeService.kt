@@ -39,9 +39,7 @@ class VolumeService(private val context: Context) {
                 .build()
 
             val result = audioManager.requestAudioFocus(focusRequest!!)
-            if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                Log.d("VolumeService", "Audio focus request granted")
-            } else {
+            if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
                 Log.e("VolumeService", "Audio focus request failed")
             }
         } else {
@@ -51,9 +49,7 @@ class VolumeService(private val context: Context) {
                 AudioManager.STREAM_ALARM,
                 AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK
             )
-            if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                Log.d("VolumeService", "Audio focus request granted")
-            } else {
+            if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
                 Log.e("VolumeService", "Audio focus request failed")
             }
         }
@@ -68,6 +64,5 @@ class VolumeService(private val context: Context) {
             @Suppress("DEPRECATION")
             audioManager.abandonAudioFocus(null)
         }
-        Log.d("VolumeService", "Audio focus abandoned")
     }
 }

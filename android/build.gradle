@@ -45,4 +45,14 @@ android {
     defaultConfig {
         minSdkVersion 19
     }
+
+    buildTypes {
+        release {
+            consumerProguardFiles 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation 'com.google.code.gson:gson:2.11.0'
 }

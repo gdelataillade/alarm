@@ -1,3 +1,10 @@
+## 4.0.0-dev.2
+* [Android] Fix native GSON parsing error.
+* Update `flutter_fgbg` dependency.
+
+## 4.0.0-dev.1
+* Add notification action stop button.
+
 ## 3.1.7
 * Update kotlin version to `1.7.10`.
 

@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:alarm/model/alarm_settings.dart';
+import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Class that handles the local storage of the alarm info.
@@ -20,12 +22,20 @@ class AlarmStorage {
   /// notification on app kill body.
   static const notificationOnAppKillBody = 'notificationOnAppKillBody';
 
+  /// Stream subscription to listen to foreground/background events.
+  static late StreamSubscription<FGBGType> fgbgSubscription;
+
   /// Shared preferences instance.
   static late SharedPreferences prefs;
 
   /// Initializes shared preferences instance.
   static Future<void> init() async {
     prefs = await SharedPreferences.getInstance();
+
+    /// Reloads the shared preferences instance in the case modifications
+    /// were made in the native code, after a notification action.
+    fgbgSubscription =
+        FGBGEvents.instance.stream.listen((event) => prefs.reload());
   }
 
   /// Saves alarm info in local storage so we can restore it later
@@ -67,22 +77,8 @@ class AlarmStorage {
     return alarms;
   }
 
-  /// Saves on app kill notification custom [title] and [body].
-  static Future<void> setNotificationContentOnAppKill(
-    String title,
-    String body,
-  ) =>
-      Future.wait([
-        prefs.setString(notificationOnAppKillTitle, title),
-        prefs.setString(notificationOnAppKillBody, body),
-      ]);
-
-  /// Returns notification on app kill [notificationOnAppKillTitle].
-  static String getNotificationOnAppKillTitle() =>
-      prefs.getString(notificationOnAppKillTitle) ?? 'Your alarms may not ring';
-
-  /// Returns notification on app kill [notificationOnAppKillBody].
-  static String getNotificationOnAppKillBody() =>
-      prefs.getString(notificationOnAppKillBody) ??
-      'You killed the app. Please reopen so your alarms can be rescheduled.';
+  /// Dispose the fgbg subscription to avoid memory leaks.
+  static void dispose() {
+    fgbgSubscription.cancel();
+  }
 }

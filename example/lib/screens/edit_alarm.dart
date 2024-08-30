@@ -98,6 +98,10 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       notificationTitle: 'Alarm example',
       notificationBody: 'Your alarm ($id) is ringing',
       enableNotificationOnKill: Platform.isIOS,
+      notificationActionSettings: const NotificationActionSettings(
+        hasStopButton: true,
+        stopButtonText: 'Stop the alarm',
+      ),
     );
     return alarmSettings;
   }
