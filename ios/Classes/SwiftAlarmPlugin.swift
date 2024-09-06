@@ -31,7 +31,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     private var silentAudioPlayer: AVAudioPlayer?
     private let resourceAccessQueue = DispatchQueue(label: "com.gdelataillade.alarm.resourceAccessQueue")
 
-    private var notifOnKillEnabled: Bool = false
+    private var warningNotificationOnKill: Bool = false
     private var notificationTitleOnKill: String? = nil
     private var notificationBodyOnKill: String? = nil
 
@@ -57,9 +57,9 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                     return
                 }
                 self.audioCurrentTime(id: id, result: result)
-            case "setNotificationOnAppKillContent":
+            case "setWarningNotificationOnKill":
                 guard let args = call.arguments as? [String: Any] else {
-                    result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Error: Arguments are not in the expected format for setNotificationOnAppKillContent", details: nil))
+                    result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Error: Arguments are not in the expected format for setWarningNotificationOnKill", details: nil))
                     return
                 }
                 self.notificationTitleOnKill = (args["notifTitleOnAppKill"] as! String)
@@ -118,18 +118,16 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         )
         self.alarms[id] = alarmConfig
 
-        let notificationTitle = args["notificationTitle"] as? String
-        let notificationBody = args["notificationBody"] as? String
-        if let title = notificationTitle, let body = notificationBody, delayInSeconds >= 1.0 {
-            NotificationManager.shared.scheduleNotification(id: id, delayInSeconds: Int(floor(delayInSeconds)), title: title, body: body, actionSettings: alarmSettings.notificationActionSettings) { error in
+        if delayInSeconds >= 1.0 {
+            NotificationManager.shared.scheduleNotification(id: id, delayInSeconds: Int(floor(delayInSeconds)), notificationSettings: alarmSettings.notificationSettings) { error in
                 if let error = error {
                     NSLog("[SwiftAlarmPlugin] Error scheduling notification: \(error.localizedDescription)")
                 }
             }
         }
 
-        notifOnKillEnabled = (args["enableNotificationOnKill"] as! Bool)
-        if notifOnKillEnabled && !observerAdded {
+        warningNotificationOnKill = (args["warningNotificationOnKill"] as! Bool)
+        if warningNotificationOnKill && !observerAdded {
             observerAdded = true
             NotificationCenter.default.addObserver(self, selector: #selector(applicationWillTerminate(_:)), name: UIApplication.willTerminateNotification, object: nil)
         }

@@ -69,7 +69,7 @@ class AndroidAlarm {
       final res =
           await methodChannel.invokeMethod('stopAlarm', {'id': id}) as bool;
       if (res) alarmPrint('Alarm with id $id stopped');
-      if (!hasOtherAlarms) await stopNotificationOnKillService();
+      if (!hasOtherAlarms) await disableWarningNotificationOnKill();
       return res;
     } catch (e) {
       alarmPrint('Failed to stop alarm: $e');
@@ -90,16 +90,16 @@ class AndroidAlarm {
   }
 
   /// Sets the native notification on app kill title and body.
-  static Future<void> setNotificationOnAppKill(String title, String body) =>
+  static Future<void> setWarningNotificationOnKill(String title, String body) =>
       methodChannel.invokeMethod<void>(
-        'setNotificationOnAppKillContent',
+        'setWarningNotificationOnKill',
         {'title': title, 'body': body},
       );
 
   /// Disable the notification on kill service.
-  static Future<void> stopNotificationOnKillService() async {
+  static Future<void> disableWarningNotificationOnKill() async {
     try {
-      await methodChannel.invokeMethod('stopNotificationOnKillService');
+      await methodChannel.invokeMethod('disableWarningNotificationOnKill');
     } catch (e) {
       throw AlarmException('NotificationOnKillService error: $e');
     }

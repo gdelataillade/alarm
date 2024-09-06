@@ -9,15 +9,13 @@ data class AlarmSettings(
     val id: Int,
     val dateTime: Date,
     val assetAudioPath: String,
+    val notificationSettings: NotificationSettings,
     val loopAudio: Boolean,
     val vibrate: Boolean,
     val volume: Double?,
     val fadeDuration: Double,
-    val notificationTitle: String,
-    val notificationBody: String,
-    val enableNotificationOnKill: Boolean,
-    val androidFullScreenIntent: Boolean,
-    val notificationActionSettings: NotificationActionSettings
+    val warningNotificationOnKill: Boolean,
+    val androidFullScreenIntent: Boolean
 ) {
     companion object {
         fun fromJson(json: Map<String, Any>): AlarmSettings? {
@@ -35,12 +33,12 @@ data class AlarmSettings(
                     return null
                 }
 
-                // Deserialize NotificationActionSettings
-                val notificationActionSettingsMap = modifiedJson["notificationActionSettings"] as? Map<String, Any>
-                if (notificationActionSettingsMap != null) {
-                    modifiedJson["notificationActionSettings"] = NotificationActionSettings.fromJson(notificationActionSettingsMap)
+                // Deserialize NotificationSettings
+                val notificationSettingsMap = modifiedJson["notificationSettings"] as? Map<String, Any>
+                if (notificationSettingsMap != null) {
+                    modifiedJson["notificationSettings"] = NotificationSettings.fromJson(notificationSettingsMap)
                 } else {
-                    Log.e("AlarmSettings", "notificationActionSettings is missing or not a Map")
+                    Log.e("AlarmSettings", "notificationSettings is missing or not a Map")
                     return null
                 }
 

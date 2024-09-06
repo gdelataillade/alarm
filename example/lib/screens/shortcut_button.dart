@@ -36,10 +36,11 @@ class _ExampleAlarmHomeShortcutButtonState
       dateTime: dateTime,
       assetAudioPath: 'assets/marimba.mp3',
       volume: volume,
-      notificationTitle: 'Alarm example',
-      notificationBody:
-          'Shortcut button alarm with delay of $delayInHours hours',
-      enableNotificationOnKill: Platform.isIOS,
+      notificationSettings: NotificationSettings(
+        title: 'Alarm example',
+        body: 'Shortcut button alarm with delay of $delayInHours hours',
+      ),
+      warningNotificationOnKill: Platform.isIOS,
     );
 
     await Alarm.set(alarmSettings: alarmSettings);

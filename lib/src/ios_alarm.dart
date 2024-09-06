@@ -146,9 +146,9 @@ class IOSAlarm {
   }
 
   /// Sets the native notification on app kill title and body.
-  static Future<void> setNotificationOnAppKill(String title, String body) =>
+  static Future<void> setWarningNotificationOnKill(String title, String body) =>
       methodChannel.invokeMethod<void>(
-        'setNotificationOnAppKillContent',
+        'setWarningNotificationOnKill',
         {'title': title, 'body': body},
       );
 

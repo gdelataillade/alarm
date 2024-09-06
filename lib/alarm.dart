@@ -11,7 +11,7 @@ import 'package:alarm/utils/extensions.dart';
 import 'package:flutter/foundation.dart';
 
 export 'package:alarm/model/alarm_settings.dart';
-export 'package:alarm/model/notification_action_settings.dart';
+export 'package:alarm/model/notification_settings.dart';
 
 /// Custom print function designed for Alarm plugin.
 DebugPrintCallback alarmPrint = debugPrintThrottled;
@@ -129,9 +129,9 @@ class Alarm {
   ///
   /// [body] default value is `You killed the app.
   /// Please reopen so your alarm can ring.`
-  static void setNotificationOnAppKillContent(String title, String body) {
-    if (iOS) IOSAlarm.setNotificationOnAppKill(title, body);
-    if (android) AndroidAlarm.setNotificationOnAppKill(title, body);
+  static void setWarningNotificationOnKill(String title, String body) {
+    if (iOS) IOSAlarm.setWarningNotificationOnKill(title, body);
+    if (android) AndroidAlarm.setWarningNotificationOnKill(title, body);
   }
 
   /// Stops alarm.

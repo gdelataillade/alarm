@@ -4,15 +4,13 @@ struct AlarmSettings: Codable {
     let id: Int
     let dateTime: Date
     let assetAudioPath: String
+    let notificationSettings: NotificationSettings
     let loopAudio: Bool
     let vibrate: Bool
     let volume: Double?
     let fadeDuration: Double
-    let notificationTitle: String
-    let notificationBody: String
-    let enableNotificationOnKill: Bool
+    let warningNotificationOnKill: Bool
     let androidFullScreenIntent: Bool
-    let notificationActionSettings: NotificationActionSettings
 
     static func fromJson(json: [String: Any]) -> AlarmSettings? {
         guard let id = json["id"] as? Int,
@@ -21,11 +19,9 @@ struct AlarmSettings: Codable {
               let loopAudio = json["loopAudio"] as? Bool,
               let vibrate = json["vibrate"] as? Bool,
               let fadeDuration = json["fadeDuration"] as? Double,
-              let notificationTitle = json["notificationTitle"] as? String,
-              let notificationBody = json["notificationBody"] as? String,
-              let enableNotificationOnKill = json["enableNotificationOnKill"] as? Bool,
+              let warningNotificationOnKill = json["warningNotificationOnKill"] as? Bool,
               let androidFullScreenIntent = json["androidFullScreenIntent"] as? Bool,
-              let notificationActionSettingsDict = json["notificationActionSettings"] as? [String: Any] else {
+              let notificationSettingsDict = json["notificationSettings"] as? [String: Any] else {
             return nil
         }
 
@@ -35,7 +31,7 @@ struct AlarmSettings: Codable {
         
         let dateTime = Date(timeIntervalSince1970: TimeInterval(safeDateTimeMicros) / 1_000_000)
         let volume = json["volume"] as? Double
-        let notificationActionSettings = NotificationActionSettings.fromJson(json: notificationActionSettingsDict)
+        let notificationSettings = NotificationSettings.fromJson(json: notificationSettingsDict)
         
         return AlarmSettings(
             id: id,
@@ -45,11 +41,9 @@ struct AlarmSettings: Codable {
             vibrate: vibrate,
             volume: volume,
             fadeDuration: fadeDuration,
-            notificationTitle: notificationTitle,
-            notificationBody: notificationBody,
-            enableNotificationOnKill: enableNotificationOnKill,
+            warningNotificationOnKill: warningNotificationOnKill,
             androidFullScreenIntent: androidFullScreenIntent,
-            notificationActionSettings: notificationActionSettings
+            notificationSettings: notificationSettings
         )
     }
 
@@ -70,11 +64,9 @@ struct AlarmSettings: Codable {
             "vibrate": alarmSettings.vibrate,
             "volume": alarmSettings.volume,
             "fadeDuration": alarmSettings.fadeDuration,
-            "notificationTitle": alarmSettings.notificationTitle,
-            "notificationBody": alarmSettings.notificationBody,
-            "enableNotificationOnKill": alarmSettings.enableNotificationOnKill,
+            "warningNotificationOnKill": alarmSettings.warningNotificationOnKill,
             "androidFullScreenIntent": alarmSettings.androidFullScreenIntent,
-            "notificationActionSettings": NotificationActionSettings.toJson(notificationActionSettings: alarmSettings.notificationActionSettings)
+            "notificationSettings": NotificationSettings.toJson(notificationSettings: alarmSettings.notificationSettings)
         ]
     }
 }

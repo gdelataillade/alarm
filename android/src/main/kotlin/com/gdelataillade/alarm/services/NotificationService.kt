@@ -1,6 +1,6 @@
 package com.gdelataillade.alarm.alarm
 
-import com.gdelataillade.alarm.models.NotificationActionSettings
+import com.gdelataillade.alarm.models.NotificationSettings
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -36,11 +36,9 @@ class NotificationHandler(private val context: Context) {
     }
 
     fun buildNotification(
-        title: String,
-        body: String,
+        notificationSettings: NotificationSettings,
         fullScreen: Boolean,
         pendingIntent: PendingIntent,
-        notificationActionSettings: NotificationActionSettings?,
         alarmId: Int
     ): Notification {
         val appIconResId = context.packageManager.getApplicationInfo(context.packageName, 0).icon
@@ -58,8 +56,8 @@ class NotificationHandler(private val context: Context) {
 
         val notificationBuilder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(appIconResId)
-            .setContentTitle(title)
-            .setContentText(body)
+            .setContentTitle(notificationSettings.title)
+            .setContentText(notificationSettings.body)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setAutoCancel(true)
@@ -72,9 +70,9 @@ class NotificationHandler(private val context: Context) {
             notificationBuilder.setFullScreenIntent(pendingIntent, true)
         }
 
-        notificationActionSettings?.let {
-            if (it.hasStopButton) {
-                notificationBuilder.addAction(0, it.stopButtonText, stopPendingIntent)
+        notificationSettings?.let {
+            if (it.stopButton != null) {
+                notificationBuilder.addAction(0, it.stopButton, stopPendingIntent)
             }
         }
 

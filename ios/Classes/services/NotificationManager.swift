@@ -8,13 +8,11 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         super.init()
     }
 
-    private func setupNotificationActions(hasStopButton: Bool, stopButtonText: String) {
+    private func setupNotificationActions(stopButton: String) {
         var actions: [UNNotificationAction] = []
         
-        if hasStopButton {
-            let stopAction = UNNotificationAction(identifier: "STOP_ACTION", title: stopButtonText, options: [.destructive])
-            actions.append(stopAction)
-        }
+        let stopAction = UNNotificationAction(identifier: "STOP_ACTION", title: stopButton, options: [.destructive])
+        actions.append(stopAction)
         
         let category = UNNotificationCategory(identifier: "ALARM_CATEGORY", actions: actions, intentIdentifiers: [], options: [])
         
@@ -26,18 +24,20 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge], completionHandler: completion)
     }
 
-    func scheduleNotification(id: Int, delayInSeconds: Int, title: String, body: String, actionSettings: NotificationActionSettings, completion: @escaping (Error?) -> Void) {
+    func scheduleNotification(id: Int, delayInSeconds: Int, notificationSettings: NotificationSettings, completion: @escaping (Error?) -> Void) {
         requestAuthorization { granted, error in
             guard granted, error == nil else {
                 completion(error)
                 return
             }
-            
-            self.setupNotificationActions(hasStopButton: actionSettings.hasStopButton, stopButtonText: actionSettings.stopButtonText)
-            
+
+            if let stopButton = notificationSettings.stopButton {
+                self.setupNotificationActions(stopButton: stopButton)
+            }
+
             let content = UNMutableNotificationContent()
-            content.title = title
-            content.body = body
+            content.title = notificationSettings.title
+            content.body = notificationSettings.body
             content.sound = nil
             content.categoryIdentifier = "ALARM_CATEGORY"
             content.userInfo = ["id": id]  // Include the id as an Integer in userInfo

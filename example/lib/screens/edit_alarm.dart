@@ -95,12 +95,11 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       vibrate: vibrate,
       volume: volume,
       assetAudioPath: assetAudio,
-      notificationTitle: 'Alarm example',
-      notificationBody: 'Your alarm ($id) is ringing',
-      enableNotificationOnKill: Platform.isIOS,
-      notificationActionSettings: const NotificationActionSettings(
-        hasStopButton: true,
-        stopButtonText: 'Stop the alarm',
+      warningNotificationOnKill: Platform.isIOS,
+      notificationSettings: NotificationSettings(
+        title: 'Alarm example',
+        body: 'Your alarm ($id) is ringing',
+        stopButton: 'Stop the alarm',
       ),
     );
     return alarmSettings;

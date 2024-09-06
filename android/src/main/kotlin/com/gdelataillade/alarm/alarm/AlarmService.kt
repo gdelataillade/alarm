@@ -4,7 +4,7 @@ import com.gdelataillade.alarm.services.AudioService
 import com.gdelataillade.alarm.services.AlarmStorage
 import com.gdelataillade.alarm.services.VibrationService
 import com.gdelataillade.alarm.services.VolumeService
-import com.gdelataillade.alarm.models.NotificationActionSettings
+import com.gdelataillade.alarm.models.NotificationSettings
 
 import android.app.Service
 import android.app.PendingIntent
@@ -63,23 +63,21 @@ class AlarmService : Service() {
         val vibrate = intent.getBooleanExtra("vibrate", true)
         val volume = intent.getDoubleExtra("volume", -1.0)
         val fadeDuration = intent.getDoubleExtra("fadeDuration", 0.0)
-        val notificationTitle = intent.getStringExtra("notificationTitle") ?: "Default Title" // Default if null
-        val notificationBody = intent.getStringExtra("notificationBody") ?: "Default Body" // Default if null
         val fullScreenIntent = intent.getBooleanExtra("fullScreenIntent", true)
 
-        val notificationActionSettingsJson = intent.getStringExtra("notificationActionSettings")
-        val jsonObject = JSONObject(notificationActionSettingsJson)
+        val notificationSettingsJson = intent.getStringExtra("notificationSettings")
+        val jsonObject = JSONObject(notificationSettingsJson)
         val map: MutableMap<String, Any> = mutableMapOf()
         jsonObject.keys().forEach { key ->
             map[key] = jsonObject.get(key)
         }
-        val notificationActionSettings = NotificationActionSettings.fromJson(map)
+        val notificationSettings = NotificationSettings.fromJson(map)
 
         // Handling notification
         val notificationHandler = NotificationHandler(this)
         val appIntent = applicationContext.packageManager.getLaunchIntentForPackage(applicationContext.packageName)
         val pendingIntent = PendingIntent.getActivity(this, id, appIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-        val notification = notificationHandler.buildNotification(notificationTitle, notificationBody, fullScreenIntent, pendingIntent, notificationActionSettings, id)
+        val notification = notificationHandler.buildNotification(notificationSettings, fullScreenIntent, pendingIntent, id)
 
         // Starting foreground service safely
         try {
