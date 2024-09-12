@@ -1,3 +1,8 @@
+## 4.0.0-dev.3
+**💥 Breaking Changes**\
+* Refactored `AlarmSettings` model.
+* [Android] Update kotlin version to `1.8.0`.
+
 ## 4.0.0-dev.2
 * [Android] Fix native GSON parsing error.
 * Update `flutter_fgbg` dependency.
@@ -6,7 +11,7 @@
 * Add notification action stop button.
 
 ## 3.1.7
-* Update kotlin version to `1.7.10`.
+* [Android] Update kotlin version to `1.7.10`.
 
 ## 3.1.6
 * Update `flutter_fgbg` dependency to `0.6.0`.

@@ -4,13 +4,13 @@ struct AlarmSettings: Codable {
     let id: Int
     let dateTime: Date
     let assetAudioPath: String
-    let notificationSettings: NotificationSettings
     let loopAudio: Bool
     let vibrate: Bool
     let volume: Double?
     let fadeDuration: Double
     let warningNotificationOnKill: Bool
     let androidFullScreenIntent: Bool
+    let notificationSettings: NotificationSettings
 
     static func fromJson(json: [String: Any]) -> AlarmSettings? {
         guard let id = json["id"] as? Int,
