@@ -71,12 +71,11 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
     }
 
-    func stopAlarmFromNotification(id: Int) {
+    func unsaveAlarm(id: Int) {
         AlarmStorage.shared.unsaveAlarm(id: id)
         safeModifyResources {
             self.stopAlarm(id: id, cancelNotif: true, result: { _ in })
         }
-        NSLog("SwiftAlarmPlugin: stopAlarmFromNotification...")
         channel.invokeMethod("alarmStoppedFromNotification", arguments: ["id": id])
     }
 
@@ -253,7 +252,22 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
     }
 
+    private func isAnyAlarmRinging() -> Bool {
+        for (_, alarmConfig) in self.alarms {
+            if let audioPlayer = alarmConfig.audioPlayer, audioPlayer.isPlaying, audioPlayer.currentTime > 0 {
+                return true
+            }
+        }
+        return false
+    }
+
     private func handleAlarmAfterDelay(id: Int) {
+        if self.isAnyAlarmRinging() {
+            NSLog("SwiftAlarmPlugin: Ignoring alarm with id \(id) because another alarm is already ringing.")
+            self.unsaveAlarm(id: id)
+            return
+        }
+
         safeModifyResources {
             guard let alarm = self.alarms[id], let audioPlayer = alarm.audioPlayer else {
                 return

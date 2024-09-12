@@ -60,7 +60,7 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         switch identifier {
         case "STOP_ACTION":
             NSLog("Stop action triggered for notification: \(notification.request.identifier)")
-            SwiftAlarmPlugin.shared.stopAlarmFromNotification(id: id)
+            SwiftAlarmPlugin.shared.unsaveAlarm(id: id)
         default:
             break
         }

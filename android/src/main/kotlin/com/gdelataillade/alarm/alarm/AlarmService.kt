@@ -48,13 +48,15 @@ class AlarmService : Service() {
         val id = intent.getIntExtra("id", 0)
         val action = intent.getStringExtra(AlarmReceiver.EXTRA_ALARM_ACTION)
 
+        Log.d("AlarmService", "ringing alarms: $ringingAlarmIds")
+        if (ringingAlarmIds.isNotEmpty()) {
+            Log.d("AlarmService", "An alarm is already ringing. Ignoring new alarm with id: $id")
+            unsaveAlarm(id)
+            return START_NOT_STICKY
+        }
+
         if (action == "STOP_ALARM" && id != 0) {
-            AlarmStorage(this).unsaveAlarm(id)
-            AlarmPlugin.eventSink?.success(mapOf(
-                "id" to id,
-                "method" to "stop"
-            ))
-            stopAlarm(id)
+            unsaveAlarm(id)
             return START_NOT_STICKY
         }
 
@@ -127,6 +129,15 @@ class AlarmService : Service() {
         wakeLock.acquire(5 * 60 * 1000L) // 5 minutes
 
         return START_STICKY
+    }
+
+    fun unsaveAlarm(id: Int) {
+        AlarmStorage(this).unsaveAlarm(id)
+        AlarmPlugin.eventSink?.success(mapOf(
+            "id" to id,
+            "method" to "stop"
+        ))
+        stopAlarm(id)
     }
 
     fun stopAlarm(id: Int) {
