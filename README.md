@@ -47,6 +47,7 @@ final alarmSettings = AlarmSettings(
     title: 'This is the title',
     body: 'This is the body',
     stopButton: true,
+    icon: 'notification_icon',
   ),
 );
 ```
@@ -61,7 +62,7 @@ Property |   Type     | Description
 id |   `int`     | Unique identifier of the alarm.
 alarmDateTime |   `DateTime`     | The date and time you want your alarm to ring.
 assetAudio |   `String`     | The path to you audio asset you want to use as ringtone. Can be a path in your assets folder or a local file path with android permission.
-notificationSettings | `NotificationSettings` | Settings for notification title, body and action buttons (only stop at the moment).
+notificationSettings | `NotificationSettings` | Settings for notification title, body, icon and action buttons (only stop at the moment).
 loopAudio |   `bool`     | If true, audio will repeat indefinitely until alarm is stopped.
 vibrate |   `bool`     | If true, device will vibrate indefinitely until alarm is stopped. If [loopAudio] is set to false, vibrations will stop when audio ends.
 volume |   `double`     | Sets system volume level (0.0 to 1.0) at [dateTime]; reverts on alarm stop. Defaults to current volume if null.

@@ -41,7 +41,14 @@ class NotificationHandler(private val context: Context) {
         pendingIntent: PendingIntent,
         alarmId: Int
     ): Notification {
-        val appIconResId = context.packageManager.getApplicationInfo(context.packageName, 0).icon
+        val defaultIconResId = context.packageManager.getApplicationInfo(context.packageName, 0).icon
+
+        val iconResId = if (notificationSettings.icon != null) {
+            val resId = context.resources.getIdentifier(notificationSettings.icon, "drawable", context.packageName)
+            if (resId != 0) resId else defaultIconResId
+        } else {
+            defaultIconResId
+        }
 
         val stopIntent = Intent(context, AlarmReceiver::class.java).apply {
             action = AlarmReceiver.ACTION_ALARM_STOP
@@ -55,7 +62,7 @@ class NotificationHandler(private val context: Context) {
         )
 
         val notificationBuilder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(appIconResId)
+            .setSmallIcon(iconResId)
             .setContentTitle(notificationSettings.title)
             .setContentText(notificationSettings.body)
             .setPriority(NotificationCompat.PRIORITY_MAX)
@@ -70,7 +77,7 @@ class NotificationHandler(private val context: Context) {
             notificationBuilder.setFullScreenIntent(pendingIntent, true)
         }
 
-        notificationSettings?.let {
+        notificationSettings.let {
             if (it.stopButton != null) {
                 notificationBuilder.addAction(0, it.stopButton, stopPendingIntent)
             }

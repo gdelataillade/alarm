@@ -40,7 +40,7 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
             content.body = notificationSettings.body
             content.sound = nil
             content.categoryIdentifier = "ALARM_CATEGORY"
-            content.userInfo = ["id": id]  // Include the id as an Integer in userInfo
+            content.userInfo = ["id": id]
 
             let trigger = UNTimeIntervalNotificationTrigger(timeInterval: TimeInterval(delayInSeconds), repeats: false)
             let request = UNNotificationRequest(identifier: "alarm-\(id)", content: content, trigger: trigger)
@@ -59,7 +59,7 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
 
         switch identifier {
         case "STOP_ACTION":
-            NSLog("Stop action triggered for notification: \(notification.request.identifier)")
+            NSLog("[NotificationManager] Stop action triggered for notification: \(notification.request.identifier)")
             SwiftAlarmPlugin.shared.unsaveAlarm(id: id)
         default:
             break

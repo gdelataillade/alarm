@@ -5,7 +5,8 @@ import com.google.gson.Gson
 data class NotificationSettings(
     val title: String,
     val body: String,
-    val stopButton: String? = null
+    val stopButton: String? = null,
+    val icon: String? = null
 ) {
     companion object {
         fun fromJson(json: Map<String, Any>): NotificationSettings {

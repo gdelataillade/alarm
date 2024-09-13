@@ -39,6 +39,7 @@ class _ExampleAlarmHomeShortcutButtonState
       notificationSettings: NotificationSettings(
         title: 'Alarm example',
         body: 'Shortcut button alarm with delay of $delayInHours hours',
+        icon: 'notification_icon',
       ),
       warningNotificationOnKill: Platform.isIOS,
     );
