@@ -2,6 +2,7 @@
 **💥 Breaking Changes**\
 * Refactored `AlarmSettings` model.
 * Ignore oncoming alarm if another alarm is ringing.
+* [Android] Add customizable notification icon.
 * [Android] Update kotlin version to `1.8.0`.
 
 ## 4.0.0-dev.2
