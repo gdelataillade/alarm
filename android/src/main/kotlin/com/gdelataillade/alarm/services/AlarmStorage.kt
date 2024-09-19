@@ -32,23 +32,27 @@ class AlarmStorage(context: Context) {
         editor.apply()
     }
 
-
     fun getSavedAlarms(): List<AlarmSettings> {
-        // Create a GsonBuilder and register a TypeAdapter for Date class
         val gsonBuilder = GsonBuilder().registerTypeAdapter(Date::class.java, JsonDeserializer<Date> { json, _, _ ->
             Date(json.asJsonPrimitive.asLong)
         })
         val gson: Gson = gsonBuilder.create()
-    
+
         val alarms = mutableListOf<AlarmSettings>()
         prefs.all.forEach { (key, value) ->
             if (key.startsWith(PREFIX) && value is String) {
                 try {
                     val alarm = gson.fromJson(value, AlarmSettings::class.java)
-                    alarms.add(alarm)
+                    if (alarm != null) {
+                        alarms.add(alarm)
+                    } else {
+                        Log.e("AlarmStorage", "Alarm for key $key could not be deserialized")
+                    }
                 } catch (e: Exception) {
                     Log.e("AlarmStorage", "Error parsing alarm settings for key $key: ${e.message}")
                 }
+            } else {
+                Log.w("AlarmStorage", "Skipping non-alarm preference with key: $key")
             }
         }
         return alarms

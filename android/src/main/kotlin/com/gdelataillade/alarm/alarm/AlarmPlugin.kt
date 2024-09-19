@@ -94,18 +94,20 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
         }
     }
 
-    fun setAlarm(call: MethodCall, result: Result) {
+    fun setAlarm(call: MethodCall, result: Result, customContext: Context? = null) {
         val alarmJsonMap = call.arguments as? Map<String, Any>
+        val contextToUse = customContext ?: context
+
         if (alarmJsonMap != null) {
             val alarm = AlarmSettings.fromJson(alarmJsonMap)
             if (alarm != null) {
-                val alarmIntent = createAlarmIntent(context, call, alarm.id)
+                val alarmIntent = createAlarmIntent(contextToUse, call, alarm.id)
                 val delayInSeconds = (alarm.dateTime.time - System.currentTimeMillis()) / 1000
 
                 if (delayInSeconds <= 5) {
-                    handleImmediateAlarm(context, alarmIntent, delayInSeconds.toInt())
+                    handleImmediateAlarm(contextToUse, alarmIntent, delayInSeconds.toInt())
                 } else {
-                    handleDelayedAlarm(context, alarmIntent, delayInSeconds.toInt(), alarm.id, alarm.warningNotificationOnKill)
+                    handleDelayedAlarm(contextToUse, alarmIntent, delayInSeconds.toInt(), alarm.id, alarm.warningNotificationOnKill)
                 }
                 alarmIds.add(alarm.id)
                 result.success(true)
@@ -118,9 +120,7 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
     }
 
     fun stopAlarm(id: Int, result: Result? = null) {
-        // Check if the alarm is currently ringing
         if (AlarmService.ringingAlarmIds.contains(id)) {
-            // If the alarm is ringing, stop the alarm service for this ID
             val stopIntent = Intent(context, AlarmService::class.java)
             stopIntent.action = "STOP_ALARM"
             stopIntent.putExtra("id", id)

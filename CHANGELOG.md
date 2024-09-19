@@ -1,5 +1,8 @@
+## 4.0.0-dev.4
+* [Android] Reschedule alarms after device reboot.
+
 ## 4.0.0-dev.3
-**💥 Breaking Changes**\
+**💥 Breaking Changes**
 * Refactored `AlarmSettings` model.
 * Ignore oncoming alarm if another alarm is ringing.
 * [Android] Add customizable notification icon.

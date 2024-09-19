@@ -21,7 +21,7 @@ data class AlarmSettings(
         fun fromJson(json: Map<String, Any>): AlarmSettings? {
             return try {
                 val gson = Gson()
-
+        
                 // Convert dateTime from microseconds to Date
                 val modifiedJson = json.toMutableMap()
                 val dateTimeMicroseconds = modifiedJson["dateTime"] as? Long
@@ -32,19 +32,20 @@ data class AlarmSettings(
                     Log.e("AlarmSettings", "dateTime is missing or not a Long")
                     return null
                 }
-
+        
                 // Deserialize NotificationSettings
-                val notificationSettingsMap = modifiedJson["notificationSettings"] as? Map<String, Any>
+                val notificationSettingsMap = modifiedJson["notificationSettings"] as? Map<*, *>
                 if (notificationSettingsMap != null) {
-                    modifiedJson["notificationSettings"] = NotificationSettings.fromJson(notificationSettingsMap)
+                    modifiedJson["notificationSettings"] = NotificationSettings.fromJson(notificationSettingsMap as Map<String, Any>)
                 } else {
-                    Log.e("AlarmSettings", "notificationSettings is missing or not a Map")
+                    Log.e("AlarmSettings", "-> notificationSettings is missing or not a Map")
                     return null
                 }
-
+        
                 // Convert the modified map to JSON string and deserialize it to an AlarmSettings object
                 val jsonString = gson.toJson(modifiedJson)
-                gson.fromJson(jsonString, AlarmSettings::class.java)
+                val alarmSettings = gson.fromJson(jsonString, AlarmSettings::class.java)
+                alarmSettings
             } catch (e: Exception) {
                 Log.e("AlarmSettings", "Error parsing JSON to AlarmSettings: ${e.message}")
                 null
