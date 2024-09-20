@@ -20,31 +20,29 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         UNUserNotificationCenter.current().delegate = self
     }
 
-    func requestAuthorization(completion: @escaping (Bool, Error?) -> Void) {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge], completionHandler: completion)
-    }
-
     func scheduleNotification(id: Int, delayInSeconds: Int, notificationSettings: NotificationSettings, completion: @escaping (Error?) -> Void) {
-        requestAuthorization { granted, error in
-            guard granted, error == nil else {
+        UNUserNotificationCenter.current().getNotificationSettings { settings in
+            guard settings.authorizationStatus == .authorized else {
+                NSLog("[NotificationManager] Notification permission not granted. Cannot schedule alarm notification. Please request permission first.")
+                let error = NSError(domain: "NotificationManager", code: 1, userInfo: [NSLocalizedDescriptionKey: "Notification permission not granted"])
                 completion(error)
                 return
             }
-
+            
             if let stopButton = notificationSettings.stopButton {
                 self.setupNotificationActions(stopButton: stopButton)
             }
-
+    
             let content = UNMutableNotificationContent()
             content.title = notificationSettings.title
             content.body = notificationSettings.body
             content.sound = nil
             content.categoryIdentifier = "ALARM_CATEGORY"
             content.userInfo = ["id": id]
-
+    
             let trigger = UNTimeIntervalNotificationTrigger(timeInterval: TimeInterval(delayInSeconds), repeats: false)
             let request = UNNotificationRequest(identifier: "alarm-\(id)", content: content, trigger: trigger)
-
+    
             UNUserNotificationCenter.current().add(request, withCompletionHandler: completion)
         }
     }

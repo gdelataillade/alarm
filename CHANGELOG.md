@@ -1,3 +1,7 @@
+## 4.0.0-dev.5
+**💥 Breaking Changes**
+* [iOS] Removed notification permission request. Must be handled in-app to match Android behaviour.
+
 ## 4.0.0-dev.4
 * [Android] Reschedule alarms after device reboot.
 

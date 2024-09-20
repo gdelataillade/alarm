@@ -7,6 +7,9 @@ import 'package:alarm_example/screens/shortcut_button.dart';
 import 'package:alarm_example/services/permission.dart';
 import 'package:alarm_example/widgets/tile.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+const version = '4.0.0-dev.4';
 
 class ExampleAlarmHomeScreen extends StatefulWidget {
   const ExampleAlarmHomeScreen({super.key});
@@ -24,8 +27,8 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
   @override
   void initState() {
     super.initState();
+    AlarmPermissions.checkNotificationPermission();
     if (Alarm.android) {
-      AlarmPermissions.checkAndroidNotificationPermission();
       AlarmPermissions.checkAndroidScheduleExactAlarmPermission();
     }
     loadAlarms();
@@ -71,6 +74,11 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
     if (res != null && res == true) loadAlarms();
   }
 
+  Future<void> launchReadmeUrl() async {
+    final url = Uri.parse('https://pub.dev/packages/alarm/versions/$version');
+    await launchUrl(url);
+  }
+
   @override
   void dispose() {
     ringSubscription?.cancel();
@@ -81,7 +89,15 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('alarm 4.0.0-dev.4')),
+      appBar: AppBar(
+        title: const Text('alarm $version'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.menu_book_rounded),
+            onPressed: launchReadmeUrl,
+          ),
+        ],
+      ),
       body: SafeArea(
         child: alarms.isNotEmpty
             ? ListView.separated(
