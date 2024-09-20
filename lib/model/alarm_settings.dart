@@ -22,32 +22,39 @@ class AlarmSettings {
 
   /// Constructs an `AlarmSettings` instance from the given JSON data.
   factory AlarmSettings.fromJson(Map<String, dynamic> json) {
-    // Add support from earlier versions of the plugin.
-    final notificationTitle = json['notificationTitle'] as String?;
-    final notificationBody = json['notificationBody'] as String?;
+    NotificationSettings notificationSettings;
 
-    var notificationSettings = NotificationSettings.fromJson(
-      json['notificationSettings'] as Map<String, dynamic>,
-    );
+    // Ensure compatibility with plugin versions below 4.0.0.
+    if (json.containsKey('notificationSettings') &&
+        json['notificationSettings'] != null) {
+      notificationSettings = NotificationSettings.fromJson(
+        json['notificationSettings'] as Map<String, dynamic>,
+      );
+    } else {
+      final notificationTitle = json['notificationTitle'] as String? ?? '';
+      final notificationBody = json['notificationBody'] as String? ?? '';
 
-    if (notificationTitle != null || notificationBody != null) {
-      notificationSettings = notificationSettings.copyWith(
-        title: notificationTitle ?? notificationSettings.title,
-        body: notificationBody ?? notificationSettings.body,
+      notificationSettings = NotificationSettings(
+        title: notificationTitle,
+        body: notificationBody,
       );
     }
+
+    final warningNotificationOnKill =
+        json.containsKey('warningNotificationOnKill')
+            ? json['warningNotificationOnKill'] as bool
+            : json['enableNotificationOnKill'] as bool? ?? true;
 
     return AlarmSettings(
       id: json['id'] as int,
       dateTime: DateTime.fromMicrosecondsSinceEpoch(json['dateTime'] as int),
       assetAudioPath: json['assetAudioPath'] as String,
       notificationSettings: notificationSettings,
-      loopAudio: json['loopAudio'] as bool,
+      loopAudio: json['loopAudio'] as bool? ?? true,
       vibrate: json['vibrate'] as bool? ?? true,
       volume: json['volume'] as double?,
-      fadeDuration: json['fadeDuration'] as double,
-      warningNotificationOnKill:
-          json['warningNotificationOnKill'] as bool? ?? true,
+      fadeDuration: json['fadeDuration'] as double? ?? 0.0,
+      warningNotificationOnKill: warningNotificationOnKill,
       androidFullScreenIntent: json['androidFullScreenIntent'] as bool? ?? true,
     );
   }
