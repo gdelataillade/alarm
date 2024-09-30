@@ -1,3 +1,13 @@
+## 4.0.0
+**💥 Breaking Changes**
+* Added notification action stop button.
+* Refactored `AlarmSettings` model.
+* Ignore oncoming alarm if another alarm is ringing.
+* [Android] Updated kotlin version to `1.8.0`.
+* [Android] Added customizable notification icon.
+* [Android] Reschedule alarms after device reboot.
+* [iOS] Removed notification permission request. Must be handled in-app to match Android behaviour.
+
 ## 4.0.0-dev.5
 **💥 Breaking Changes**
 * [iOS] Removed notification permission request. Must be handled in-app to match Android behaviour.
@@ -102,7 +112,7 @@
 * Only override an existing alarm if it's scheduled for the identical second.
 
 ## 3.0.0
-**💥 Breaking Changes**\
+**💥 Breaking Changes**
 **🔧 Android installation steps were updated [here](https://github.com/gdelataillade/alarm/blob/main/help/INSTALL-ANDROID.md).**
 * [Android] Alarm will work even if app was killed.
 * [Android] Notification are now mandatory so foreground services can be used.
