@@ -62,8 +62,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                     result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Error: Arguments are not in the expected format for setWarningNotificationOnKill", details: nil))
                     return
                 }
-                self.notificationTitleOnKill = (args["notifTitleOnAppKill"] as! String)
-                self.notificationBodyOnKill = (args["notifDescriptionOnAppKill"] as! String)
+                self.notificationTitleOnKill = (args["title"] as! String)
+                self.notificationBodyOnKill = (args["body"] as! String)
                 result(true)
             default:
                 result(FlutterMethodNotImplemented)
