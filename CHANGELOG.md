@@ -1,3 +1,6 @@
+## 4.0.1
+* [iOS] Fixed crash on iOS when setting warning notification on kill.
+
 ## 4.0.0
 **💥 Breaking Changes**
 * Added notification action stop button.
