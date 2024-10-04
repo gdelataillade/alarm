@@ -81,7 +81,9 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
     func safeModifyResources(_ modificationBlock: @escaping () -> Void) {
         resourceAccessQueue.async {
-            modificationBlock()
+            DispatchQueue.main.async {
+                modificationBlock()
+            }
         }
     }
 
