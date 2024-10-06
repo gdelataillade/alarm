@@ -67,13 +67,17 @@ class AlarmService : Service() {
         val fadeDuration = intent.getDoubleExtra("fadeDuration", 0.0)
         val fullScreenIntent = intent.getBooleanExtra("fullScreenIntent", true)
 
+        // Fetching notificationSettings safely or using default
         val notificationSettingsJson = intent.getStringExtra("notificationSettings")
-        val jsonObject = JSONObject(notificationSettingsJson)
-        val map: MutableMap<String, Any> = mutableMapOf()
-        jsonObject.keys().forEach { key ->
-            map[key] = jsonObject.get(key)
+        val notificationSettings = if (!notificationSettingsJson.isNullOrEmpty()) {
+            val jsonObject = JSONObject(notificationSettingsJson)
+            val map: MutableMap<String, Any> = mutableMapOf()
+            jsonObject.keys().forEach { key -> map[key] = jsonObject.get(key) }
+            NotificationSettings.fromJson(map)
+        } else {
+            // Provide default notification settings
+            NotificationSettings.default()
         }
-        val notificationSettings = NotificationSettings.fromJson(map)
 
         // Handling notification
         val notificationHandler = NotificationHandler(this)
