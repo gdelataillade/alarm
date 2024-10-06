@@ -33,6 +33,8 @@ class BootReceiver : BroadcastReceiver() {
 
         for (alarm in storedAlarms) {
             // Create the arguments for the MethodCall
+            val notificationSettings = alarm.notificationSettings ?: NotificationSettings.default()
+
             val alarmArgs = mutableMapOf<String, Any>(
                 "id" to alarm.id,
                 "dateTime" to alarm.dateTime.time,
