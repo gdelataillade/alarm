@@ -48,7 +48,6 @@ class AlarmService : Service() {
         val id = intent.getIntExtra("id", 0)
         val action = intent.getStringExtra(AlarmReceiver.EXTRA_ALARM_ACTION)
 
-        Log.d("AlarmService", "ringing alarms: $ringingAlarmIds")
         if (ringingAlarmIds.isNotEmpty()) {
             Log.d("AlarmService", "An alarm is already ringing. Ignoring new alarm with id: $id")
             unsaveAlarm(id)
@@ -68,12 +67,18 @@ class AlarmService : Service() {
         val fullScreenIntent = intent.getBooleanExtra("fullScreenIntent", true)
 
         val notificationSettingsJson = intent.getStringExtra("notificationSettings")
-        val jsonObject = JSONObject(notificationSettingsJson)
-        val map: MutableMap<String, Any> = mutableMapOf()
-        jsonObject.keys().forEach { key ->
-            map[key] = jsonObject.get(key)
+        val notificationSettings = if (notificationSettingsJson != null) {
+            val jsonObject = JSONObject(notificationSettingsJson)
+            val map: MutableMap<String, Any> = mutableMapOf()
+            jsonObject.keys().forEach { key ->
+                map[key] = jsonObject.get(key)
+            }
+            NotificationSettings.fromJson(map)
+        } else {
+            val notificationTitle = intent.getStringExtra("notificationTitle") ?: "Title"
+            val notificationBody = intent.getStringExtra("notificationBody") ?: "Body"
+            NotificationSettings(notificationTitle, notificationBody)
         }
-        val notificationSettings = NotificationSettings.fromJson(map)
 
         // Handling notification
         val notificationHandler = NotificationHandler(this)
