@@ -1,5 +1,6 @@
 package com.gdelataillade.alarm.alarm
 
+import com.gdelataillade.alarm.models.NotificationSettings
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
