@@ -1,3 +1,7 @@
+## 4.0.2
+* [iOS] Improve thread safety.
+* [Android] Add native backward compatibility with older versions.
+
 ## 4.0.1
 * [iOS] Fixed crash on iOS when setting warning notification on kill.
 
