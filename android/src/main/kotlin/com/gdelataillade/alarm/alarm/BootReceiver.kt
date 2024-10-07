@@ -44,10 +44,10 @@ class BootReceiver : BroadcastReceiver() {
                 "fadeDuration" to alarm.fadeDuration,
                 "fullScreenIntent" to alarm.androidFullScreenIntent,
                 "notificationSettings" to mapOf(
-                    "title" to alarm.notificationSettings.title,
-                    "body" to alarm.notificationSettings.body,
-                    "stopButton" to alarm.notificationSettings.stopButton,
-                    "icon" to alarm.notificationSettings.icon
+                    "title" to notificationSettings.title,
+                    "body" to notificationSettings.body,
+                    "stopButton" to notificationSettings.stopButton,
+                    "icon" to notificationSettings.icon
                 )
             )
 
