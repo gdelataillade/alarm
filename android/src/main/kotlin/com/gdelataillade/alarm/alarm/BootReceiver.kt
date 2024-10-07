@@ -34,7 +34,15 @@ class BootReceiver : BroadcastReceiver() {
 
         for (alarm in storedAlarms) {
             // Create the arguments for the MethodCall
-            val notificationSettings = alarm.notificationSettings ?: NotificationSettings.default()
+            var notificationSettings: NotificationSettings
+
+            if (alarm.notificationSettings != null) {
+                notificationSettings = alarm.notificationSettings
+            } else {
+                val notificationTitle = "Title"
+                val notificationBody = "Body"
+                notificationSettings = NotificationSettings(notificationTitle, notificationBody)
+            }
 
             val alarmArgs = mutableMapOf<String, Any>(
                 "id" to alarm.id,
@@ -70,7 +78,10 @@ class BootReceiver : BroadcastReceiver() {
                 }
 
                 override fun error(errorCode: String, errorMessage: String?, errorDetails: Any?) {
-                    Log.e("BootReceiver", "Failed to reschedule alarm for ID: ${alarm.id}, Error: $errorMessage")
+                    Log.e(
+                        "BootReceiver",
+                        "Failed to reschedule alarm for ID: ${alarm.id}, Error: $errorMessage"
+                    )
                 }
 
                 override fun notImplemented() {
