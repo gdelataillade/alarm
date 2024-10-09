@@ -33,51 +33,58 @@ class BootReceiver : BroadcastReceiver() {
     
         for (alarm in storedAlarms) {
             if (alarm.notificationSettings == null) {
+                Log.d("BootReceiver", "Skipping alarm with ID: ${alarm.id} due to missing notificationSettings")
                 continue
             }
     
-            // Create the arguments for the MethodCall
-            val alarmArgs = mutableMapOf<String, Any>(
-                "id" to alarm.id,
-                "dateTime" to alarm.dateTime.time,
-                "assetAudioPath" to (alarm.assetAudioPath ?: ""),
-                "loopAudio" to alarm.loopAudio,
-                "vibrate" to alarm.vibrate,
-                "fadeDuration" to alarm.fadeDuration,
-                "fullScreenIntent" to alarm.androidFullScreenIntent,
-                "notificationSettings" to mapOf(
-                    "title" to alarm.notificationSettings.title,
-                    "body" to alarm.notificationSettings.body,
-                    "stopButton" to alarm.notificationSettings.stopButton,
-                    "icon" to alarm.notificationSettings.icon
-                )
-            )
+            var alarmArgs: Map<String, Any>? = null
     
-            alarm.volume?.let {
-                alarmArgs["volume"] = it
+            try {
+                // Create the arguments for the MethodCall
+                alarmArgs = mapOf(
+                    "id" to alarm.id,
+                    "dateTime" to alarm.dateTime.time,
+                    "assetAudioPath" to (alarm.assetAudioPath ?: ""),
+                    "loopAudio" to alarm.loopAudio,
+                    "vibrate" to alarm.vibrate,
+                    "fadeDuration" to alarm.fadeDuration,
+                    "fullScreenIntent" to alarm.androidFullScreenIntent,
+                    "notificationSettings" to mapOf(
+                        "title" to alarm.notificationSettings.title,
+                        "body" to alarm.notificationSettings.body,
+                        "stopButton" to alarm.notificationSettings.stopButton,
+                        "icon" to alarm.notificationSettings.icon
+                    )
+                ).toMutableMap()
+    
+                alarm.volume?.let {
+                    (alarmArgs as MutableMap)[ "volume" ] = it
+                }
+    
+                Log.d("BootReceiver", "Rescheduling alarm with ID: ${alarm.id}")
+                Log.d("BootReceiver", "Alarm arguments: $alarmArgs")
+    
+                // Simulate the MethodCall
+                val methodCall = MethodCall("setAlarm", alarmArgs)
+    
+                // Call the setAlarm method in AlarmPlugin with the custom context
+                val alarmPlugin = AlarmPlugin()
+                alarmPlugin.setAlarm(methodCall, object : MethodChannel.Result {
+                    override fun success(result: Any?) {
+                        Log.d("BootReceiver", "Alarm rescheduled successfully for ID: ${alarm.id}")
+                    }
+    
+                    override fun error(errorCode: String, errorMessage: String?, errorDetails: Any?) {
+                        Log.e("BootReceiver", "Failed to reschedule alarm for ID: ${alarm.id}, Error: $errorMessage")
+                    }
+    
+                    override fun notImplemented() {
+                        Log.e("BootReceiver", "Method not implemented")
+                    }
+                }, context)
+            } catch (e: Exception) {
+                Log.e("BootReceiver", "Exception while rescheduling alarm with arguments: $alarmArgs", e)
             }
-    
-            Log.d("BootReceiver", "Rescheduling alarm with ID: ${alarm.id}")
-            Log.d("BootReceiver", "Alarm arguments: $alarmArgs")
-    
-            // Simulate the MethodCall
-            val methodCall = MethodCall("setAlarm", alarmArgs)
-    
-            // Call the setAlarm method in AlarmPlugin with the custom context
-            val alarmPlugin = AlarmPlugin()
-            alarmPlugin.setAlarm(methodCall, object : MethodChannel.Result {
-                override fun success(result: Any?) {
-                    Log.d("BootReceiver", "Alarm rescheduled successfully for ID: ${alarm.id}")
-                }
-    
-                override fun error(errorCode: String, errorMessage: String?, errorDetails: Any?) {
-                    Log.e("BootReceiver", "Failed to reschedule alarm for ID: ${alarm.id}, Error: $errorMessage")
-                }
-    
-                override fun notImplemented() {
-                    Log.e("BootReceiver", "Method not implemented")
-                }
-            }, context)
         }
     }
 }
