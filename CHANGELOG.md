@@ -1,3 +1,6 @@
+## 4.0.3
+* [Android] Fixed error when rescheduling old version alarm after reboot.
+
 ## 4.0.2
 * [iOS] Improve thread safety.
 * [Android] Add native backward compatibility with older versions.
