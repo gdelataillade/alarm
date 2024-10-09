@@ -27,11 +27,15 @@ class BootReceiver : BroadcastReceiver() {
 
     private fun rescheduleAlarms(context: Context) {
         val alarmStorage = AlarmStorage(context)
-        val storedAlarms = alarmStorage.getSavedAlarms()  // Use the existing getSavedAlarms()
-
+        val storedAlarms = alarmStorage.getSavedAlarms()
+    
         Log.d("BootReceiver", "Rescheduling ${storedAlarms.size} alarms")
-
+    
         for (alarm in storedAlarms) {
+            if (alarm.notificationSettings == null) {
+                continue
+            }
+    
             // Create the arguments for the MethodCall
             val alarmArgs = mutableMapOf<String, Any>(
                 "id" to alarm.id,
@@ -48,28 +52,28 @@ class BootReceiver : BroadcastReceiver() {
                     "icon" to alarm.notificationSettings.icon
                 )
             )
-
+    
             alarm.volume?.let {
                 alarmArgs["volume"] = it
             }
-
+    
             Log.d("BootReceiver", "Rescheduling alarm with ID: ${alarm.id}")
             Log.d("BootReceiver", "Alarm arguments: $alarmArgs")
-
+    
             // Simulate the MethodCall
             val methodCall = MethodCall("setAlarm", alarmArgs)
-
+    
             // Call the setAlarm method in AlarmPlugin with the custom context
             val alarmPlugin = AlarmPlugin()
             alarmPlugin.setAlarm(methodCall, object : MethodChannel.Result {
                 override fun success(result: Any?) {
                     Log.d("BootReceiver", "Alarm rescheduled successfully for ID: ${alarm.id}")
                 }
-
+    
                 override fun error(errorCode: String, errorMessage: String?, errorDetails: Any?) {
                     Log.e("BootReceiver", "Failed to reschedule alarm for ID: ${alarm.id}, Error: $errorMessage")
                 }
-
+    
                 override fun notImplemented() {
                     Log.e("BootReceiver", "Method not implemented")
                 }
