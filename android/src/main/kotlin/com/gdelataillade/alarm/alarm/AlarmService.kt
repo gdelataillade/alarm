@@ -5,6 +5,7 @@ import com.gdelataillade.alarm.services.AlarmStorage
 import com.gdelataillade.alarm.services.VibrationService
 import com.gdelataillade.alarm.services.VolumeService
 import com.gdelataillade.alarm.models.NotificationSettings
+import com.google.gson.Gson
 
 import android.app.Service
 import android.app.PendingIntent
@@ -48,7 +49,7 @@ class AlarmService : Service() {
         val id = intent.getIntExtra("id", 0)
         val action = intent.getStringExtra(AlarmReceiver.EXTRA_ALARM_ACTION)
 
-        if (ringingAlarmIds.isNotEmpty()) {
+        if (ringingAlarmIds.isNotEmpty() && action != "STOP_ALARM") {
             Log.d("AlarmService", "An alarm is already ringing. Ignoring new alarm with id: $id")
             unsaveAlarm(id)
             return START_NOT_STICKY
@@ -59,7 +60,7 @@ class AlarmService : Service() {
             return START_NOT_STICKY
         }
 
-        val assetAudioPath = intent.getStringExtra("assetAudioPath") ?: return START_NOT_STICKY // Fallback if null
+        val assetAudioPath = intent.getStringExtra("assetAudioPath") ?: return START_NOT_STICKY
         val loopAudio = intent.getBooleanExtra("loopAudio", true)
         val vibrate = intent.getBooleanExtra("vibrate", true)
         val volume = intent.getDoubleExtra("volume", -1.0)
@@ -68,12 +69,8 @@ class AlarmService : Service() {
 
         val notificationSettingsJson = intent.getStringExtra("notificationSettings")
         val notificationSettings = if (notificationSettingsJson != null) {
-            val jsonObject = JSONObject(notificationSettingsJson)
-            val map: MutableMap<String, Any> = mutableMapOf()
-            jsonObject.keys().forEach { key ->
-                map[key] = jsonObject.get(key)
-            }
-            NotificationSettings.fromJson(map)
+            val gson = Gson()
+            gson.fromJson(notificationSettingsJson, NotificationSettings::class.java)
         } else {
             val notificationTitle = intent.getStringExtra("notificationTitle") ?: "Title"
             val notificationBody = intent.getStringExtra("notificationBody") ?: "Body"
@@ -83,8 +80,18 @@ class AlarmService : Service() {
         // Handling notification
         val notificationHandler = NotificationHandler(this)
         val appIntent = applicationContext.packageManager.getLaunchIntentForPackage(applicationContext.packageName)
-        val pendingIntent = PendingIntent.getActivity(this, id, appIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-        val notification = notificationHandler.buildNotification(notificationSettings, fullScreenIntent, pendingIntent, id)
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            id,
+            appIntent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        val notification = notificationHandler.buildNotification(
+            notificationSettings,
+            fullScreenIntent,
+            pendingIntent,
+            id
+        )
 
         // Starting foreground service safely
         try {
@@ -95,16 +102,18 @@ class AlarmService : Service() {
             }
         } catch (e: ForegroundServiceStartNotAllowedException) {
             Log.e("AlarmService", "Foreground service start not allowed", e)
-            return START_NOT_STICKY // Return if cannot start foreground service
+            return START_NOT_STICKY
         } catch (e: SecurityException) {
             Log.e("AlarmService", "Security exception in starting foreground service", e)
-            return START_NOT_STICKY // Return on security exception
+            return START_NOT_STICKY
         }
 
-        AlarmPlugin.eventSink?.success(mapOf(
-            "id" to id,
-            "method" to "ring"
-        ))
+        AlarmPlugin.eventSink?.success(
+            mapOf(
+                "id" to id,
+                "method" to "ring"
+            )
+        )
 
         if (volume >= 0.0 && volume <= 1.0) {
             volumeService?.setVolume(volume, showSystemUI)
@@ -113,18 +122,18 @@ class AlarmService : Service() {
         volumeService?.requestAudioFocus()
 
         audioService?.setOnAudioCompleteListener {
-            if (!loopAudio!!) {
+            if (!loopAudio) {
                 vibrationService?.stopVibrating()
                 volumeService?.restorePreviousVolume(showSystemUI)
                 volumeService?.abandonAudioFocus()
             }
         }
 
-        audioService?.playAudio(id, assetAudioPath!!, loopAudio!!, fadeDuration!!)
+        audioService?.playAudio(id, assetAudioPath, loopAudio, fadeDuration)
 
-        ringingAlarmIds = audioService?.getPlayingMediaPlayersIds()!!
+        ringingAlarmIds = audioService?.getPlayingMediaPlayersIds() ?: listOf()
 
-        if (vibrate!!) {
+        if (vibrate) {
             vibrationService?.startVibrating(longArrayOf(0, 500, 500), 1)
         }
 

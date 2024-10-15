@@ -9,22 +9,18 @@ import android.os.Handler
 import android.os.Looper
 import android.app.AlarmManager
 import android.app.PendingIntent
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import androidx.annotation.NonNull
 import java.util.Date
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
-import io.flutter.plugin.common.MethodChannel.MethodCallHandler
-import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.Log
-import org.json.JSONObject
+import com.google.gson.Gson
 
-class AlarmPlugin: FlutterPlugin, MethodCallHandler {
+class AlarmPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     private lateinit var context: Context
     private lateinit var methodChannel: MethodChannel
     private lateinit var eventChannel: EventChannel
@@ -57,7 +53,7 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
         })
     }
 
-    override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
+    override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: MethodChannel.Result) {
         when (call.method) {
             "setAlarm" -> {
                 setAlarm(call, result)
@@ -78,9 +74,11 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
                 result.success(isRinging)
             }
             "setWarningNotificationOnKill" -> {
-                if (call.argument<String>("title") != null && call.argument<String>("body") != null) {
-                    notificationOnKillTitle = call.argument<String>("title")!!
-                    notificationOnKillBody = call.argument<String>("body")!!
+                val title = call.argument<String>("title")
+                val body = call.argument<String>("body")
+                if (title != null && body != null) {
+                    notificationOnKillTitle = title
+                    notificationOnKillBody = body
                 }
                 result.success(true)
             }
@@ -94,32 +92,46 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
         }
     }
 
-    fun setAlarm(call: MethodCall, result: Result, customContext: Context? = null) {
+    fun setAlarm(call: MethodCall, result: MethodChannel.Result, customContext: Context? = null) {
         val alarmJsonMap = call.arguments as? Map<String, Any>
         val contextToUse = customContext ?: context
 
         if (alarmJsonMap != null) {
-            val alarm = AlarmSettings.fromJson(alarmJsonMap)
-            if (alarm != null) {
-                val alarmIntent = createAlarmIntent(contextToUse, call, alarm.id)
-                val delayInSeconds = (alarm.dateTime.time - System.currentTimeMillis()) / 1000
+            try {
+                val gson = Gson()
+                val alarmJsonString = gson.toJson(alarmJsonMap)
+                val alarm = AlarmSettings.fromJson(alarmJsonString)
 
-                if (delayInSeconds <= 5) {
-                    handleImmediateAlarm(contextToUse, alarmIntent, delayInSeconds.toInt())
+                if (alarm != null) {
+                    val alarmIntent = createAlarmIntent(contextToUse, call, alarm.id)
+                    val delayInSeconds = (alarm.dateTime.time - System.currentTimeMillis()) / 1000
+
+                    if (delayInSeconds <= 5) {
+                        handleImmediateAlarm(contextToUse, alarmIntent, delayInSeconds.toInt())
+                    } else {
+                        handleDelayedAlarm(
+                            contextToUse,
+                            alarmIntent,
+                            delayInSeconds.toInt(),
+                            alarm.id,
+                            alarm.warningNotificationOnKill
+                        )
+                    }
+                    alarmIds.add(alarm.id)
+                    result.success(true)
                 } else {
-                    handleDelayedAlarm(contextToUse, alarmIntent, delayInSeconds.toInt(), alarm.id, alarm.warningNotificationOnKill)
+                    result.error("INVALID_ALARM", "Failed to parse alarm JSON", null)
                 }
-                alarmIds.add(alarm.id)
-                result.success(true)
-            } else {
-                result.error("INVALID_ALARM", "Failed to parse alarm JSON", null)
+            } catch (e: Exception) {
+                Log.e("AlarmPlugin", "Error parsing alarmJsonMap: ${e.message}", e)
+                result.error("PARSE_ERROR", "Error parsing alarmJsonMap", e.message)
             }
         } else {
             result.error("INVALID_ARGUMENTS", "Invalid arguments provided for setAlarm", null)
         }
     }
 
-    fun stopAlarm(id: Int, result: Result? = null) {
+    fun stopAlarm(id: Int, result: MethodChannel.Result? = null) {
         if (AlarmService.ringingAlarmIds.contains(id)) {
             val stopIntent = Intent(context, AlarmService::class.java)
             stopIntent.action = "STOP_ALARM"
@@ -130,9 +142,9 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
         // Intent to cancel the future alarm if it's set
         val alarmIntent = Intent(context, AlarmReceiver::class.java)
         val pendingIntent = PendingIntent.getBroadcast(
-            context, 
-            id, 
-            alarmIntent, 
+            context,
+            id,
+            alarmIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
@@ -145,9 +157,7 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
             disableWarningNotificationOnKill(context)
         }
 
-        if (result != null) {
-            result.success(true)
-        }
+        result?.success(true)
     }
 
     fun createAlarmIntent(context: Context, call: MethodCall, id: Int?): Intent {
@@ -159,14 +169,15 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
     fun setIntentExtras(intent: Intent, call: MethodCall, id: Int?) {
         intent.putExtra("id", id)
         intent.putExtra("assetAudioPath", call.argument<String>("assetAudioPath"))
-        intent.putExtra("loopAudio", call.argument<Boolean>("loopAudio"))
-        intent.putExtra("vibrate", call.argument<Boolean>("vibrate"))
-        intent.putExtra("volume", call.argument<Boolean>("volume"))
-        intent.putExtra("fadeDuration", call.argument<Double>("fadeDuration"))
-        intent.putExtra("fullScreenIntent", call.argument<Boolean>("fullScreenIntent"))
+        intent.putExtra("loopAudio", call.argument<Boolean>("loopAudio") ?: true)
+        intent.putExtra("vibrate", call.argument<Boolean>("vibrate") ?: true)
+        intent.putExtra("volume", call.argument<Double>("volume"))
+        intent.putExtra("fadeDuration", call.argument<Double>("fadeDuration") ?: 0.0)
+        intent.putExtra("fullScreenIntent", call.argument<Boolean>("fullScreenIntent") ?: true)
 
         val notificationSettingsMap = call.argument<Map<String, Any>>("notificationSettings")
-        val notificationSettingsJson = JSONObject(notificationSettingsMap ?: emptyMap<String, Any>()).toString()
+        val gson = Gson()
+        val notificationSettingsJson = gson.toJson(notificationSettingsMap ?: emptyMap<String, Any>())
         intent.putExtra("notificationSettings", notificationSettingsJson)
     }
 
@@ -177,7 +188,13 @@ class AlarmPlugin: FlutterPlugin, MethodCallHandler {
         }, delayInSeconds * 1000L)
     }
 
-    fun handleDelayedAlarm(context: Context, intent: Intent, delayInSeconds: Int, id: Int, warningNotificationOnKill: Boolean) {
+    fun handleDelayedAlarm(
+        context: Context,
+        intent: Intent,
+        delayInSeconds: Int,
+        id: Int,
+        warningNotificationOnKill: Boolean
+    ) {
         try {
             val triggerTime = System.currentTimeMillis() + delayInSeconds * 1000L
             val pendingIntent = PendingIntent.getBroadcast(
