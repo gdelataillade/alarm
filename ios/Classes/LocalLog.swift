@@ -13,7 +13,7 @@ public class LocalLog: NSObject {
     }
     
     public func log(_ message: String) {
-        NSLog("[SwiftAlarmPlugin] LOCALLOG : \(message)")
+        NSLog(">> LOCALLOG : \(message)")
         appendLogToFile(message: message)
     }
     

@@ -44,26 +44,23 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         DispatchQueue.global(qos: .default).async {
+            LocalLog.shared.log("[SwiftAlarmPlugin] call FlutterMethodCall : \(call.method)")
             switch call.method {
             case "setAlarm":
-                LocalLog.shared.log("FlutterMethodCall > setAlarm")
                 self.setAlarm(call: call, result: result)
             case "stopAlarm":
-                LocalLog.shared.log("FlutterMethodCall > stopAlarm")
                 guard let args = call.arguments as? [String: Any], let id = args["id"] as? Int else {
                     result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Error: id parameter is missing or invalid", details: nil))
                     return
                 }
                 self.stopAlarm(id: id, cancelNotif: true, result: result)
             case "audioCurrentTime":
-                LocalLog.shared.log("FlutterMethodCall > audioCurrentTime")
                 guard let args = call.arguments as? [String: Any], let id = args["id"] as? Int else {
                     result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Error: id parameter is missing or invalid for audioCurrentTime", details: nil))
                     return
                 }
                 self.audioCurrentTime(id: id, result: result)
             case "setWarningNotificationOnKill":
-                LocalLog.shared.log("FlutterMethodCall > setWarningNotificationOnKill")
                 guard let args = call.arguments as? [String: Any] else {
                     result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Error: Arguments are not in the expected format for setWarningNotificationOnKill", details: nil))
                     return
@@ -72,14 +69,12 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 self.notificationBodyOnKill = (args["notifDescriptionOnAppKill"] as! String)
                 result(true)
             default:
-                LocalLog.shared.log("FlutterMethodCall > FlutterMethodNotImplemented")
                 result(FlutterMethodNotImplemented)
             }
         }
     }
 
     func unsaveAlarm(id: Int) {
-        LocalLog.shared.log("unsaveAlarm")
         AlarmStorage.shared.unsaveAlarm(id: id)
         safeModifyResources {
             self.stopAlarm(id: id, cancelNotif: true, result: { _ in })
@@ -94,8 +89,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
 
     private func setAlarm(call: FlutterMethodCall, result: FlutterResult) {
-
-        LocalLog.shared.log("setAlarm")
         self.mixOtherAudios()
 
         guard let args = call.arguments as? [String: Any],
@@ -105,7 +98,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             return
         }
 
-        NSLog("[SwiftAlarmPlugin] AlarmSettings: \(alarmSettings)")
+        LocalLog.shared.log("[SwiftAlarmPlugin] AlarmSettings: \(alarmSettings)")
 
         var volumeFloat: Float? = nil
         if let volumeValue = alarmSettings.volume {
@@ -115,7 +108,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         let id = alarmSettings.id
         let delayInSeconds = alarmSettings.dateTime.timeIntervalSinceNow
 
-        NSLog("[SwiftAlarmPlugin] Alarm scheduled in \(delayInSeconds) seconds")
+        LocalLog.shared.log("[SwiftAlarmPlugin] Alarm scheduled in \(delayInSeconds) seconds")
 
         let alarmConfig = AlarmConfiguration(
             id: id,
@@ -130,7 +123,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         if delayInSeconds >= 1.0 {
             NotificationManager.shared.scheduleNotification(id: id, delayInSeconds: Int(floor(delayInSeconds)), notificationSettings: alarmSettings.notificationSettings) { error in
                 if let error = error {
-                    NSLog("[SwiftAlarmPlugin] Error scheduling notification: \(error.localizedDescription)")
+                    LocalLog.shared.log("[SwiftAlarmPlugin] Error scheduling notification: \(error.localizedDescription)")
                 }
             }
         }
@@ -188,7 +181,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             // Load audio from assets
             let filename = registrar.lookupKey(forAsset: assetAudio)
             guard let audioPath = Bundle.main.path(forResource: filename, ofType: nil) else {
-                NSLog("[SwiftAlarmPlugin] Audio file not found: \(assetAudio)")
+                LocalLog.shared.log("[SwiftAlarmPlugin] Audio file not found: \(assetAudio)")
                 return nil
             }
             audioURL = URL(fileURLWithPath: audioPath)
@@ -201,7 +194,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         do {
             return try AVAudioPlayer(contentsOf: audioURL)
         } catch {
-            NSLog("[SwiftAlarmPlugin] Error loading audio player: \(error.localizedDescription)")
+            LocalLog.shared.log("[SwiftAlarmPlugin] Error loading audio player: \(error.localizedDescription)")
             return nil
         }
     }
@@ -224,10 +217,10 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 self.silentAudioPlayer?.play()
                 NotificationCenter.default.addObserver(self, selector: #selector(handleInterruption), name: AVAudioSession.interruptionNotification, object: nil)
             } catch {
-                NSLog("[SwiftAlarmPlugin] Error: Could not create and play silent audio player: \(error)")
+                LocalLog.shared.log("[SwiftAlarmPlugin] Error: Could not create and play silent audio player: \(error)")
             }
         } else {
-            NSLog("[SwiftAlarmPlugin] Error: Could not find silent audio file")
+            LocalLog.shared.log("[SwiftAlarmPlugin] Error: Could not find silent audio file")
         }
     }
 
@@ -241,10 +234,10 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         switch type {
             case .began:
                 self.silentAudioPlayer?.play()
-                NSLog("[SwiftAlarmPlugin] Interruption began")
+                LocalLog.shared.log("[SwiftAlarmPlugin] Interruption began")
             case .ended:
                 self.silentAudioPlayer?.play()
-                NSLog("[SwiftAlarmPlugin] Interruption ended")
+                LocalLog.shared.log("[SwiftAlarmPlugin] Interruption ended")
             default:
                 break
             }
@@ -273,7 +266,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
     private func handleAlarmAfterDelay(id: Int) {
         if self.isAnyAlarmRinging() {
-            NSLog("[SwiftAlarmPlugin] Ignoring alarm with id \(id) because another alarm is already ringing.")
+            LocalLog.shared.log("[SwiftAlarmPlugin] Ignoring alarm with id \(id) because another alarm is already ringing.")
             self.unsaveAlarm(id: id)
             return
         }
@@ -399,7 +392,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             let ids = Array(self.alarms.keys)
 
             for id in ids {
-                NSLog("[SwiftAlarmPlugin] Background check alarm with id \(id)")
+                LocalLog.shared.log("[SwiftAlarmPlugin] Background check alarm with id \(id)")
                 if let audioPlayer = self.alarms[id]?.audioPlayer, let dateTime = self.alarms[id]?.triggerTime {
                     let currentTime = audioPlayer.deviceCurrentTime
                     let time = currentTime + dateTime.timeIntervalSinceNow
@@ -418,6 +411,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
 
     private func stopNotificationOnKillService() {
+        LocalLog.shared.log("[SwiftAlarmPlugin] call function stopNotificationOnKillService()")
         safeModifyResources {
             if self.alarms.isEmpty && self.observerAdded {
                 NotificationCenter.default.removeObserver(self, name: UIApplication.willTerminateNotification, object: nil)
@@ -437,9 +431,9 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
         UNUserNotificationCenter.current().add(request) { (error) in
             if let error = error {
-                NSLog("[SwiftAlarmPlugin] Failed to show immediate notification on app kill => error: \(error.localizedDescription)")
+                LocalLog.shared.log("[SwiftAlarmPlugin] Failed to show immediate notification on app kill => error: \(error.localizedDescription)")
             } else {
-                NSLog("[SwiftAlarmPlugin] Triggered immediate notification on app kill")
+                LocalLog.shared.log("[SwiftAlarmPlugin] Triggered immediate notification on app kill")
             }
         }
     }
@@ -451,7 +445,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             try audioSession.setCategory(.playback, mode: .default, options: [.mixWithOthers])
             try audioSession.setActive(true)
         } catch {
-            NSLog("[SwiftAlarmPlugin] Error setting up audio session with option mixWithOthers: \(error.localizedDescription)")
+            LocalLog.shared.log("[SwiftAlarmPlugin] Error setting up audio session with option mixWithOthers: \(error.localizedDescription)")
         }
     }
 
@@ -462,48 +456,49 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             try audioSession.setCategory(.playback, mode: .default, options: [.duckOthers])
             try audioSession.setActive(true)
         } catch {
-            NSLog("[SwiftAlarmPlugin] Error setting up audio session with option duckOthers: \(error.localizedDescription)")
+            LocalLog.shared.log("[SwiftAlarmPlugin] Error setting up audio session with option duckOthers: \(error.localizedDescription)")
         }
     }
 
     /// Runs from AppDelegate when the app is launched
     static public func registerBackgroundTasks() {
         if #available(iOS 13.0, *) {
-            LocalLog.shared.log("BG Fetch > registerBackgroundTasks")
+            LocalLog.shared.log("[SwiftAlarmPlugin] call registerBackgroundTasks()")
             BGTaskScheduler.shared.register(forTaskWithIdentifier: backgroundTaskIdentifier, using: nil) { task in
+                LocalLog.shared.log("[SwiftAlarmPlugin] enter in TASK")
                 self.scheduleAppRefresh()
                 shared.backgroundFetch()
                 task.setTaskCompleted(success: true)
             }
         } else {
-            NSLog("[SwiftAlarmPlugin] BGTaskScheduler not available for your version of iOS lower than 13.0")
+            LocalLog.shared.log("[SwiftAlarmPlugin] BGTaskScheduler not available for your version of iOS lower than 13.0")
         }
     }
 
     /// Enables background fetch
     static func scheduleAppRefresh() {
         if #available(iOS 13.0, *) {
-            LocalLog.shared.log("BG Fetch > scheduleAppRefresh")
+            LocalLog.shared.log("[SwiftAlarmPlugin] call scheduleAppRefresh()")
             let request = BGAppRefreshTaskRequest(identifier: backgroundTaskIdentifier)
 
             request.earliestBeginDate = Date(timeIntervalSinceNow: 15 * 60)
             do {
                 try BGTaskScheduler.shared.submit(request)
             } catch {
-                NSLog("[SwiftAlarmPlugin] Could not schedule app refresh: \(error)")
+                LocalLog.shared.log("[SwiftAlarmPlugin] Could not schedule app refresh: \(error)")
             }
         } else {
-            NSLog("[SwiftAlarmPlugin] BGTaskScheduler not available for your version of iOS lower than 13.0")
+            LocalLog.shared.log("[SwiftAlarmPlugin] BGTaskScheduler not available for your version of iOS lower than 13.0")
         }
     }
 
     /// Disables background fetch
     static func cancelBackgroundTasks() {
         if #available(iOS 13.0, *) {
-            LocalLog.shared.log("BG Fetch > cancelBackgroundTasks")
+            LocalLog.shared.log("[SwiftAlarmPlugin] call cancelBackgroundTasks()")
             BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: backgroundTaskIdentifier)
         } else {
-            NSLog("[SwiftAlarmPlugin] BGTaskScheduler not available for your version of iOS lower than 13.0")
+            LocalLog.shared.log("[SwiftAlarmPlugin] BGTaskScheduler not available for your version of iOS lower than 13.0")
         }
     }
 }
