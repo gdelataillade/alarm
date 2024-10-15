@@ -1,3 +1,6 @@
+## 4.0.4
+* [Android] Fix crash on older Android versions.
+
 ## 4.0.3
 * [Android] Fixed error when rescheduling old version alarm after reboot.
 
