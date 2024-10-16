@@ -49,23 +49,20 @@ class AlarmService : Service() {
         val id = intent.getIntExtra("id", 0)
         val action = intent.getStringExtra(AlarmReceiver.EXTRA_ALARM_ACTION)
 
-        if (ringingAlarmIds.isNotEmpty() && action != "STOP_ALARM") {
-            Log.d("AlarmService", "An alarm is already ringing. Ignoring new alarm with id: $id")
-            unsaveAlarm(id)
-            return START_NOT_STICKY
-        }
-
         if (action == "STOP_ALARM" && id != 0) {
             unsaveAlarm(id)
             return START_NOT_STICKY
         }
 
-        val assetAudioPath = intent.getStringExtra("assetAudioPath") ?: return START_NOT_STICKY
-        val loopAudio = intent.getBooleanExtra("loopAudio", true)
-        val vibrate = intent.getBooleanExtra("vibrate", true)
-        val volume = intent.getDoubleExtra("volume", -1.0)
-        val fadeDuration = intent.getDoubleExtra("fadeDuration", 0.0)
-        val fullScreenIntent = intent.getBooleanExtra("fullScreenIntent", true)
+        // Build the notification
+        val notificationHandler = NotificationHandler(this)
+        val appIntent = applicationContext.packageManager.getLaunchIntentForPackage(applicationContext.packageName)
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            id,
+            appIntent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
 
         val notificationSettingsJson = intent.getStringExtra("notificationSettings")
         val notificationSettings = if (notificationSettingsJson != null) {
@@ -77,15 +74,7 @@ class AlarmService : Service() {
             NotificationSettings(notificationTitle, notificationBody)
         }
 
-        // Handling notification
-        val notificationHandler = NotificationHandler(this)
-        val appIntent = applicationContext.packageManager.getLaunchIntentForPackage(applicationContext.packageName)
-        val pendingIntent = PendingIntent.getActivity(
-            this,
-            id,
-            appIntent,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
+        val fullScreenIntent = intent.getBooleanExtra("fullScreenIntent", true)
         val notification = notificationHandler.buildNotification(
             notificationSettings,
             fullScreenIntent,
@@ -93,7 +82,7 @@ class AlarmService : Service() {
             id
         )
 
-        // Starting foreground service safely
+        // Start the service in the foreground
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 startForeground(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
@@ -108,6 +97,21 @@ class AlarmService : Service() {
             return START_NOT_STICKY
         }
 
+        // Check if an alarm is already ringing
+        if (ringingAlarmIds.isNotEmpty() && action != "STOP_ALARM") {
+            Log.d("AlarmService", "An alarm is already ringing. Ignoring new alarm with id: $id")
+            unsaveAlarm(id)
+            return START_NOT_STICKY
+        }
+
+        // Proceed with handling the new alarm
+        val assetAudioPath = intent.getStringExtra("assetAudioPath") ?: return START_NOT_STICKY
+        val loopAudio = intent.getBooleanExtra("loopAudio", true)
+        val vibrate = intent.getBooleanExtra("vibrate", true)
+        val volume = intent.getDoubleExtra("volume", -1.0)
+        val fadeDuration = intent.getDoubleExtra("fadeDuration", 0.0)
+
+        // Notify the plugin about the alarm ringing
         AlarmPlugin.eventSink?.success(
             mapOf(
                 "id" to id,
@@ -115,12 +119,15 @@ class AlarmService : Service() {
             )
         )
 
+        // Set the volume if specified
         if (volume >= 0.0 && volume <= 1.0) {
             volumeService?.setVolume(volume, showSystemUI)
         }
 
+        // Request audio focus
         volumeService?.requestAudioFocus()
 
+        // Set up audio completion listener
         audioService?.setOnAudioCompleteListener {
             if (!loopAudio) {
                 vibrationService?.stopVibrating()
@@ -129,18 +136,21 @@ class AlarmService : Service() {
             }
         }
 
+        // Play the alarm audio
         audioService?.playAudio(id, assetAudioPath, loopAudio, fadeDuration)
 
+        // Update the list of ringing alarms
         ringingAlarmIds = audioService?.getPlayingMediaPlayersIds() ?: listOf()
 
+        // Start vibration if enabled
         if (vibrate) {
             vibrationService?.startVibrating(longArrayOf(0, 500, 500), 1)
         }
 
-        // Wake up the device
+        // Acquire a wake lock to wake up the device
         val wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager)
             .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "app:AlarmWakelockTag")
-        wakeLock.acquire(5 * 60 * 1000L) // 5 minutes
+        wakeLock.acquire(5 * 60 * 1000L) // Acquire for 5 minutes
 
         return START_STICKY
     }
