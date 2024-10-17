@@ -1,3 +1,6 @@
+## 4.0.6
+* [iOS] Fixed vibration interruption during overlapping alarms.
+
 ## 4.0.5
 * [Android] Fixed crash when incoming alarm is ignored.
 
