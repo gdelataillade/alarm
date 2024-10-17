@@ -35,9 +35,10 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     private var notificationBodyOnKill: String? = nil
 
     private var observerAdded = false
-    private var vibrate = false
     private var playSilent = false
     private var previousVolume: Float? = nil
+
+    private var vibratingAlarms: Set<Int> = []
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
@@ -262,8 +263,12 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             audioPlayer.play()
         }
 
-        self.vibrate = alarm.vibrationsEnabled
-        self.triggerVibrations()
+        if alarm.vibrationsEnabled {
+            self.vibratingAlarms.insert(id)
+            if self.vibratingAlarms.count == 1 {
+                self.triggerVibrations()
+            }
+        }
 
         if !alarm.loopAudio {
             let audioDuration = audioPlayer.duration
@@ -287,7 +292,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
 
         self.mixOtherAudios()
-        self.vibrate = false
+
+        self.vibratingAlarms.remove(id)
 
         if let previousVolume = self.previousVolume {
             self.setVolume(volume: previousVolume, enable: false)
@@ -318,10 +324,9 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     }
 
     private func triggerVibrations() {
-        if vibrate && isDevice {
+        if !self.vibratingAlarms.isEmpty && isDevice {
             AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                AudioServicesDisposeSystemSoundID(kSystemSoundID_Vibrate)
                 self.triggerVibrations()
             }
         }
