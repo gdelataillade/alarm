@@ -4,20 +4,36 @@ import UserNotifications
 class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     static let shared = NotificationManager()
 
+    private let categoryWithoutActionIdentifier = "ALARM_CATEGORY_NO_ACTION"
+    private var registeredActionCategories: Set<String> = []
+
     private override init() {
         super.init()
+        setupNotificationCategories()
+        UNUserNotificationCenter.current().delegate = self
     }
 
-    private func setupNotificationActions(stopButton: String) {
-        var actions: [UNNotificationAction] = []
-        
-        let stopAction = UNNotificationAction(identifier: "STOP_ACTION", title: stopButton, options: [.destructive])
-        actions.append(stopAction)
-        
-        let category = UNNotificationCategory(identifier: "ALARM_CATEGORY", actions: actions, intentIdentifiers: [], options: [])
-        
-        UNUserNotificationCenter.current().setNotificationCategories([category])
-        UNUserNotificationCenter.current().delegate = self
+    private func setupNotificationCategories() {
+        let categoryWithoutAction = UNNotificationCategory(identifier: categoryWithoutActionIdentifier, actions: [], intentIdentifiers: [], options: [])
+        UNUserNotificationCenter.current().setNotificationCategories([categoryWithoutAction])
+    }
+
+    private func registerCategoryIfNeeded(forActionTitle actionTitle: String) {
+        let categoryIdentifier = "ALARM_CATEGORY_WITH_ACTION_\(actionTitle)"
+
+        if registeredActionCategories.contains(categoryIdentifier) {
+            return
+        }
+
+        let action = UNNotificationAction(identifier: "STOP_ACTION", title: actionTitle, options: [.destructive])
+        let category = UNNotificationCategory(identifier: categoryIdentifier, actions: [action], intentIdentifiers: [], options: [])
+
+        UNUserNotificationCenter.current().getNotificationCategories { existingCategories in
+            var categories = existingCategories
+            categories.insert(category)
+            UNUserNotificationCenter.current().setNotificationCategories(categories)
+            self.registeredActionCategories.insert(categoryIdentifier)
+        }
     }
 
     func scheduleNotification(id: Int, delayInSeconds: Int, notificationSettings: NotificationSettings, completion: @escaping (Error?) -> Void) {
@@ -28,21 +44,24 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
                 completion(error)
                 return
             }
-            
-            if let stopButton = notificationSettings.stopButton {
-                self.setupNotificationActions(stopButton: stopButton)
-            }
-    
+
             let content = UNMutableNotificationContent()
             content.title = notificationSettings.title
             content.body = notificationSettings.body
             content.sound = nil
-            content.categoryIdentifier = "ALARM_CATEGORY"
             content.userInfo = ["id": id]
-    
+
+            if let stopButtonTitle = notificationSettings.stopButton {
+                let categoryIdentifier = "ALARM_CATEGORY_WITH_ACTION_\(stopButtonTitle)"
+                self.registerCategoryIfNeeded(forActionTitle: stopButtonTitle)
+                content.categoryIdentifier = categoryIdentifier
+            } else {
+                content.categoryIdentifier = self.categoryWithoutActionIdentifier
+            }
+
             let trigger = UNTimeIntervalNotificationTrigger(timeInterval: TimeInterval(delayInSeconds), repeats: false)
             let request = UNNotificationRequest(identifier: "alarm-\(id)", content: content, trigger: trigger)
-    
+
             UNUserNotificationCenter.current().add(request, withCompletionHandler: completion)
         }
     }
