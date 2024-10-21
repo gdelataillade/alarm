@@ -21,7 +21,7 @@ class IOSAlarm {
 
   /// Handles incoming method calls from the native platform.
   static Future<void> handleMethodCall(MethodCall call) async {
-    final arguments = call.arguments as Map<String, dynamic>;
+    final arguments = (call.arguments as Map).cast<String, dynamic>();
     final id = arguments['id'] as int?;
     if (id != null) await Alarm.reload(id);
   }
