@@ -1,3 +1,7 @@
+## 4.0.7
+* [iOS] Added iOS notification category handling.
+* [iOS] Fixed handleMethodCall cast error in IOSAlarm.
+
 ## 4.0.6
 * [iOS] Fixed vibration interruption during overlapping alarms.
 
