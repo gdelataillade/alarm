@@ -44,7 +44,7 @@ final alarmSettings = AlarmSettings(
   fadeDuration: 3.0,
   warningNotificationOnKill: Platform.isIOS,
   androidFullScreenIntent: true,
-  notificationActionSettings: const NotificationActionSettings(
+  notificationSettings: const NotificationSettings(
     title: 'This is the title',
     body: 'This is the body',
     stopButton: true,
