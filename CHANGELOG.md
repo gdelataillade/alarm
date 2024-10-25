@@ -1,4 +1,6 @@
 ## 4.0.8
+* Fixed and improved isRinging method.
+* [iOS] Add support for longer volume fade durations.
 * [iOS] Dismiss notification on alarm stop.
 
 ## 4.0.7
