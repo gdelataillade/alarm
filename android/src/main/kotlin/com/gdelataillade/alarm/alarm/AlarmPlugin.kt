@@ -70,7 +70,11 @@ class AlarmPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
             "isRinging" -> {
                 val id = call.argument<Int>("id")
                 val ringingAlarmIds = AlarmService.ringingAlarmIds
-                val isRinging = ringingAlarmIds.contains(id)
+                val isRinging = if (id == null) {
+                    ringingAlarmIds.isNotEmpty()
+                } else {
+                    ringingAlarmIds.contains(id)
+                }
                 result.success(isRinging)
             }
             "setWarningNotificationOnKill" -> {

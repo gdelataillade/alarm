@@ -77,11 +77,12 @@ class AndroidAlarm {
     }
   }
 
-  /// Checks if the alarm with given [id] is ringing.
-  static Future<bool> isRinging(int id) async {
+  /// Checks whether an alarm or any alarm (if id is null) is ringing.
+  static Future<bool> isRinging([int? id]) async {
     try {
       final res =
-          await methodChannel.invokeMethod('isRinging', {'id': id}) as bool;
+          await methodChannel.invokeMethod<bool>('isRinging', {'id': id}) ??
+              false;
       return res;
     } catch (e) {
       alarmPrint('Failed to check if alarm is ringing: $e');

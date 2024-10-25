@@ -50,12 +50,13 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 return
             }
             self.stopAlarm(id: id, cancelNotif: true, result: result)
-        case "audioCurrentTime":
-            guard let args = call.arguments as? [String: Any], let id = args["id"] as? Int else {
-                result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Error: id parameter is missing or invalid for audioCurrentTime", details: nil))
-                return
+        case "isRinging":
+            let id = call.arguments as? Int
+            if id == nil {
+                result(self.isAnyAlarmRinging())
+            } else {
+                result(self.alarms[id!]?.audioPlayer?.isPlaying ?? false)
             }
-            self.audioCurrentTime(id: id, result: result)
         case "setWarningNotificationOnKill":
             guard let args = call.arguments as? [String: Any] else {
                 result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Error: Arguments are not in the expected format for setWarningNotificationOnKill", details: nil))
@@ -379,15 +380,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
                 slider.value = volume
             }
             volumeView.removeFromSuperview()
-        }
-    }
-
-    private func audioCurrentTime(id: Int, result: FlutterResult) {
-        if let audioPlayer = self.alarms[id]?.audioPlayer {
-            let time = Double(audioPlayer.currentTime)
-            result(time)
-        } else {
-            result(0.0)
         }
     }
 

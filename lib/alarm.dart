@@ -152,9 +152,12 @@ class Alarm {
   }
 
   /// Whether the alarm is ringing.
-  static Future<bool> isRinging(int id) async => iOS
-      ? await IOSAlarm.checkIfRinging(id)
-      : await AndroidAlarm.isRinging(id);
+  ///
+  /// If no `id` is provided, it checks if any alarm is ringing.
+  /// If an `id` is provided, it checks if the specific alarm with that `id`
+  /// is ringing.
+  static Future<bool> isRinging([int? id]) async =>
+      iOS ? await IOSAlarm.isRinging(id) : await AndroidAlarm.isRinging(id);
 
   /// Whether an alarm is set.
   static bool hasAlarm() => AlarmStorage.hasAlarm();

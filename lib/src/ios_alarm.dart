@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:alarm/alarm.dart';
 import 'package:alarm/utils/alarm_exception.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 
@@ -62,9 +63,9 @@ class IOSAlarm {
       onForeground: () async {
         if (fgbgSubscriptions[id] == null) return;
 
-        final isRinging = await checkIfRinging(id);
+        final alarmIsRinging = await isRinging(id);
 
-        if (isRinging) {
+        if (alarmIsRinging) {
           disposeAlarm(id);
           Alarm.ringStream.add(settings);
         } else {
@@ -108,19 +109,20 @@ class IOSAlarm {
         .toList();
   }
 
-  /// Checks whether alarm is ringing by getting the native audio player's
-  /// current time at two different moments. If the two values are different,
-  /// it means the alarm is ringing and then returns `true`.
-  static Future<bool> checkIfRinging(int id) async {
-    final pos1 = await methodChannel
-            .invokeMethod<double?>('audioCurrentTime', {'id': id}) ??
-        0.0;
-    await Future.delayed(const Duration(milliseconds: 100), () {});
-    final pos2 = await methodChannel
-            .invokeMethod<double?>('audioCurrentTime', {'id': id}) ??
-        0.0;
+  /// Checks whether an alarm or any alarm (if id is null) is ringing.
+  static Future<bool> isRinging([int? id]) async {
+    try {
+      final res = await methodChannel.invokeMethod<bool>(
+            'isRinging',
+            {'id': id},
+          ) ??
+          false;
 
-    return pos2 > pos1;
+      return res;
+    } catch (e) {
+      debugPrint('Error checking if alarm is ringing: $e');
+      return false;
+    }
   }
 
   /// Listens when app goes foreground so we can check if alarm is ringing.
