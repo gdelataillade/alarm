@@ -79,7 +79,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         self.mixOtherAudios()
 
         guard let args = call.arguments as? [String: Any],
-              let alarmSettings = AlarmSettings.fromJson(json: args) else {
+            let alarmSettings = AlarmSettings.fromJson(json: args) else {
             let argumentsDescription = "\(call.arguments ?? "nil")"
             result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Arguments are not in the expected format: \(argumentsDescription)", details: nil))
             return
@@ -132,10 +132,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             }
 
             audioPlayer.prepareToPlay()
-
-            if alarmSettings.fadeDuration > 0.0 {
-                audioPlayer.volume = 0.01
-            }
 
             if !self.playSilent {
                 self.startSilentSound()
@@ -277,12 +273,53 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             }
         }
 
+        let currentSystemVolume = self.getSystemVolume()
+        let targetSystemVolume: Float
+
         if let volumeValue = alarm.volume {
-            self.setVolume(volume: volumeValue, enable: true)
+            targetSystemVolume = volumeValue
+            self.setVolume(volume: targetSystemVolume, enable: true)
+        } else {
+            targetSystemVolume = currentSystemVolume
         }
 
         if alarm.fadeDuration > 0.0 {
-            audioPlayer.setVolume(1.0, fadeDuration: alarm.fadeDuration)
+            audioPlayer.volume = 0.01
+            fadeVolume(audioPlayer: audioPlayer, to: 1.0, duration: alarm.fadeDuration)
+        } else {
+            audioPlayer.volume = 1.0
+        }
+    }
+
+    private func getSystemVolume() -> Float {
+        let audioSession = AVAudioSession.sharedInstance()
+        return audioSession.outputVolume
+    }
+
+    private func fadeVolume(audioPlayer: AVAudioPlayer, to targetVolume: Float, duration: TimeInterval) {
+        let fadeInterval: TimeInterval = 0.2
+        let currentVolume = audioPlayer.volume
+        let volumeDifference = targetVolume - currentVolume
+        let steps = Int(duration / fadeInterval)
+        let volumeIncrement = volumeDifference / Float(steps)
+
+        var currentStep = 0
+        Timer.scheduledTimer(withTimeInterval: fadeInterval, repeats: true) { timer in
+            NSLog("[SwiftAlarmPlugin] Is Playing: \(audioPlayer.isPlaying)")
+            if !audioPlayer.isPlaying {
+                timer.invalidate()
+                NSLog("[SwiftAlarmPlugin] Timer stopped as audioPlayer is no longer playing.")
+                return
+            }
+
+            NSLog("[SwiftAlarmPlugin] Fading volume: \(audioPlayer.volume) -> \(targetVolume) - \(100 * currentStep / steps) %")
+            if currentStep >= steps {
+                timer.invalidate()
+                audioPlayer.volume = targetVolume
+            } else {
+                audioPlayer.volume += volumeIncrement
+                currentStep += 1
+            }
         }
     }
 
