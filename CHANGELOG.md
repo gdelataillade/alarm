@@ -1,3 +1,6 @@
+## 4.0.8
+* [iOS] Dismiss notification on alarm stop.
+
 ## 4.0.7
 * [iOS] Added iOS notification category handling.
 * [iOS] Fixed handleMethodCall cast error in IOSAlarm.

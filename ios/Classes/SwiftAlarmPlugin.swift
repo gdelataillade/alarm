@@ -290,6 +290,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         if cancelNotif {
             NotificationManager.shared.cancelNotification(id: id)
         }
+        NotificationManager.shared.dismissNotification(id: id)
 
         self.mixOtherAudios()
 
