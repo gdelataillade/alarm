@@ -386,21 +386,23 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     private func backgroundFetch() {
         self.mixOtherAudios()
 
-        self.silentAudioPlayer?.pause()
-        self.silentAudioPlayer?.play()
-
         let ids = Array(self.alarms.keys)
 
         for id in ids {
-            NSLog("[SwiftAlarmPlugin] Background check alarm with id \(id)")
-            if let audioPlayer = self.alarms[id]?.audioPlayer, let dateTime = self.alarms[id]?.triggerTime {
-                let currentTime = audioPlayer.deviceCurrentTime
-                let time = currentTime + dateTime.timeIntervalSinceNow
-                audioPlayer.play(atTime: time)
-            }
-
             if let alarm = self.alarms[id], let delayInSeconds = alarm.triggerTime?.timeIntervalSinceNow {
+                if (delayInSeconds < 0){
+                    self.stopAlarm(id: id, cancelNotif: true, result: { _ in })
+                    return
+                }
+                alarm.timer?.invalidate()//fix leak timer
                 alarm.timer = Timer.scheduledTimer(timeInterval: delayInSeconds, target: self, selector: #selector(self.executeTask(_:)), userInfo: id, repeats: false)
+                
+                if let audioPlayer = self.alarms[id]?.audioPlayer {
+                    let currentTime = audioPlayer.deviceCurrentTime
+                    let time = currentTime + delayInSeconds
+                    audioPlayer.stop()//without stop(), new play(atTime) will ignore
+                    audioPlayer.play(atTime: time + 0.5)
+                }
             }
         }
     }
@@ -465,6 +467,16 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         } else {
             NSLog("[SwiftAlarmPlugin] BGTaskScheduler not available for your version of iOS lower than 13.0")
         }
+
+        //Listener Time change
+        NotificationCenter.default.addObserver(self, selector: #selector(timeZoneOrClockChanged), name: .NSSystemTimeZoneDidChange, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(timeZoneOrClockChanged), name: .NSSystemClockDidChange, object: nil)
+    }
+
+
+    @objc static func timeZoneOrClockChanged(notification: Notification) {
+        NSLog("[SwiftAlarmPlugin] Time zone or system clock changed: \(notification.name.rawValue)")
+        shared.backgroundFetch()
     }
 
     /// Enables background fetch
