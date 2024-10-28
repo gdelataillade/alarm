@@ -5,6 +5,9 @@ import com.google.gson.annotations.SerializedName
 import java.util.Date
 import io.flutter.Log
 import java.lang.reflect.Type
+import java.time.Instant
+import java.util.Calendar
+import java.util.TimeZone
 
 data class AlarmSettings(
     val id: Int,
@@ -44,7 +47,13 @@ class DateDeserializer : JsonDeserializer<Date> {
     override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): Date {
         val dateTimeMicroseconds = json?.asLong ?: 0L
         val dateTimeMilliseconds = dateTimeMicroseconds / 1000
-        return Date(dateTimeMilliseconds)
+        return createUtcDate(dateTimeMilliseconds)
+    }
+
+    private fun createUtcDate(dateTimeMilliseconds: Long): Date {
+        val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+        calendar.timeInMillis = dateTimeMilliseconds
+        return calendar.time
     }
 }
 

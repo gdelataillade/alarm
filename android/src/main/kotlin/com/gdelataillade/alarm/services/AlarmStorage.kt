@@ -9,6 +9,8 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializer
 import java.util.Date
 import io.flutter.Log
+import java.util.Calendar
+import java.util.TimeZone
 
 class AlarmStorage(context: Context) {
     companion object {
@@ -34,7 +36,9 @@ class AlarmStorage(context: Context) {
 
     fun getSavedAlarms(): List<AlarmSettings> {
         val gsonBuilder = GsonBuilder().registerTypeAdapter(Date::class.java, JsonDeserializer<Date> { json, _, _ ->
-            Date(json.asJsonPrimitive.asLong)
+            val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+            calendar.timeInMillis = json.asJsonPrimitive.asLong
+            calendar.time
         })
         val gson: Gson = gsonBuilder.create()
 
