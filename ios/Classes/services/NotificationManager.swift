@@ -25,7 +25,7 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
             return
         }
 
-        let action = UNNotificationAction(identifier: "STOP_ACTION", title: actionTitle, options: [.destructive])
+        let action = UNNotificationAction(identifier: "STOP_ACTION", title: actionTitle, options: [.foreground, .destructive])
         let category = UNNotificationCategory(identifier: categoryIdentifier, actions: [action], intentIdentifiers: [], options: [])
 
         UNUserNotificationCenter.current().getNotificationCategories { existingCategories in
