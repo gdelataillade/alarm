@@ -286,7 +286,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
         if alarm.fadeDuration > 0.0 {
             audioPlayer.volume = 0.01
-            fadeVolume(audioPlayer: audioPlayer, to: 1.0, duration: alarm.fadeDuration)
+            fadeVolume(audioPlayer: audioPlayer, duration: alarm.fadeDuration)
         } else {
             audioPlayer.volume = 1.0
         }
@@ -297,26 +297,25 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         return audioSession.outputVolume
     }
 
-    private func fadeVolume(audioPlayer: AVAudioPlayer, to targetVolume: Float, duration: TimeInterval) {
+    private func fadeVolume(audioPlayer: AVAudioPlayer, duration: TimeInterval) {
         let fadeInterval: TimeInterval = 0.2
         let currentVolume = audioPlayer.volume
-        let volumeDifference = targetVolume - currentVolume
+        let volumeDifference = 1.0 - currentVolume
         let steps = Int(duration / fadeInterval)
         let volumeIncrement = volumeDifference / Float(steps)
 
         var currentStep = 0
         Timer.scheduledTimer(withTimeInterval: fadeInterval, repeats: true) { timer in
-            NSLog("[SwiftAlarmPlugin] Is Playing: \(audioPlayer.isPlaying)")
             if !audioPlayer.isPlaying {
                 timer.invalidate()
-                NSLog("[SwiftAlarmPlugin] Timer stopped as audioPlayer is no longer playing.")
+                NSLog("[SwiftAlarmPlugin] Volume fading stopped as audioPlayer is no longer playing.")
                 return
             }
 
-            NSLog("[SwiftAlarmPlugin] Fading volume: \(audioPlayer.volume) -> \(targetVolume) - \(100 * currentStep / steps) %")
+            NSLog("[SwiftAlarmPlugin] Fading volume: \(100 * currentStep / steps)%%")
             if currentStep >= steps {
                 timer.invalidate()
-                audioPlayer.volume = targetVolume
+                audioPlayer.volume = 1.0
             } else {
                 audioPlayer.volume += volumeIncrement
                 currentStep += 1
