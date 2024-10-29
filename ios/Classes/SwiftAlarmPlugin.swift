@@ -5,7 +5,7 @@ import AudioToolbox
 import MediaPlayer
 import BackgroundTasks
 
-public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
+public class SwiftAlarmPlugin: NSObject, FlutterPlugin, FlutterApplicationLifeCycleDelegate {
     #if targetEnvironment(simulator)
         private let isDevice = false
     #else
@@ -24,6 +24,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         instance.channel = channel
         instance.registrar = registrar
         registrar.addMethodCallDelegate(instance, channel: channel)
+        registrar.addApplicationDelegate(instance)
     }
 
     private var alarms: [Int: AlarmConfiguration] = [:]
@@ -39,6 +40,14 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     private var previousVolume: Float? = nil
 
     private var vibratingAlarms: Set<Int> = []
+
+    var launchNotification: Int? = nil
+    
+    func setLaunchNotification(userInfo: [AnyHashable: Any]) {
+        if let id = userInfo["id"] as? Int {
+            self.launchNotification = id
+        }
+    }
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
@@ -57,6 +66,9 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             } else {
                 result(self.alarms[id!]?.audioPlayer?.isPlaying ?? false)
             }
+        case "getLaunchNotification":
+            result(launchNotification)
+            launchNotification = nil
         case "setWarningNotificationOnKill":
             guard let args = call.arguments as? [String: Any] else {
                 result(FlutterError(code: "NATIVE_ERR", message: "[SwiftAlarmPlugin] Error: Arguments are not in the expected format for setWarningNotificationOnKill", details: nil))

@@ -9,6 +9,7 @@ import 'package:alarm/src/ios_alarm.dart';
 import 'package:alarm/utils/alarm_exception.dart';
 import 'package:alarm/utils/extensions.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_fgbg/flutter_fgbg.dart';
 
 export 'package:alarm/model/alarm_settings.dart';
 export 'package:alarm/model/notification_settings.dart';
@@ -24,16 +25,23 @@ class Alarm {
   /// Whether it's Android device.
   static bool get android => defaultTargetPlatform == TargetPlatform.android;
 
+  /// Stream subscription to listen to foreground/background events.
+  static late StreamSubscription<FGBGType> fgbgSubscription;
+
   /// Stream of the alarm updates.
   static final updateStream = StreamController<int>();
 
   /// Stream of the ringing status.
   static final ringStream = StreamController<AlarmSettings>();
 
+  /// Stream of the notification tap.
+  static final notificationTapStream = StreamController<int>();
+
   /// Initializes Alarm services.
   ///
   /// Also calls [checkAlarm] that will reschedule alarms that were set before
-  /// app termination.
+  /// app termination. Also calls [checkOpenOnNotificationTap] to check if the
+  /// app was brought to foreground by tapping on alarm notification.
   ///
   /// Set [showDebugLogs] to `false` to hide all the logs from the plugin.
   static Future<void> init({bool showDebugLogs = true}) async {
@@ -46,6 +54,19 @@ class Alarm {
     await AlarmStorage.init();
 
     await checkAlarm();
+
+    fgbgSubscription = FGBGEvents.instance.stream.listen((event) {
+      if (event == FGBGType.foreground) checkOpenOnNotificationTap();
+    });
+  }
+
+  /// Checks if the app was opened by tapping on a notification.
+  static Future<void> checkOpenOnNotificationTap() async {
+    final id = await Alarm.getLaunchNotification();
+
+    if (id == null) return;
+
+    notificationTapStream.add(id);
   }
 
   /// Checks if some alarms were set on previous session.
@@ -151,6 +172,12 @@ class Alarm {
     }
   }
 
+  /// Gets the notification that was used to open the app.
+  static Future<int?> getLaunchNotification() async {
+    if (iOS) return IOSAlarm.getLaunchNotification();
+    return null;
+  }
+
   /// Whether the alarm is ringing.
   ///
   /// If no `id` is provided, it checks if any alarm is ringing.
@@ -182,5 +209,14 @@ class Alarm {
   static Future<void> reload(int id) async {
     await AlarmStorage.prefs.reload();
     updateStream.add(id);
+  }
+
+  /// Disposes the alarm resources if they are no longer needed.
+  static void dispose() {
+    AlarmStorage.dispose();
+    fgbgSubscription.cancel();
+    updateStream.close();
+    notificationTapStream.close();
+    ringStream.close();
   }
 }

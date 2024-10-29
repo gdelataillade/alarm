@@ -90,6 +90,11 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
         handleAction(withIdentifier: response.actionIdentifier, for: response.notification)
+        
+        if let id = response.notification.request.content.userInfo["id"] {
+            SwiftAlarmPlugin.shared.setLaunchNotification(userInfo: ["id": id])
+        }
+
         completionHandler()
     }
 

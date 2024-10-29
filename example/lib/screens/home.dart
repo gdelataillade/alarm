@@ -23,6 +23,7 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
 
   static StreamSubscription<AlarmSettings>? ringSubscription;
   static StreamSubscription<int>? updateSubscription;
+  static StreamSubscription<int>? notificationTapSubscription;
 
   @override
   void initState() {
@@ -36,6 +37,11 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
     updateSubscription ??= Alarm.updateStream.stream.listen((_) {
       loadAlarms();
     });
+    notificationTapSubscription ??= Alarm.notificationTapStream.stream.listen(
+      (id) {
+        alarmPrint('App opened through notification of alarm: $id');
+      },
+    );
   }
 
   void loadAlarms() {
@@ -83,6 +89,7 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
   void dispose() {
     ringSubscription?.cancel();
     updateSubscription?.cancel();
+    notificationTapSubscription?.cancel();
     super.dispose();
   }
 
