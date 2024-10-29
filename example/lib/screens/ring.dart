@@ -24,11 +24,11 @@ class _ExampleAlarmRingScreenState extends State<ExampleAlarmRingScreen> {
 
       final isRinging = await Alarm.isRinging(widget.alarmSettings.id);
       if (isRinging) {
-        debugPrint('Alarm ${widget.alarmSettings.id} is still ringing...');
+        alarmPrint('Alarm ${widget.alarmSettings.id} is still ringing...');
         return;
       }
 
-      debugPrint('Alarm ${widget.alarmSettings.id} stopped ringing.');
+      alarmPrint('Alarm ${widget.alarmSettings.id} stopped ringing.');
       timer.cancel();
       if (mounted) Navigator.pop(context);
     });
