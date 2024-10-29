@@ -20,6 +20,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
   late bool loopAudio;
   late bool vibrate;
   late double? volume;
+  late double fadeDuration;
   late String assetAudio;
 
   @override
@@ -33,12 +34,14 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       loopAudio = true;
       vibrate = true;
       volume = null;
+      fadeDuration = 0;
       assetAudio = 'assets/marimba.mp3';
     } else {
       selectedDateTime = widget.alarmSettings!.dateTime;
       loopAudio = widget.alarmSettings!.loopAudio;
       vibrate = widget.alarmSettings!.vibrate;
       volume = widget.alarmSettings!.volume;
+      fadeDuration = widget.alarmSettings!.fadeDuration;
       assetAudio = widget.alarmSettings!.assetAudioPath;
     }
   }
@@ -94,6 +97,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       loopAudio: loopAudio,
       vibrate: vibrate,
       volume: volume,
+      fadeDuration: fadeDuration,
       assetAudioPath: assetAudio,
       warningNotificationOnKill: Platform.isIOS,
       notificationSettings: NotificationSettings(
@@ -251,30 +255,49 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
               ),
             ],
           ),
-          SizedBox(
-            height: 30,
-            child: volume != null
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Icon(
-                        volume! > 0.7
-                            ? Icons.volume_up_rounded
-                            : volume! > 0.1
-                                ? Icons.volume_down_rounded
-                                : Icons.volume_mute_rounded,
-                      ),
-                      Expanded(
-                        child: Slider(
-                          value: volume!,
-                          onChanged: (value) {
-                            setState(() => volume = value);
-                          },
-                        ),
-                      ),
-                    ],
-                  )
-                : const SizedBox(),
+          if (volume != null)
+            SizedBox(
+              height: 45,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Icon(
+                    volume! > 0.7
+                        ? Icons.volume_up_rounded
+                        : volume! > 0.1
+                            ? Icons.volume_down_rounded
+                            : Icons.volume_mute_rounded,
+                  ),
+                  Expanded(
+                    child: Slider(
+                      value: volume!,
+                      onChanged: (value) {
+                        setState(() => volume = value);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Fade duration',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              DropdownButton<double>(
+                value: fadeDuration,
+                items: List.generate(
+                  6,
+                  (index) => DropdownMenuItem<double>(
+                    value: index * 3.0,
+                    child: Text('${index * 3}s'),
+                  ),
+                ),
+                onChanged: (value) => setState(() => fadeDuration = value!),
+              ),
+            ],
           ),
           if (!creating)
             TextButton(
