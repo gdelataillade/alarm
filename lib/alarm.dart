@@ -172,19 +172,18 @@ class Alarm {
     }
   }
 
-  /// Gets the notification that was used to open the app.
-  static Future<int?> getLaunchNotification() async {
-    if (iOS) return IOSAlarm.getLaunchNotification();
-    return null;
-  }
+  /// Gets the notification id that was used to open the app.
+  static Future<int?> getLaunchNotification() => iOS
+      ? IOSAlarm.getLaunchNotification()
+      : AndroidAlarm.getLaunchNotification();
 
   /// Whether the alarm is ringing.
   ///
   /// If no `id` is provided, it checks if any alarm is ringing.
   /// If an `id` is provided, it checks if the specific alarm with that `id`
   /// is ringing.
-  static Future<bool> isRinging([int? id]) async =>
-      iOS ? await IOSAlarm.isRinging(id) : await AndroidAlarm.isRinging(id);
+  static Future<bool> isRinging([int? id]) =>
+      iOS ? IOSAlarm.isRinging(id) : AndroidAlarm.isRinging(id);
 
   /// Whether an alarm is set.
   static bool hasAlarm() => AlarmStorage.hasAlarm();

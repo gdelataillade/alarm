@@ -77,6 +77,12 @@ class AlarmPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                 }
                 result.success(isRinging)
             }
+            "getLaunchNotification" -> {
+                val alarmStorage = AlarmStorage(context)
+                val alarmId = alarmStorage.getAndClearAlarmLaunchId()
+
+                result.success(alarmId ?: null)
+            }
             "setWarningNotificationOnKill" -> {
                 val title = call.argument<String>("title")
                 val body = call.argument<String>("body")
