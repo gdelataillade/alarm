@@ -15,6 +15,7 @@ class AlarmSettings {
     this.loopAudio = true,
     this.vibrate = true,
     this.volume,
+    this.volumeEnforced = false,
     this.fadeDuration = 0.0,
     this.warningNotificationOnKill = true,
     this.androidFullScreenIntent = true,
@@ -53,6 +54,7 @@ class AlarmSettings {
       loopAudio: json['loopAudio'] as bool? ?? true,
       vibrate: json['vibrate'] as bool? ?? true,
       volume: json['volume'] as double?,
+      volumeEnforced: json['volumeEnforced'] as bool? ?? false,
       fadeDuration: json['fadeDuration'] as double? ?? 0.0,
       warningNotificationOnKill: warningNotificationOnKill,
       androidFullScreenIntent: json['androidFullScreenIntent'] as bool? ?? true,
@@ -112,6 +114,14 @@ class AlarmSettings {
   /// Defaults to `null`.
   final double? volume;
 
+  /// If true, the alarm volume is enforced, automatically resetting to the
+  /// original alarm [volume] if the user attempts to adjust it.
+  /// This prevents the user from lowering the alarm volume.
+  /// Won't work if app is killed.
+  ///
+  /// Defaults to false.
+  final bool volumeEnforced;
+
   /// Duration, in seconds, over which to fade the alarm ringtone.
   /// Set to 0.0 by default, which means no fade.
   final double fadeDuration;
@@ -148,6 +158,7 @@ class AlarmSettings {
     hash = hash ^ loopAudio.hashCode;
     hash = hash ^ vibrate.hashCode;
     hash = hash ^ volume.hashCode;
+    hash = hash ^ volumeEnforced.hashCode;
     hash = hash ^ fadeDuration.hashCode;
     hash = hash ^ warningNotificationOnKill.hashCode;
     hash = hash ^ androidFullScreenIntent.hashCode;
@@ -166,6 +177,7 @@ class AlarmSettings {
     bool? loopAudio,
     bool? vibrate,
     double? volume,
+    bool? volumeEnforced,
     double? fadeDuration,
     String? notificationTitle,
     String? notificationBody,
@@ -180,6 +192,7 @@ class AlarmSettings {
       loopAudio: loopAudio ?? this.loopAudio,
       vibrate: vibrate ?? this.vibrate,
       volume: volume ?? this.volume,
+      volumeEnforced: volumeEnforced ?? this.volumeEnforced,
       fadeDuration: fadeDuration ?? this.fadeDuration,
       warningNotificationOnKill:
           warningNotificationOnKill ?? this.warningNotificationOnKill,
@@ -197,6 +210,7 @@ class AlarmSettings {
         'loopAudio': loopAudio,
         'vibrate': vibrate,
         'volume': volume,
+        'volumeEnforced': volumeEnforced,
         'fadeDuration': fadeDuration,
         'warningNotificationOnKill': warningNotificationOnKill,
         'androidFullScreenIntent': androidFullScreenIntent,

@@ -35,7 +35,8 @@ class _ExampleAlarmHomeShortcutButtonState
       id: DateTime.now().millisecondsSinceEpoch % 10000,
       dateTime: dateTime,
       assetAudioPath: 'assets/marimba.mp3',
-      volume: volume,
+      volume: 0.5,
+      volumeEnforced: true,
       notificationSettings: NotificationSettings(
         title: 'Alarm example',
         body: 'Shortcut button alarm with delay of $delayInHours hours',
