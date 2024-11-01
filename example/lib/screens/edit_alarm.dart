@@ -21,6 +21,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
   late bool vibrate;
   late double? volume;
   late double fadeDuration;
+  late bool staircaseFade;
   late String assetAudio;
 
   @override
@@ -35,6 +36,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       vibrate = true;
       volume = null;
       fadeDuration = 0;
+      staircaseFade = false;
       assetAudio = 'assets/marimba.mp3';
     } else {
       selectedDateTime = widget.alarmSettings!.dateTime;
@@ -42,6 +44,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       vibrate = widget.alarmSettings!.vibrate;
       volume = widget.alarmSettings!.volume;
       fadeDuration = widget.alarmSettings!.fadeDuration;
+      staircaseFade = widget.alarmSettings!.fadeStopTimes.isNotEmpty;
       assetAudio = widget.alarmSettings!.assetAudioPath;
     }
   }
@@ -98,6 +101,8 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       vibrate: vibrate,
       volume: volume,
       fadeDuration: fadeDuration,
+      fadeStopTimes: staircaseFade ? [0, 15, 20, 30] : [],
+      fadeStopVolumes: staircaseFade ? [0.0, 0.03, 0.5, 1.0] : [],
       assetAudioPath: assetAudio,
       warningNotificationOnKill: Platform.isIOS,
       notificationSettings: NotificationSettings(
@@ -291,11 +296,24 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
                 items: List.generate(
                   6,
                   (index) => DropdownMenuItem<double>(
-                    value: index * 3.0,
-                    child: Text('${index * 3}s'),
+                    value: index * 5.0,
+                    child: Text('${index * 5}s'),
                   ),
                 ),
                 onChanged: (value) => setState(() => fadeDuration = value!),
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Staircase fade',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              Switch(
+                value: staircaseFade,
+                onChanged: (value) => setState(() => staircaseFade = value),
               ),
             ],
           ),

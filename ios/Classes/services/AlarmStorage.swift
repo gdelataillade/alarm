@@ -9,7 +9,7 @@ class AlarmStorage {
     func saveAlarm(alarmSettings: AlarmSettings) {
         let key = "\(AlarmStorage.prefix)\(alarmSettings.id)"
         if let encoded = try? JSONEncoder().encode(alarmSettings) {
-            if let jsonString = String(data: encoded, encoding: .utf8) {
+            if String(data: encoded, encoding: .utf8) != nil {
                 userDefaults.set(encoded, forKey: key)
             } else {
                 print("[AlarmStorage] Failed to convert Data to JSON String")

@@ -50,33 +50,18 @@ class _ExampleAlarmRingScreenState extends State<ExampleAlarmRingScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 RawMaterialButton(
-                  onPressed: () {
-                    final now = DateTime.now();
-                    Alarm.set(
-                      alarmSettings: widget.alarmSettings.copyWith(
-                        dateTime: DateTime(
-                          now.year,
-                          now.month,
-                          now.day,
-                          now.hour,
-                          now.minute,
-                        ).add(const Duration(minutes: 1)),
-                      ),
-                    ).then((_) {
-                      if (context.mounted) Navigator.pop(context);
-                    });
-                  },
+                  onPressed: () async => Alarm.set(
+                    alarmSettings: widget.alarmSettings.copyWith(
+                      dateTime: DateTime.now().add(const Duration(minutes: 1)),
+                    ),
+                  ),
                   child: Text(
                     'Snooze',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ),
                 RawMaterialButton(
-                  onPressed: () {
-                    Alarm.stop(widget.alarmSettings.id).then((_) {
-                      if (context.mounted) Navigator.pop(context);
-                    });
-                  },
+                  onPressed: () async => Alarm.stop(widget.alarmSettings.id),
                   child: Text(
                     'Stop',
                     style: Theme.of(context).textTheme.titleLarge,

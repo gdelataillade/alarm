@@ -1,6 +1,6 @@
 import 'package:alarm/model/notification_settings.dart';
 import 'package:alarm/src/generated/platform_bindings.g.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/foundation.dart';
 
 /// [AlarmSettings] is a model that contains all the settings to customize
 /// and set an alarm.
@@ -17,6 +17,8 @@ class AlarmSettings {
     this.volume,
     this.volumeEnforced = false,
     this.fadeDuration = 0.0,
+    this.fadeStopTimes = const [],
+    this.fadeStopVolumes = const [],
     this.warningNotificationOnKill = true,
     this.androidFullScreenIntent = true,
   });
@@ -72,6 +74,14 @@ class AlarmSettings {
       volume: json['volume'] as double?,
       volumeEnforced: json['volumeEnforced'] as bool? ?? false,
       fadeDuration: json['fadeDuration'] as double? ?? 0.0,
+      fadeStopTimes: (json['fadeStopTimes'] as List<dynamic>?)
+              ?.map((e) => e as double)
+              .toList(growable: false) ??
+          [],
+      fadeStopVolumes: (json['fadeStopVolumes'] as List<dynamic>?)
+              ?.map((e) => e as double)
+              .toList(growable: false) ??
+          [],
       warningNotificationOnKill: warningNotificationOnKill,
       androidFullScreenIntent: json['androidFullScreenIntent'] as bool? ?? true,
     );
@@ -142,6 +152,31 @@ class AlarmSettings {
   /// Set to 0.0 by default, which means no fade.
   final double fadeDuration;
 
+  /// Together with [fadeStopVolumes] controls how the alarm volume will fade
+  /// over time.
+  ///
+  /// Set to empty list by default, which means no fade.
+  ///
+  /// Must have positive values and the same length as [fadeStopVolumes].
+  ///
+  /// Example:
+  ///    fadeStopTimes = [0, 10, 20]
+  ///    fadeStopVolumes = [0, 0.5, 1.0]
+  /// The alarm will begin silent, fade to 50% of max volume by 10 seconds,
+  /// and fade to max volume by 20 seconds.
+  final List<double> fadeStopTimes;
+
+  /// Together with [fadeStopTimes] controls how the alarm volume will fade
+  /// over time.
+  ///
+  /// Set to empty list by default, which means no fade.
+  ///
+  /// Must have values that are in [0, 1] and have the same length as
+  /// [fadeStopTimes].
+  ///
+  /// See [fadeStopTimes] for more information.
+  final List<double> fadeStopVolumes;
+
   /// Whether to show a warning notification when application is killed by user.
   ///
   /// - **Android**: the alarm should still trigger even if the app is killed,
@@ -191,6 +226,8 @@ class AlarmSettings {
     hash = hash ^ volume.hashCode;
     hash = hash ^ volumeEnforced.hashCode;
     hash = hash ^ fadeDuration.hashCode;
+    hash = hash ^ Object.hashAll(fadeStopTimes);
+    hash = hash ^ Object.hashAll(fadeStopVolumes);
     hash = hash ^ warningNotificationOnKill.hashCode;
     hash = hash ^ androidFullScreenIntent.hashCode;
     hash = hash & 0x3fffffff;
@@ -210,6 +247,8 @@ class AlarmSettings {
     double? volume,
     bool? volumeEnforced,
     double? fadeDuration,
+    List<double>? fadeStopTimes,
+    List<double>? fadeStopVolumes,
     String? notificationTitle,
     String? notificationBody,
     bool? warningNotificationOnKill,
@@ -225,6 +264,8 @@ class AlarmSettings {
       volume: volume ?? this.volume,
       volumeEnforced: volumeEnforced ?? this.volumeEnforced,
       fadeDuration: fadeDuration ?? this.fadeDuration,
+      fadeStopTimes: fadeStopTimes ?? this.fadeStopTimes,
+      fadeStopVolumes: fadeStopVolumes ?? this.fadeStopVolumes,
       warningNotificationOnKill:
           warningNotificationOnKill ?? this.warningNotificationOnKill,
       androidFullScreenIntent:
@@ -243,6 +284,8 @@ class AlarmSettings {
         'volume': volume,
         'volumeEnforced': volumeEnforced,
         'fadeDuration': fadeDuration,
+        'fadeStopTimes': fadeStopTimes,
+        'fadeStopVolumes': fadeStopVolumes,
         'warningNotificationOnKill': warningNotificationOnKill,
         'androidFullScreenIntent': androidFullScreenIntent,
       };
@@ -271,6 +314,8 @@ class AlarmSettings {
           vibrate == other.vibrate &&
           volume == other.volume &&
           fadeDuration == other.fadeDuration &&
+          listEquals(fadeStopTimes, other.fadeStopTimes) &&
+          listEquals(fadeStopVolumes, other.fadeStopVolumes) &&
           warningNotificationOnKill == other.warningNotificationOnKill &&
           androidFullScreenIntent == other.androidFullScreenIntent;
 }

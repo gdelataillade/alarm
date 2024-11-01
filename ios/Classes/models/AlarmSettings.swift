@@ -8,6 +8,8 @@ struct AlarmSettings: Codable {
     let vibrate: Bool
     let volume: Double?
     let fadeDuration: Double
+    let fadeStopTimes: [Double]
+    let fadeStopVolumes: [Float]
     let warningNotificationOnKill: Bool
     let androidFullScreenIntent: Bool
     let notificationSettings: NotificationSettings
@@ -36,6 +38,8 @@ struct AlarmSettings: Codable {
               let loopAudio = json["loopAudio"] as? Bool,
               let vibrate = json["vibrate"] as? Bool,
               let fadeDuration = json["fadeDuration"] as? Double,
+              let fadeStopTimes = json["fadeStopTimes"] as? [Double],
+              let fadeStopVolumes = json["fadeStopVolumes"] as? [Double],
               let warningNotificationOnKill = json["warningNotificationOnKill"] as? Bool,
               let androidFullScreenIntent = json["androidFullScreenIntent"] as? Bool,
               let notificationSettingsDict = json["notificationSettings"] as? [String: Any]
@@ -60,6 +64,8 @@ struct AlarmSettings: Codable {
             vibrate: vibrate,
             volume: volume,
             fadeDuration: fadeDuration,
+            fadeStopTimes: fadeStopTimes,
+            fadeStopVolumes: fadeStopVolumes.map { Float($0) },
             warningNotificationOnKill: warningNotificationOnKill,
             androidFullScreenIntent: androidFullScreenIntent,
             notificationSettings: notificationSettings,
@@ -73,8 +79,8 @@ struct AlarmSettings: Codable {
         let dateTimeMicros = timestamp * microsecondsPerSecond
 
         // Ensure the microseconds value does not overflow Int64 and is within a valid range
-        let maxValidMicroseconds: Double = 9_223_372_036_854_775
-        let safeDateTimeMicros = dateTimeMicros <= maxValidMicroseconds ? Int64(dateTimeMicros) : Int64(maxValidMicroseconds)
+        let maxValidMicroseconds: Int64 = 9223372036854775
+        let safeDateTimeMicros = Int64(dateTimeMicros) <= maxValidMicroseconds ? Int64(dateTimeMicros) : Int64(maxValidMicroseconds)
 
         return [
             "id": alarmSettings.id,
@@ -82,9 +88,11 @@ struct AlarmSettings: Codable {
             "assetAudioPath": alarmSettings.assetAudioPath,
             "loopAudio": alarmSettings.loopAudio,
             "vibrate": alarmSettings.vibrate,
-            "volume": alarmSettings.volume,
+            "volume": alarmSettings.volume as Any,
             "volumeEnforced": alarmSettings.volumeEnforced,
             "fadeDuration": alarmSettings.fadeDuration,
+            "fadeStopTimes": alarmSettings.fadeStopTimes,
+            "fadeStopVolumes": alarmSettings.fadeStopVolumes,
             "warningNotificationOnKill": alarmSettings.warningNotificationOnKill,
             "androidFullScreenIntent": alarmSettings.androidFullScreenIntent,
             "notificationSettings": NotificationSettings.toJson(notificationSettings: alarmSettings.notificationSettings)
