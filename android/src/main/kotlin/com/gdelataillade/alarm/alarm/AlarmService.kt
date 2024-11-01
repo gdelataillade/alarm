@@ -98,6 +98,14 @@ class AlarmService : Service() {
         } catch (e: SecurityException) {
             Log.e("AlarmService", "Security exception in starting foreground service", e)
             return START_NOT_STICKY
+        } catch (e: Exception) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (e is ForegroundServiceStartNotAllowedException) {
+                    Log.e("AlarmService", "Foreground service start not allowed", e)
+                    return START_NOT_STICKY
+                }
+            }
+            throw e
         }
 
         // Check if an alarm is already ringing
@@ -118,6 +126,8 @@ class AlarmService : Service() {
         val volume = intent.getDoubleExtra("volume", -1.0)
         val volumeEnforced = intent.getBooleanExtra("volumeEnforced", false)
         val fadeDuration = intent.getDoubleExtra("fadeDuration", 0.0)
+        val fadeStopTimes = intent.getSerializableExtra("fadeStopTimes") as? ArrayList<Double> ?: arrayListOf()
+        val fadeStopVolumes = intent.getSerializableExtra("fadeStopVolumes") as? ArrayList<Double> ?: arrayListOf()
 
         // Notify the plugin about the alarm ringing
         AlarmPlugin.alarmTriggerApi?.alarmRang(id.toLong()) {
@@ -142,7 +152,7 @@ class AlarmService : Service() {
         }
 
         // Play the alarm audio
-        audioService?.playAudio(id, assetAudioPath, loopAudio, fadeDuration)
+        audioService?.playAudio(id, assetAudioPath, loopAudio, fadeDuration, fadeStopTimes, fadeStopVolumes)
 
         // Update the list of ringing alarms
         ringingAlarmIds = audioService?.getPlayingMediaPlayersIds() ?: listOf()

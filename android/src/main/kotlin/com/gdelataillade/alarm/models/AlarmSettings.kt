@@ -16,6 +16,8 @@ data class AlarmSettings(
     val volume: Double?,
     val volumeEnforced: Boolean = false,
     val fadeDuration: Double,
+    val fadeStopTimes: List<Double>,
+    val fadeStopVolumes: List<Double>,
     val warningNotificationOnKill: Boolean,
     val androidFullScreenIntent: Boolean
 ) {
