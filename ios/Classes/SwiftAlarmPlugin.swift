@@ -104,7 +104,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             vibrationsEnabled: alarmSettings.vibrate,
             loopAudio: alarmSettings.loopAudio,
             fadeDuration: alarmSettings.fadeDuration,
-            volume: volumeFloat
+            volume: volumeFloat,
+            volumeEnforced: alarmSettings.volumeEnforced
         )
 
         self.alarms[id] = alarmConfig
@@ -290,6 +291,16 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         } else {
             audioPlayer.volume = 1.0
         }
+
+        if alarm.volumeEnforced {
+            alarm.volumeEnforcementTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
+                guard let self = self else { return }
+                let currentSystemVolume = self.getSystemVolume()
+                if abs(currentSystemVolume - targetSystemVolume) > 0.01 {
+                    self.setVolume(volume: targetSystemVolume, enable: false)
+                }
+            }
+        }
     }
 
     private func getSystemVolume() -> Float {
@@ -341,6 +352,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             alarm.timer?.invalidate()
             alarm.task?.cancel()
             alarm.audioPlayer?.stop()
+            alarm.volumeEnforcementTimer?.invalidate()
             self.alarms.removeValue(forKey: id)
         }
 

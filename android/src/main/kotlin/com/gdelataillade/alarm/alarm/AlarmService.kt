@@ -109,7 +109,10 @@ class AlarmService : Service() {
         val loopAudio = intent.getBooleanExtra("loopAudio", true)
         val vibrate = intent.getBooleanExtra("vibrate", true)
         val volume = intent.getDoubleExtra("volume", -1.0)
+        val volumeEnforced = intent.getBooleanExtra("volumeEnforced", false)
         val fadeDuration = intent.getDoubleExtra("fadeDuration", 0.0)
+
+        Log.d("AlarmService", "volume enforced: $volumeEnforced")
 
         // Notify the plugin about the alarm ringing
         AlarmPlugin.eventSink?.success(
@@ -121,7 +124,7 @@ class AlarmService : Service() {
 
         // Set the volume if specified
         if (volume >= 0.0 && volume <= 1.0) {
-            volumeService?.setVolume(volume, showSystemUI)
+            volumeService?.setVolume(volume, volumeEnforced, showSystemUI)
         }
 
         // Request audio focus

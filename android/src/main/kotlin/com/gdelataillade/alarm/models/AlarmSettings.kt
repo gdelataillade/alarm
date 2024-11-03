@@ -14,6 +14,7 @@ data class AlarmSettings(
     val loopAudio: Boolean,
     val vibrate: Boolean,
     val volume: Double?,
+    val volumeEnforced: Boolean = false,
     val fadeDuration: Double,
     val warningNotificationOnKill: Boolean,
     val androidFullScreenIntent: Boolean

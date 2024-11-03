@@ -11,6 +11,7 @@ struct AlarmSettings: Codable {
     let warningNotificationOnKill: Bool
     let androidFullScreenIntent: Bool
     let notificationSettings: NotificationSettings
+    let volumeEnforced: Bool
 
     static func fromJson(json: [String: Any]) -> AlarmSettings? {
         guard let id = json["id"] as? Int,
@@ -29,10 +30,11 @@ struct AlarmSettings: Codable {
         let maxValidMicroseconds: Int64 = 9223372036854775 // Corresponding to year 2262
         let safeDateTimeMicros = min(dateTimeMicros, maxValidMicroseconds)
         
-        let dateTime = Date(timeIntervalSince1970: TimeInterval(safeDateTimeMicros) / 1_000_000)
-        let volume = json["volume"] as? Double
+        let dateTime: Date = Date(timeIntervalSince1970: TimeInterval(safeDateTimeMicros) / 1_000_000)
+        let volume: Double? = json["volume"] as? Double
         let notificationSettings = NotificationSettings.fromJson(json: notificationSettingsDict)
-        
+        let volumeEnforced: Bool = json["volumeEnforced"] as? Bool ?? false
+
         return AlarmSettings(
             id: id,
             dateTime: dateTime,
@@ -43,7 +45,8 @@ struct AlarmSettings: Codable {
             fadeDuration: fadeDuration,
             warningNotificationOnKill: warningNotificationOnKill,
             androidFullScreenIntent: androidFullScreenIntent,
-            notificationSettings: notificationSettings
+            notificationSettings: notificationSettings,
+            volumeEnforced: volumeEnforced
         )
     }
 
@@ -63,6 +66,7 @@ struct AlarmSettings: Codable {
             "loopAudio": alarmSettings.loopAudio,
             "vibrate": alarmSettings.vibrate,
             "volume": alarmSettings.volume,
+            "volumeEnforced": alarmSettings.volumeEnforced,
             "fadeDuration": alarmSettings.fadeDuration,
             "warningNotificationOnKill": alarmSettings.warningNotificationOnKill,
             "androidFullScreenIntent": alarmSettings.androidFullScreenIntent,
