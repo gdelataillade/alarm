@@ -1,3 +1,7 @@
+## 4.0.9
+* Added new alarm parameter `volumeEnforced`.
+* [iOS] Reopen killed app when tap on notification stop button.
+
 ## 4.0.8
 * Fixed and improved isRinging method.
 * [iOS] Add support for longer volume fade durations.

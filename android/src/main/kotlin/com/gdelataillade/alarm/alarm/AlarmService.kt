@@ -112,8 +112,6 @@ class AlarmService : Service() {
         val volumeEnforced = intent.getBooleanExtra("volumeEnforced", false)
         val fadeDuration = intent.getDoubleExtra("fadeDuration", 0.0)
 
-        Log.d("AlarmService", "volume enforced: $volumeEnforced")
-
         // Notify the plugin about the alarm ringing
         AlarmPlugin.eventSink?.success(
             mapOf(
