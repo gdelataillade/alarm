@@ -178,7 +178,7 @@ class AlarmPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         intent.putExtra("volume", call.argument<Double>("volume"))
         intent.putExtra("volumeEnforced", call.argument<Boolean>("volumeEnforced") ?: false)
         intent.putExtra("fadeDuration", call.argument<Double>("fadeDuration") ?: 0.0)
-        intent.putExtra("fullScreenIntent", call.argument<Boolean>("fullScreenIntent") ?: true)
+        intent.putExtra("fullScreenIntent", call.argument<Boolean>("androidFullScreenIntent") ?: true)
 
         val notificationSettingsMap = call.argument<Map<String, Any>>("notificationSettings")
         val gson = Gson()
