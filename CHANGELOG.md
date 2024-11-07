@@ -1,3 +1,6 @@
+## 4.0.10
+* [Android] Fixed `androidFullScreenIntent` parameter.
+
 ## 4.0.9
 * Added new alarm parameter `volumeEnforced`.
 * [iOS] Reopen killed app when tap on notification stop button.
