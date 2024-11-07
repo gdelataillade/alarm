@@ -29,6 +29,7 @@ flutter pub add alarm
 
 First, you have to initialize the Alarm service in your `main` function:
 ```Dart
+WidgetsFlutterBinding.ensureInitialized();
 await Alarm.init()
 ```
 
