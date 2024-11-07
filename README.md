@@ -47,7 +47,7 @@ final alarmSettings = AlarmSettings(
   notificationSettings: const NotificationSettings(
     title: 'This is the title',
     body: 'This is the body',
-    stopButton: true,
+    stopButton: 'Stop the alarm',
     icon: 'notification_icon',
   ),
 );
