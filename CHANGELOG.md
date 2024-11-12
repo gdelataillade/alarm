@@ -1,3 +1,6 @@
+## 4.0.11
+* [iOS] Fixed `isRinging` method.
+
 ## 4.0.10
 * [Android] Fixed `androidFullScreenIntent` parameter.
 
