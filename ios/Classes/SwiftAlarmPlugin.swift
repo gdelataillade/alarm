@@ -51,11 +51,11 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             }
             self.stopAlarm(id: id, cancelNotif: true, result: result)
         case "isRinging":
-            let id = call.arguments as? Int
-            if id == nil {
-                result(self.isAnyAlarmRinging())
+            if let arguments = call.arguments as? [String: Any],
+               let id = arguments["id"] as? Int {
+                result(self.alarms[id]?.audioPlayer?.isPlaying ?? false)
             } else {
-                result(self.alarms[id!]?.audioPlayer?.isPlaying ?? false)
+                result(self.isAnyAlarmRinging())
             }
         case "setWarningNotificationOnKill":
             guard let args = call.arguments as? [String: Any] else {
