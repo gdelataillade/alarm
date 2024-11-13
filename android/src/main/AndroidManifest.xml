@@ -16,14 +16,16 @@
         android:name=".BootReceiver"
         android:enabled="true"
         android:exported="true">
-        <intent-filter>
-            <action android:name="android.intent.action.BOOT_COMPLETED" />
-        </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.BOOT_COMPLETED" />
+        <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+        <action android:name="android.intent.action.TIME_SET" />
+      </intent-filter>
     </receiver>
     <service
-      android:name=".AlarmService"
-      android:exported="false"
-      android:foregroundServiceType="mediaPlayback">
+        android:name=".AlarmService"
+        android:exported="false"
+        android:foregroundServiceType="mediaPlayback">
     </service>
   </application>
 </manifest>

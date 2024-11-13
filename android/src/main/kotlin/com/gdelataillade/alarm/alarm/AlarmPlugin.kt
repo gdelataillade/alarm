@@ -109,6 +109,7 @@ class AlarmPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                 if (alarm != null) {
                     val alarmIntent = createAlarmIntent(contextToUse, call, alarm.id)
                     val delayInSeconds = (alarm.dateTime.time - System.currentTimeMillis()) / 1000
+                    android.util.Log.d("BootReceiver", "setAlarm() ID: ${alarm.id} - date=[${alarm.dateTime.time}] SCT=[${System.currentTimeMillis()}] - delayInSeconds=[$delayInSeconds]")
 
                     if (delayInSeconds <= 5) {
                         handleImmediateAlarm(contextToUse, alarmIntent, delayInSeconds.toInt())
@@ -135,30 +136,32 @@ class AlarmPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         }
     }
 
-    fun stopAlarm(id: Int, result: MethodChannel.Result? = null) {
+    fun stopAlarm(id: Int, result: MethodChannel.Result? = null, customContext: Context? = null) {
+        val contextToUse = customContext ?: context
+
         if (AlarmService.ringingAlarmIds.contains(id)) {
-            val stopIntent = Intent(context, AlarmService::class.java)
+            val stopIntent = Intent(contextToUse, AlarmService::class.java)
             stopIntent.action = "STOP_ALARM"
             stopIntent.putExtra("id", id)
-            context.stopService(stopIntent)
+            contextToUse.stopService(stopIntent)
         }
 
         // Intent to cancel the future alarm if it's set
-        val alarmIntent = Intent(context, AlarmReceiver::class.java)
+        val alarmIntent = Intent(contextToUse, AlarmReceiver::class.java)
         val pendingIntent = PendingIntent.getBroadcast(
-            context,
+            contextToUse,
             id,
             alarmIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
         // Cancel the future alarm using AlarmManager
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val alarmManager = contextToUse.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         alarmManager.cancel(pendingIntent)
 
         alarmIds.remove(id)
         if (alarmIds.isEmpty() && notifOnKillEnabled) {
-            disableWarningNotificationOnKill(context)
+            disableWarningNotificationOnKill(contextToUse)
         }
 
         result?.success(true)
