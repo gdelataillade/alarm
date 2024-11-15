@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:alarm/alarm.dart';
+import 'package:alarm/local_log.dart';
 import 'package:alarm_example/screens/edit_alarm.dart';
 import 'package:alarm_example/screens/ring.dart';
 import 'package:alarm_example/screens/shortcut_button.dart';
@@ -49,8 +50,7 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
     await Navigator.push(
       context,
       MaterialPageRoute<void>(
-        builder: (context) =>
-            ExampleAlarmRingScreen(alarmSettings: alarmSettings),
+        builder: (context) => ExampleAlarmRingScreen(alarmSettings: alarmSettings),
       ),
     );
     loadAlarms();
@@ -86,11 +86,18 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
     super.dispose();
   }
 
+  Future<void> openLocalLog() async {
+    LocalLog.showLogScreen(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('alarm $version'),
+        title: InkWell(
+          onTap: openLocalLog,
+          child: const Text('alarm $version'),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.menu_book_rounded),

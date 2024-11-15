@@ -24,6 +24,8 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         instance.channel = channel
         instance.registrar = registrar
         registrar.addMethodCallDelegate(instance, channel: channel)
+
+        LocalLog.shared.register(with: registrar)
     }
 
     private var alarms: [Int: AlarmConfiguration] = [:]
