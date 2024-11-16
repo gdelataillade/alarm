@@ -18,7 +18,6 @@ public class LocalLog: NSObject {
     }
     
     private func appendLogToFile(message: String) {
-
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
         let currentDateTime = Date()
@@ -56,18 +55,31 @@ public class LocalLog: NSObject {
     }
     
     private func getNativeLogLines(result: @escaping FlutterResult) {
-        if let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+        let fileManager = FileManager.default
+        if let dir = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
             let fileURL = dir.appendingPathComponent(logFileName)
+
+            //crearte file if not exist
+            if !fileManager.fileExists(atPath: fileURL.path) {
+                do {
+                    try "".write(to: fileURL, atomically: true, encoding: .utf8)
+                } catch {
+                    NSLog("Error creating log file : \(error)")
+                    result(FlutterError(code: "NATIVE_ERR", message: "Failed to create log file", details: error.localizedDescription))
+                    return
+                }
+            }
+
             do {
                 let logContent = try String(contentsOf: fileURL, encoding: .utf8)
                 let logLines = logContent.split(separator: "\n").filter { !$0.isEmpty }
                 result(logLines)
             } catch {
                 NSLog("Error read log file : \(error)")
-                result(FlutterError(code: "UNAVAILABLE", message: "No log file", details: nil))
+                result(FlutterError(code: "NATIVE_ERR", message: "No log file", details: nil))
             }
         } else {
-            result(FlutterError(code: "UNAVAILABLE", message: "No log file", details: nil))
+            result(FlutterError(code: "NATIVE_ERR", message: "No log file", details: nil))
         }
     }
     
@@ -76,7 +88,7 @@ public class LocalLog: NSObject {
             let fileURL = dir.appendingPathComponent(logFileName)
             result(fileURL.path)
         } else {
-            result(FlutterError(code: "UNAVAILABLE", message: "No log file", details: nil))
+            result(FlutterError(code: "NATIVE_ERR", message: "No log file", details: nil))
         }
     }
 }
