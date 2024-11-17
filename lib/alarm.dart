@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:alarm/model/alarm_settings.dart';
 import 'package:alarm/service/alarm_storage.dart';
+import 'package:alarm/src/alarm_trigger_api_impl.dart';
 import 'package:alarm/src/android_alarm.dart';
 import 'package:alarm/src/ios_alarm.dart';
 import 'package:alarm/utils/alarm_exception.dart';
@@ -41,8 +42,8 @@ class Alarm {
       if (showDebugLogs) print('[Alarm] $message');
     };
 
-    if (android) AndroidAlarm.init();
-    if (iOS) IOSAlarm.init();
+    AlarmTriggerApiImpl.ensureInitialized();
+
     await AlarmStorage.init();
 
     await checkAlarm();

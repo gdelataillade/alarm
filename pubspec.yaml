@@ -11,12 +11,14 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_fgbg: ^0.6.0
-  shared_preferences: ^2.3.2
+  plugin_platform_interface: ^2.1.8
+  shared_preferences: ^2.3.3
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  very_good_analysis: ^5.1.0
+  pigeon: ^22.6.1
+  very_good_analysis: ^6.0.0
 
 flutter:
   assets:

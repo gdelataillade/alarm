@@ -10,16 +10,15 @@ import com.google.gson.Gson
 import android.app.Service
 import android.app.PendingIntent
 import android.app.ForegroundServiceStartNotAllowedException
+import android.app.Notification
 import android.content.Intent
 import android.content.Context
 import android.content.pm.ServiceInfo
 import android.os.IBinder
 import android.os.PowerManager
 import android.os.Build
+import com.gdelataillade.alarm.services.NotificationHandler
 import io.flutter.Log
-import io.flutter.embedding.engine.dart.DartExecutor
-import io.flutter.embedding.engine.FlutterEngine
-import org.json.JSONObject
 
 class AlarmService : Service() {
     private var audioService: AudioService? = null
@@ -56,7 +55,8 @@ class AlarmService : Service() {
 
         // Build the notification
         val notificationHandler = NotificationHandler(this)
-        val appIntent = applicationContext.packageManager.getLaunchIntentForPackage(applicationContext.packageName)
+        val appIntent =
+            applicationContext.packageManager.getLaunchIntentForPackage(applicationContext.packageName)
         val pendingIntent = PendingIntent.getActivity(
             this,
             id,
@@ -84,14 +84,16 @@ class AlarmService : Service() {
 
         // Start the service in the foreground
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                startForeground(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                try {
+                    startAlarmService(id, notification)
+                } catch (e: ForegroundServiceStartNotAllowedException) {
+                    Log.e("AlarmService", "Foreground service start not allowed", e)
+                    return START_NOT_STICKY
+                }
             } else {
-                startForeground(id, notification)
+                startAlarmService(id, notification)
             }
-        } catch (e: ForegroundServiceStartNotAllowedException) {
-            Log.e("AlarmService", "Foreground service start not allowed", e)
-            return START_NOT_STICKY
         } catch (e: SecurityException) {
             Log.e("AlarmService", "Security exception in starting foreground service", e)
             return START_NOT_STICKY
@@ -113,15 +115,12 @@ class AlarmService : Service() {
         val fadeDuration = intent.getDoubleExtra("fadeDuration", 0.0)
 
         // Notify the plugin about the alarm ringing
-        AlarmPlugin.eventSink?.success(
-            mapOf(
-                "id" to id,
-                "method" to "ring"
-            )
-        )
+        AlarmPlugin.alarmTriggerApi?.alarmRang(id.toLong()) {
+            Log.d("AlarmService", "Flutter was notified that alarm $id is ringing.")
+        }
 
         // Set the volume if specified
-        if (volume >= 0.0 && volume <= 1.0) {
+        if (volume in 0.0..1.0) {
             volumeService?.setVolume(volume, volumeEnforced, showSystemUI)
         }
 
@@ -156,16 +155,27 @@ class AlarmService : Service() {
         return START_STICKY
     }
 
-    fun unsaveAlarm(id: Int) {
+    private fun startAlarmService(id: Int, notification: Notification) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(
+                id,
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
+            )
+        } else {
+            startForeground(id, notification)
+        }
+    }
+
+    private fun unsaveAlarm(id: Int) {
         AlarmStorage(this).unsaveAlarm(id)
-        AlarmPlugin.eventSink?.success(mapOf(
-            "id" to id,
-            "method" to "stop"
-        ))
+        AlarmPlugin.alarmTriggerApi?.alarmStopped(id.toLong()) {
+            Log.d("AlarmService", "Flutter was notified that alarm $id was stopped.")
+        }
         stopAlarm(id)
     }
 
-    fun stopAlarm(id: Int) {
+    private fun stopAlarm(id: Int) {
         try {
             val playingIds = audioService?.getPlayingMediaPlayersIds() ?: listOf()
             ringingAlarmIds = playingIds

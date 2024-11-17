@@ -1,8 +1,8 @@
+import 'package:alarm/src/generated/platform_bindings.g.dart';
 import 'package:flutter/widgets.dart';
 
-@immutable
-
 /// Model for notification settings.
+@immutable
 class NotificationSettings {
   /// Constructs an instance of `NotificationSettings`.
   ///
@@ -13,6 +13,13 @@ class NotificationSettings {
     this.stopButton,
     this.icon,
   });
+
+  /// Converts from wire datatype.
+  NotificationSettings.fromWire(NotificationSettingsWire wire)
+      : title = wire.title,
+        body = wire.body,
+        stopButton = wire.stopButton,
+        icon = wire.icon;
 
   /// Constructs an instance of `NotificationSettings` from a JSON object.
   factory NotificationSettings.fromJson(Map<String, dynamic> json) =>
@@ -57,6 +64,14 @@ class NotificationSettings {
   /// If `null`, the default app icon will be used.
   /// Defaults to `null`.
   final String? icon;
+
+  /// Converts to wire datatype which is used for host platform communication.
+  NotificationSettingsWire toWire() => NotificationSettingsWire(
+        title: title,
+        body: body,
+        stopButton: stopButton,
+        icon: icon,
+      );
 
   /// Converts the `NotificationSettings` instance to a JSON object.
   Map<String, dynamic> toJson() => {

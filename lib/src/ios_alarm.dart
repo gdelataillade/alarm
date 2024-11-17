@@ -1,31 +1,20 @@
 import 'dart:async';
 
 import 'package:alarm/alarm.dart';
+import 'package:alarm/src/generated/platform_bindings.g.dart';
 import 'package:alarm/utils/alarm_exception.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 
 /// Uses method channel to interact with the native platform.
 class IOSAlarm {
-  /// Method channel for the alarm.
-  static const methodChannel = MethodChannel('com.gdelataillade/alarm');
+  static final AlarmApi _api = AlarmApi();
 
   /// Map of alarm timers.
   static Map<int, Timer?> timers = {};
 
   /// Map of foreground/background subscriptions.
   static Map<int, StreamSubscription<FGBGType>?> fgbgSubscriptions = {};
-
-  /// Initializes the method call handler.
-  static void init() => methodChannel.setMethodCallHandler(handleMethodCall);
-
-  /// Handles incoming method calls from the native platform.
-  static Future<void> handleMethodCall(MethodCall call) async {
-    final arguments = (call.arguments as Map).cast<String, dynamic>();
-    final id = arguments['id'] as int?;
-    if (id != null) await Alarm.reload(id);
-  }
 
   /// Calls the native function `setAlarm` and listens to alarm ring state.
   ///
@@ -34,17 +23,10 @@ class IOSAlarm {
   static Future<bool> setAlarm(AlarmSettings settings) async {
     final id = settings.id;
     try {
-      final res = await methodChannel.invokeMethod<bool?>(
-            'setAlarm',
-            settings.toJson(),
-          ) ??
-          false;
-
+      await _api.setAlarm(alarmSettings: settings.toWire());
       alarmPrint(
-        '''Alarm with id $id scheduled ${res ? 'successfully' : 'failed'} at ${settings.dateTime}''',
+        'Alarm with id $id scheduled successfully at ${settings.dateTime}',
       );
-
-      if (!res) return false;
     } catch (e) {
       await Alarm.stop(id);
       throw AlarmException(e.toString());
@@ -86,38 +68,21 @@ class IOSAlarm {
   /// and calls the native `stopAlarm` function.
   static Future<bool> stopAlarm(int id) async {
     disposeAlarm(id);
-
-    final res = await methodChannel.invokeMethod<bool?>(
-          'stopAlarm',
-          {'id': id},
-        ) ??
-        false;
-
-    if (res) alarmPrint('Alarm with id $id stopped');
-
-    return res;
-  }
-
-  /// Returns the list of saved alarms stored locally.
-  static Future<List<AlarmSettings>> getSavedAlarms() async {
-    final res = await methodChannel
-            .invokeMethod<List<AlarmSettings>?>('getSavedAlarms') ??
-        [];
-
-    return res
-        .map((e) => AlarmSettings.fromJson(e as Map<String, dynamic>))
-        .toList();
+    try {
+      await _api.stopAlarm(alarmId: id);
+      alarmPrint('Alarm with id $id stopped');
+      return true;
+    } catch (e) {
+      alarmPrint('Failed to stop alarm $id.');
+    }
+    return false;
   }
 
   /// Checks whether an alarm or any alarm (if id is null) is ringing.
   static Future<bool> isRinging([int? id]) async {
     try {
-      final res = await methodChannel.invokeMethod<bool?>(
-        'isRinging',
-        {'id': id},
-      );
-
-      return res ?? false;
+      final res = await _api.isRinging(alarmId: id);
+      return res;
     } catch (e) {
       debugPrint('Error checking if alarm is ringing: $e');
       return false;
@@ -148,10 +113,7 @@ class IOSAlarm {
 
   /// Sets the native notification on app kill title and body.
   static Future<void> setWarningNotificationOnKill(String title, String body) =>
-      methodChannel.invokeMethod<void>(
-        'setWarningNotificationOnKill',
-        {'title': title, 'body': body},
-      );
+      _api.setWarningNotificationOnKill(title: title, body: body);
 
   /// Disposes alarm timer.
   static void disposeTimer(int id) {

@@ -5,7 +5,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import io.flutter.Log
 
 class AlarmReceiver : BroadcastReceiver() {
     companion object {
@@ -24,7 +23,12 @@ class AlarmReceiver : BroadcastReceiver() {
         serviceIntent.putExtras(intent)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val pendingIntent = PendingIntent.getForegroundService(context, 1, serviceIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+            val pendingIntent = PendingIntent.getForegroundService(
+                context,
+                1,
+                serviceIntent,
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            )
             pendingIntent.send()
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(serviceIntent)

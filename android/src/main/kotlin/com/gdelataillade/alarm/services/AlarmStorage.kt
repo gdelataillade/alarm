@@ -16,7 +16,8 @@ class AlarmStorage(context: Context) {
         private const val PREFIX = "flutter.__alarm_id__"
     }
 
-    private val prefs: SharedPreferences = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+    private val prefs: SharedPreferences =
+        context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
 
     fun saveAlarm(alarmSettings: AlarmSettings) {
         val key = "$PREFIX${alarmSettings.id}"
@@ -33,9 +34,10 @@ class AlarmStorage(context: Context) {
     }
 
     fun getSavedAlarms(): List<AlarmSettings> {
-        val gsonBuilder = GsonBuilder().registerTypeAdapter(Date::class.java, JsonDeserializer<Date> { json, _, _ ->
-            Date(json.asJsonPrimitive.asLong)
-        })
+        val gsonBuilder =
+            GsonBuilder().registerTypeAdapter(Date::class.java, JsonDeserializer { json, _, _ ->
+                Date(json.asJsonPrimitive.asLong)
+            })
         val gson: Gson = gsonBuilder.create()
 
         val alarms = mutableListOf<AlarmSettings>()
