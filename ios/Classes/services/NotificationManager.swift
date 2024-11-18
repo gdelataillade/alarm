@@ -7,7 +7,7 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     private let categoryWithoutActionIdentifier = "ALARM_CATEGORY_NO_ACTION"
     private var registeredActionCategories: Set<String> = []
 
-    private override init() {
+    override private init() {
         super.init()
         setupNotificationCategories()
         UNUserNotificationCenter.current().delegate = self
@@ -82,7 +82,7 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         switch identifier {
         case "STOP_ACTION":
             NSLog("[NotificationManager] Stop action triggered for notification: \(notification.request.identifier)")
-            SwiftAlarmPlugin.shared.unsaveAlarm(id: id)
+            SwiftAlarmPlugin.unsaveAlarm(id: id)
         default:
             break
         }
