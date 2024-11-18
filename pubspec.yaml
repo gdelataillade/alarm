@@ -1,6 +1,6 @@
 name: alarm
 description: A simple Flutter alarm manager plugin for both iOS and Android.
-version: 4.0.11
+version: 4.0.12
 homepage: https://github.com/gdelataillade/alarm
 
 environment:
