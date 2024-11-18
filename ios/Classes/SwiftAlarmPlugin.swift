@@ -53,7 +53,9 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         case "isRinging":
             if let arguments = call.arguments as? [String: Any],
                let id = arguments["id"] as? Int {
-                result(self.alarms[id]?.audioPlayer?.isPlaying ?? false)
+                let isPlaying = self.alarms[id]?.audioPlayer?.isPlaying ?? false
+                let currentTime = self.alarms[id]?.audioPlayer?.currentTime ?? 0.0
+                result(isPlaying && currentTime > 0)
             } else {
                 result(self.isAnyAlarmRinging())
             }
