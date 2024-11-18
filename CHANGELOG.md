@@ -1,3 +1,6 @@
+## 4.0.12
+* [iOS] Fixed `isRinging` method for specific `id`.
+
 ## 4.0.11
 * [iOS] Fixed `isRinging` method.
 

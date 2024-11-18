@@ -112,13 +112,12 @@ class IOSAlarm {
   /// Checks whether an alarm or any alarm (if id is null) is ringing.
   static Future<bool> isRinging([int? id]) async {
     try {
-      final res = await methodChannel.invokeMethod<bool>(
-            'isRinging',
-            {'id': id},
-          ) ??
-          false;
+      final res = await methodChannel.invokeMethod<bool?>(
+        'isRinging',
+        {'id': id},
+      );
 
-      return res;
+      return res ?? false;
     } catch (e) {
       debugPrint('Error checking if alarm is ringing: $e');
       return false;
