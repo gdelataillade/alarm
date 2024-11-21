@@ -27,6 +27,11 @@ class IOSAlarm {
     if (id != null) await Alarm.reload(id);
   }
 
+  /// Calls the native function `getLaunchNotification`.
+  static Future<int?> getLaunchNotification() async {
+    return methodChannel.invokeMethod<int?>('getLaunchNotification');
+  }
+
   /// Calls the native function `setAlarm` and listens to alarm ring state.
   ///
   /// Also set periodic timer and listens for app state changes to trigger

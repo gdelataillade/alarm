@@ -44,6 +44,11 @@ class AndroidAlarm {
     );
   }
 
+  /// Calls the native function `getLaunchNotification`.
+  static Future<int?> getLaunchNotification() async {
+    return methodChannel.invokeMethod<int?>('getLaunchNotification');
+  }
+
   /// Schedules a native alarm with given [settings] with its notification.
   static Future<bool> set(AlarmSettings settings) async {
     try {

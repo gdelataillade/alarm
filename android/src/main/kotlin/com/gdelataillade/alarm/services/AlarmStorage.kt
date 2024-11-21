@@ -12,7 +12,7 @@ import io.flutter.Log
 
 class AlarmStorage(context: Context) {
     companion object {
-        private const val PREFS_NAME = "alarm_prefs"
+        // Prefix shared with the Flutter side to identify alarm settings in shared preferences.
         private const val PREFIX = "flutter.__alarm_id__"
     }
 
@@ -56,5 +56,24 @@ class AlarmStorage(context: Context) {
             }
         }
         return alarms
+    }
+
+    fun saveAlarmLaunchId(alarmId: Int) {
+        val editor = prefs.edit()
+        editor.putInt("launch_alarm_id", alarmId)
+        editor.apply()
+    }
+
+    fun getAndClearAlarmLaunchId(): Int? {
+        val key = "launch_alarm_id"
+        val value = prefs.all[key]
+        return if (value is Int) {
+            prefs.edit().remove(key).apply()
+            value
+        } else {
+            // TODO: To remove
+            Log.e("AlarmStorage", "Expected an Int for key $key but found ${value?.javaClass?.simpleName}")
+            null
+        }
     }
 }
