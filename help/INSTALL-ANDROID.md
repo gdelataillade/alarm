@@ -35,15 +35,6 @@ Then, add the following permissions to your `AndroidManifest.xml` within the `<m
 See more details on Android permissions [here](https://developer.android.com/reference/android/Manifest.permission).
 
 ## Step 3
-Finally, if you want your notifications to show in full screen even when the device is locked (`androidFullScreenIntent` parameter), add these attributes in `<activity>`:
-
-```xml
-<activity
-    android:showWhenLocked="true"
-    android:turnScreenOn="true">
-```
-
-## Step 4
 Inside the <application> tag of your `AndroidManifest.xml`, add the following declarations (if you need notification-on-kill feature):
 ```xml
 <application>
@@ -55,7 +46,7 @@ Inside the <application> tag of your `AndroidManifest.xml`, add the following de
 
 Necessary if you want to enable an optional notification with `Alarm.setWarningNotificationOnKill` to alert users if the app is terminated, hinting at a rare chance the alarm may not work.
 
-## Step 5
+## Step 4
 To guarantee that your alarm's foreground service can trigger when the app is in the background, it's recommanded to verify and request the necessary permission for scheduling exact alarms on Android 12+ devices. This step is particularly important due to varying device policies.
 
 Leverage the [permission_handler](https://pub.dev/packages/permission_handler) package to check and request this permission seamlessly within your Flutter application. Here's an example to integrate into your code:
@@ -72,7 +63,7 @@ Future<void> checkAndroidScheduleExactAlarmPermission() async {
 }
 ```
 
-## Step 6
+## Step 5
 If you want to use the `androidFullScreenIntent` feature, some OEM (Samsung, Honor, Huawei, Xiaomi, Oppo, Asus, etc...) will require to grant the [auto_start_flutter](https://pub.dev/packages/auto_start_flutter) permission.
 
 ## Additional Resources
