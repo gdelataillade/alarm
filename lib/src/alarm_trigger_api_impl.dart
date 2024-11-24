@@ -17,8 +17,8 @@ class AlarmTriggerApiImpl extends AlarmTriggerApi {
   }
 
   @override
-  void alarmRang(int alarmId) {
-    final settings = Alarm.getAlarm(alarmId);
+  Future<void> alarmRang(int alarmId) async {
+    final settings = await Alarm.getAlarm(alarmId);
     if (settings == null) {
       return;
     }

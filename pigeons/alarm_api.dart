@@ -204,6 +204,7 @@ abstract class AlarmApi {
 // become available. See: https://github.com/flutter/flutter/issues/66711
 @FlutterApi()
 abstract class AlarmTriggerApi {
+  @async
   void alarmRang(int alarmId);
 
   @async

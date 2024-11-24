@@ -6,6 +6,7 @@ import 'package:alarm/model/alarm_settings.dart';
 import 'package:alarm/service/alarm_storage.dart';
 import 'package:alarm/src/alarm_trigger_api_impl.dart';
 import 'package:alarm/src/android_alarm.dart';
+import 'package:alarm/src/generated/platform_bindings.g.dart';
 import 'package:alarm/src/ios_alarm.dart';
 import 'package:alarm/utils/alarm_exception.dart';
 import 'package:alarm/utils/extensions.dart';
@@ -44,15 +45,13 @@ class Alarm {
 
     AlarmTriggerApiImpl.ensureInitialized();
 
-    await AlarmStorage.init();
-
     await checkAlarm();
   }
 
   /// Checks if some alarms were set on previous session.
   /// If it's the case then reschedules them.
   static Future<void> checkAlarm() async {
-    final alarms = getAlarms();
+    final alarms = await getAlarms();
 
     if (iOS) await stopAll();
 
@@ -74,7 +73,9 @@ class Alarm {
   static Future<bool> set({required AlarmSettings alarmSettings}) async {
     alarmSettingsValidation(alarmSettings);
 
-    for (final alarm in getAlarms()) {
+    final alarms = await getAlarms();
+
+    for (final alarm in alarms) {
       if (alarm.id == alarmSettings.id ||
           alarm.dateTime.isSameSecond(alarmSettings.dateTime)) {
         await Alarm.stop(alarm.id);
@@ -83,40 +84,54 @@ class Alarm {
 
     await AlarmStorage.saveAlarm(alarmSettings);
 
-    if (iOS) return IOSAlarm.setAlarm(alarmSettings);
-    if (android) return AndroidAlarm.set(alarmSettings);
+    final success = iOS
+        ? await IOSAlarm.setAlarm(alarmSettings)
+        : await AndroidAlarm.set(alarmSettings);
 
-    updateStream.add(alarmSettings.id);
+    if (success) {
+      updateStream.add(alarmSettings.id);
+    }
 
-    return false;
+    return success;
   }
 
   /// Validates [alarmSettings] fields.
   static void alarmSettingsValidation(AlarmSettings alarmSettings) {
     if (alarmSettings.id == 0 || alarmSettings.id == -1) {
       throw AlarmException(
-        'Alarm id cannot be 0 or -1. Provided: ${alarmSettings.id}',
+        AlarmErrorCode.invalidArguments,
+        message: 'Alarm id cannot be 0 or -1. Provided: ${alarmSettings.id}',
       );
     }
     if (alarmSettings.id > 2147483647) {
       throw AlarmException(
-        '''Alarm id cannot be set larger than Int max value (2147483647). Provided: ${alarmSettings.id}''',
+        AlarmErrorCode.invalidArguments,
+        message:
+            'Alarm id cannot be set larger than Int max value (2147483647). '
+            'Provided: ${alarmSettings.id}',
       );
     }
     if (alarmSettings.id < -2147483648) {
       throw AlarmException(
-        '''Alarm id cannot be set smaller than Int min value (-2147483648). Provided: ${alarmSettings.id}''',
+        AlarmErrorCode.invalidArguments,
+        message:
+            'Alarm id cannot be set smaller than Int min value (-2147483648). '
+            'Provided: ${alarmSettings.id}',
       );
     }
     if (alarmSettings.volume != null &&
         (alarmSettings.volume! < 0 || alarmSettings.volume! > 1)) {
       throw AlarmException(
-        'Volume must be between 0 and 1. Provided: ${alarmSettings.volume}',
+        AlarmErrorCode.invalidArguments,
+        message: 'Volume must be between 0 and 1. '
+            'Provided: ${alarmSettings.volume}',
       );
     }
     if (alarmSettings.fadeDuration < 0) {
       throw AlarmException(
-        '''Fade duration must be positive. Provided: ${alarmSettings.fadeDuration}''',
+        AlarmErrorCode.invalidArguments,
+        message: 'Fade duration must be positive. '
+            'Provided: ${alarmSettings.fadeDuration}',
       );
     }
   }
@@ -130,9 +145,12 @@ class Alarm {
   ///
   /// [body] default value is `You killed the app.
   /// Please reopen so your alarm can ring.`
-  static void setWarningNotificationOnKill(String title, String body) {
-    if (iOS) IOSAlarm.setWarningNotificationOnKill(title, body);
-    if (android) AndroidAlarm.setWarningNotificationOnKill(title, body);
+  static Future<void> setWarningNotificationOnKill(
+    String title,
+    String body,
+  ) async {
+    if (iOS) await IOSAlarm.setWarningNotificationOnKill(title, body);
+    if (android) await AndroidAlarm.setWarningNotificationOnKill(title, body);
   }
 
   /// Stops alarm.
@@ -145,7 +163,7 @@ class Alarm {
 
   /// Stops all the alarms.
   static Future<void> stopAll() async {
-    final alarms = getAlarms();
+    final alarms = await getAlarms();
 
     for (final alarm in alarms) {
       await stop(alarm.id);
@@ -161,11 +179,11 @@ class Alarm {
       iOS ? await IOSAlarm.isRinging(id) : await AndroidAlarm.isRinging(id);
 
   /// Whether an alarm is set.
-  static bool hasAlarm() => AlarmStorage.hasAlarm();
+  static Future<bool> hasAlarm() => AlarmStorage.hasAlarm();
 
   /// Returns alarm by given id. Returns null if not found.
-  static AlarmSettings? getAlarm(int id) {
-    final alarms = getAlarms();
+  static Future<AlarmSettings?> getAlarm(int id) async {
+    final alarms = await getAlarms();
 
     for (final alarm in alarms) {
       if (alarm.id == id) return alarm;
@@ -176,12 +194,14 @@ class Alarm {
   }
 
   /// Returns all the alarms.
-  static List<AlarmSettings> getAlarms() => AlarmStorage.getSavedAlarms();
+  static Future<List<AlarmSettings>> getAlarms() =>
+      AlarmStorage.getSavedAlarms();
 
   /// Reloads the shared preferences instance in the case modifications
   /// were made in the native code, after a notification action.
   static Future<void> reload(int id) async {
-    await AlarmStorage.prefs.reload();
+    // TODO(orkun1675): Remove this function and publish stream updates for
+    // alarm start/stop events.
     updateStream.add(id);
   }
 }

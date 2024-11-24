@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:alarm/alarm.dart';
 import 'package:alarm/src/generated/platform_bindings.g.dart';
 import 'package:alarm/utils/alarm_exception.dart';
+import 'package:alarm/utils/alarm_handler.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 
@@ -23,13 +24,15 @@ class IOSAlarm {
   static Future<bool> setAlarm(AlarmSettings settings) async {
     final id = settings.id;
     try {
-      await _api.setAlarm(alarmSettings: settings.toWire());
+      await _api
+          .setAlarm(alarmSettings: settings.toWire())
+          .catchError(AlarmExceptionHandlers.catchError<void>);
       alarmPrint(
         'Alarm with id $id scheduled successfully at ${settings.dateTime}',
       );
-    } catch (e) {
+    } on AlarmException catch (_) {
       await Alarm.stop(id);
-      throw AlarmException(e.toString());
+      rethrow;
     }
 
     if (timers[id] != null && timers[id]!.isActive) timers[id]!.cancel();
@@ -69,21 +72,25 @@ class IOSAlarm {
   static Future<bool> stopAlarm(int id) async {
     disposeAlarm(id);
     try {
-      await _api.stopAlarm(alarmId: id);
+      await _api
+          .stopAlarm(alarmId: id)
+          .catchError(AlarmExceptionHandlers.catchError<void>);
       alarmPrint('Alarm with id $id stopped');
       return true;
-    } catch (e) {
-      alarmPrint('Failed to stop alarm $id.');
+    } on AlarmException catch (e) {
+      alarmPrint('Failed to stop alarm $id. $e');
+      return false;
     }
-    return false;
   }
 
   /// Checks whether an alarm or any alarm (if id is null) is ringing.
   static Future<bool> isRinging([int? id]) async {
     try {
-      final res = await _api.isRinging(alarmId: id);
+      final res = await _api
+          .isRinging(alarmId: id)
+          .catchError(AlarmExceptionHandlers.catchError<bool>);
       return res;
-    } catch (e) {
+    } on AlarmException catch (e) {
       debugPrint('Error checking if alarm is ringing: $e');
       return false;
     }
@@ -113,7 +120,9 @@ class IOSAlarm {
 
   /// Sets the native notification on app kill title and body.
   static Future<void> setWarningNotificationOnKill(String title, String body) =>
-      _api.setWarningNotificationOnKill(title: title, body: body);
+      _api
+          .setWarningNotificationOnKill(title: title, body: body)
+          .catchError(AlarmExceptionHandlers.catchError<void>);
 
   /// Disposes alarm timer.
   static void disposeTimer(int id) {
