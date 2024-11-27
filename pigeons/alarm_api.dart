@@ -200,8 +200,6 @@ abstract class AlarmApi {
   void disableWarningNotificationOnKill();
 }
 
-// TODO(orkun1675): Consider migrating to Pigeon type-safe channels when they
-// become available. See: https://github.com/flutter/flutter/issues/66711
 @FlutterApi()
 abstract class AlarmTriggerApi {
   @async

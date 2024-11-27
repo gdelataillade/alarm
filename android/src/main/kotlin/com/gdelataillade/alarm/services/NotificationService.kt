@@ -1,5 +1,6 @@
 package com.gdelataillade.alarm.services
 
+import android.annotation.SuppressLint
 import com.gdelataillade.alarm.models.NotificationSettings
 import android.app.Notification
 import android.app.NotificationChannel
@@ -37,6 +38,8 @@ class NotificationHandler(private val context: Context) {
         }
     }
 
+    // We need to use [Resources.getIdentifier] because resources are registered by Flutter.
+    @SuppressLint("DiscouragedApi")
     fun buildNotification(
         notificationSettings: NotificationSettings,
         fullScreen: Boolean,

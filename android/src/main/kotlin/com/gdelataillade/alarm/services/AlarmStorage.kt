@@ -12,13 +12,14 @@ import io.flutter.Log
 
 class AlarmStorage(context: Context) {
     companion object {
-        private const val PREFS_NAME = "alarm_prefs"
         private const val PREFIX = "flutter.__alarm_id__"
     }
 
     private val prefs: SharedPreferences =
         context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
 
+    // TODO(gdelataillade): Ensure this function is called and alarms are rescheduled after device
+    //                      reboot.
     fun saveAlarm(alarmSettings: AlarmSettings) {
         val key = "$PREFIX${alarmSettings.id}"
         val editor = prefs.edit()

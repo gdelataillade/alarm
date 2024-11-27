@@ -21,21 +21,22 @@ class AlarmStorage {
   /// notification on app kill body.
   static const notificationOnAppKillBody = 'notificationOnAppKillBody';
 
+  static final _prefs = SharedPreferencesAsync();
+
   /// Saves alarm info in local storage so we can restore it later
   /// in the case app is terminated.
   static Future<void> saveAlarm(AlarmSettings alarmSettings) =>
-      SharedPreferencesAsync().setString(
+      _prefs.setString(
         '$prefix${alarmSettings.id}',
         json.encode(alarmSettings.toJson()),
       );
 
   /// Removes alarm from local storage.
-  static Future<void> unsaveAlarm(int id) =>
-      SharedPreferencesAsync().remove('$prefix$id');
+  static Future<void> unsaveAlarm(int id) => _prefs.remove('$prefix$id');
 
   /// Whether at least one alarm is set.
   static Future<bool> hasAlarm() async {
-    final keys = await SharedPreferencesAsync().getKeys();
+    final keys = await _prefs.getKeys();
 
     for (final key in keys) {
       if (key.startsWith(prefix)) return true;
@@ -48,11 +49,11 @@ class AlarmStorage {
   /// and we need to restore previously scheduled alarms.
   static Future<List<AlarmSettings>> getSavedAlarms() async {
     final alarms = <AlarmSettings>[];
-    final keys = await SharedPreferencesAsync().getKeys();
+    final keys = await _prefs.getKeys();
 
     for (final key in keys) {
       if (key.startsWith(prefix)) {
-        final res = await SharedPreferencesAsync().getString(key);
+        final res = await _prefs.getString(key);
         alarms.add(
           AlarmSettings.fromJson(json.decode(res!) as Map<String, dynamic>),
         );
