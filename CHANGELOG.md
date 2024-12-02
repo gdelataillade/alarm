@@ -1,3 +1,6 @@
+## 4.1.0
+* Migrated to Pigeon.
+
 ## 4.0.12
 * [iOS] Fixed `isRinging` method for specific `id`.
 
