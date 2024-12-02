@@ -34,17 +34,11 @@ class AlarmStorage(context: Context) {
     }
 
     fun getSavedAlarms(): List<AlarmSettings> {
-        val gsonBuilder =
-            GsonBuilder().registerTypeAdapter(Date::class.java, JsonDeserializer { json, _, _ ->
-                Date(json.asJsonPrimitive.asLong)
-            })
-        val gson: Gson = gsonBuilder.create()
-
         val alarms = mutableListOf<AlarmSettings>()
         prefs.all.forEach { (key, value) ->
             if (key.startsWith(PREFIX) && value is String) {
                 try {
-                    val alarm = gson.fromJson(value, AlarmSettings::class.java)
+                    val alarm = AlarmSettings.fromJson(value)
                     if (alarm != null) {
                         alarms.add(alarm)
                     } else {

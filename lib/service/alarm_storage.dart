@@ -28,6 +28,8 @@ class AlarmStorage {
   /// Stream subscription to listen to foreground/background events.
   static late StreamSubscription<FGBGType> _fgbgSubscription;
 
+  static bool _initialized = false;
+
   /// Initializes shared preferences instance.
   static Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
@@ -36,21 +38,36 @@ class AlarmStorage {
     /// were made in the native code, after a notification action.
     _fgbgSubscription =
         FGBGEvents.instance.stream.listen((event) => _prefs.reload());
+
+    _initialized = true;
+  }
+
+  static Future<void> _waitUntilInitialized() async {
+    while (!_initialized) {
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
   }
 
   /// Saves alarm info in local storage so we can restore it later
   /// in the case app is terminated.
-  static Future<void> saveAlarm(AlarmSettings alarmSettings) =>
-      _prefs.setString(
-        '$prefix${alarmSettings.id}',
-        json.encode(alarmSettings.toJson()),
-      );
+  static Future<void> saveAlarm(AlarmSettings alarmSettings) async {
+    await _waitUntilInitialized();
+    await _prefs.setString(
+      '$prefix${alarmSettings.id}',
+      json.encode(alarmSettings.toJson()),
+    );
+  }
 
   /// Removes alarm from local storage.
-  static Future<void> unsaveAlarm(int id) => _prefs.remove('$prefix$id');
+  static Future<void> unsaveAlarm(int id) async {
+    await _waitUntilInitialized();
+    await _prefs.remove('$prefix$id');
+  }
 
   /// Whether at least one alarm is set.
   static Future<bool> hasAlarm() async {
+    await _waitUntilInitialized();
+
     final keys = _prefs.getKeys();
 
     for (final key in keys) {
@@ -63,6 +80,8 @@ class AlarmStorage {
   /// Returns all alarms info from local storage in the case app is terminated
   /// and we need to restore previously scheduled alarms.
   static Future<List<AlarmSettings>> getSavedAlarms() async {
+    await _waitUntilInitialized();
+
     final alarms = <AlarmSettings>[];
     final keys = _prefs.getKeys();
 
