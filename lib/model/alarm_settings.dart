@@ -1,10 +1,10 @@
 import 'package:alarm/model/notification_settings.dart';
+import 'package:alarm/src/generated/platform_bindings.g.dart';
 import 'package:flutter/widgets.dart';
-
-@immutable
 
 /// [AlarmSettings] is a model that contains all the settings to customize
 /// and set an alarm.
+@immutable
 class AlarmSettings {
   /// Constructs an instance of `AlarmSettings`.
   const AlarmSettings({
@@ -20,6 +20,22 @@ class AlarmSettings {
     this.warningNotificationOnKill = true,
     this.androidFullScreenIntent = true,
   });
+
+  /// Converts from wire datatype.
+  AlarmSettings.fromWire(AlarmSettingsWire wire)
+      : id = wire.id,
+        dateTime =
+            DateTime.fromMillisecondsSinceEpoch(wire.millisecondsSinceEpoch),
+        assetAudioPath = wire.assetAudioPath,
+        notificationSettings =
+            NotificationSettings.fromWire(wire.notificationSettings),
+        loopAudio = wire.loopAudio,
+        vibrate = wire.vibrate,
+        volume = wire.volume,
+        volumeEnforced = wire.volumeEnforced,
+        fadeDuration = wire.fadeDuration,
+        warningNotificationOnKill = wire.warningNotificationOnKill,
+        androidFullScreenIntent = wire.androidFullScreenIntent;
 
   /// Constructs an `AlarmSettings` instance from the given JSON data.
   factory AlarmSettings.fromJson(Map<String, dynamic> json) {
@@ -144,6 +160,21 @@ class AlarmSettings {
   /// with the [auto_start_flutter](https://pub.dev/packages/auto_start_flutter)
   /// package.
   final bool androidFullScreenIntent;
+
+  /// Converts to wire datatype which is used for host platform communication.
+  AlarmSettingsWire toWire() => AlarmSettingsWire(
+        id: id,
+        millisecondsSinceEpoch: dateTime.millisecondsSinceEpoch,
+        assetAudioPath: assetAudioPath,
+        notificationSettings: notificationSettings.toWire(),
+        loopAudio: loopAudio,
+        vibrate: vibrate,
+        volume: volume,
+        volumeEnforced: volumeEnforced,
+        fadeDuration: fadeDuration,
+        warningNotificationOnKill: warningNotificationOnKill,
+        androidFullScreenIntent: androidFullScreenIntent,
+      );
 
   /// Returns a hash code for this `AlarmSettings` instance using
   /// Jenkins hash function.

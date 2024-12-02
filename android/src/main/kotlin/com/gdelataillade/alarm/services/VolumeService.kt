@@ -22,8 +22,12 @@ class VolumeService(private val context: Context) {
         val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
         previousVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
         targetVolume = (round(volume * maxVolume)).toInt()
-        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, targetVolume, if (showSystemUI) AudioManager.FLAG_SHOW_UI else 0)
-        
+        audioManager.setStreamVolume(
+            AudioManager.STREAM_MUSIC,
+            targetVolume,
+            if (showSystemUI) AudioManager.FLAG_SHOW_UI else 0
+        )
+
         if (volumeEnforced) {
             startVolumeEnforcement(showSystemUI)
         }
@@ -34,7 +38,11 @@ class VolumeService(private val context: Context) {
         volumeCheckRunnable = Runnable {
             val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
             if (currentVolume != targetVolume) {
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, targetVolume, if (showSystemUI) AudioManager.FLAG_SHOW_UI else 0)
+                audioManager.setStreamVolume(
+                    AudioManager.STREAM_MUSIC,
+                    targetVolume,
+                    if (showSystemUI) AudioManager.FLAG_SHOW_UI else 0
+                )
             }
             // Schedule the next check after 1000ms
             handler.postDelayed(volumeCheckRunnable!!, 1000)
@@ -52,10 +60,14 @@ class VolumeService(private val context: Context) {
     fun restorePreviousVolume(showSystemUI: Boolean) {
         // Stop the volume enforcement if it's active
         stopVolumeEnforcement()
-        
+
         // Restore the previous volume
         previousVolume?.let { prevVolume ->
-            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, prevVolume, if (showSystemUI) AudioManager.FLAG_SHOW_UI else 0)
+            audioManager.setStreamVolume(
+                AudioManager.STREAM_MUSIC,
+                prevVolume,
+                if (showSystemUI) AudioManager.FLAG_SHOW_UI else 0
+            )
             previousVolume = null
         }
     }
@@ -67,9 +79,10 @@ class VolumeService(private val context: Context) {
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                 .build()
 
-            focusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
-                .setAudioAttributes(audioAttributes)
-                .build()
+            focusRequest =
+                AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+                    .setAudioAttributes(audioAttributes)
+                    .build()
 
             val result = audioManager.requestAudioFocus(focusRequest!!)
             if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {

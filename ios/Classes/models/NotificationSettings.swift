@@ -5,6 +5,16 @@ struct NotificationSettings: Codable {
     var body: String
     var stopButton: String?
 
+    static func from(wire: NotificationSettingsWire) -> NotificationSettings {
+        // NotificationSettingsWire.icon is ignored since we can't modify the
+        // notification icon on iOS.
+        return NotificationSettings(
+            title: wire.title,
+            body: wire.body,
+            stopButton: wire.stopButton
+        )
+    }
+
     static func fromJson(json: [String: Any]) -> NotificationSettings {
         return NotificationSettings(
             title: json["title"] as! String,

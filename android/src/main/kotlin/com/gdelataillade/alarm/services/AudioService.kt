@@ -28,7 +28,7 @@ class AudioService(private val context: Context) {
     fun playAudio(id: Int, filePath: String, loopAudio: Boolean, fadeDuration: Double?) {
         stopAudio(id) // Stop and release any existing MediaPlayer and Timer for this ID
 
-        val baseAppFlutterPath = context.filesDir.parent + "/app_flutter/"
+        val baseAppFlutterPath = (context.filesDir.parent ?: "") + "/app_flutter/"
         val adjustedFilePath = when {
             filePath.startsWith("assets/") -> "flutter_assets/$filePath"
             !filePath.startsWith("/") -> baseAppFlutterPath + filePath
@@ -42,8 +42,13 @@ class AudioService(private val context: Context) {
                         // It's an asset file
                         val assetManager = context.assets
                         val descriptor = assetManager.openFd(adjustedFilePath)
-                        setDataSource(descriptor.fileDescriptor, descriptor.startOffset, descriptor.length)
+                        setDataSource(
+                            descriptor.fileDescriptor,
+                            descriptor.startOffset,
+                            descriptor.length
+                        )
                     }
+
                     else -> {
                         // Handle local files and adjusted paths
                         setDataSource(adjustedFilePath)

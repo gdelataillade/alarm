@@ -1,5 +1,6 @@
-package com.gdelataillade.alarm.alarm
+package com.gdelataillade.alarm.services
 
+import android.annotation.SuppressLint
 import com.gdelataillade.alarm.models.NotificationSettings
 import android.app.Notification
 import android.app.NotificationChannel
@@ -9,6 +10,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import com.gdelataillade.alarm.alarm.AlarmReceiver
 
 class NotificationHandler(private val context: Context) {
     companion object {
@@ -30,21 +32,29 @@ class NotificationHandler(private val context: Context) {
                 setSound(null, null)
             }
 
-            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val notificationManager =
+                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
         }
     }
 
+    // We need to use [Resources.getIdentifier] because resources are registered by Flutter.
+    @SuppressLint("DiscouragedApi")
     fun buildNotification(
         notificationSettings: NotificationSettings,
         fullScreen: Boolean,
         pendingIntent: PendingIntent,
         alarmId: Int
     ): Notification {
-        val defaultIconResId = context.packageManager.getApplicationInfo(context.packageName, 0).icon
+        val defaultIconResId =
+            context.packageManager.getApplicationInfo(context.packageName, 0).icon
 
         val iconResId = if (notificationSettings.icon != null) {
-            val resId = context.resources.getIdentifier(notificationSettings.icon, "drawable", context.packageName)
+            val resId = context.resources.getIdentifier(
+                notificationSettings.icon,
+                "drawable",
+                context.packageName
+            )
             if (resId != 0) resId else defaultIconResId
         } else {
             defaultIconResId

@@ -1,59 +1,23 @@
 import 'dart:async';
+
 import 'package:alarm/alarm.dart';
+import 'package:alarm/src/generated/platform_bindings.g.dart';
 import 'package:alarm/utils/alarm_exception.dart';
-import 'package:flutter/services.dart';
+import 'package:alarm/utils/alarm_handler.dart';
 
 /// Uses method channel to interact with the native platform.
 class AndroidAlarm {
-  /// Method channel for the alarm operations.
-  static const methodChannel = MethodChannel('com.gdelataillade.alarm/alarm');
-
-  /// Event channel for the alarm events.
-  static const eventChannel = EventChannel('com.gdelataillade.alarm/events');
+  static final AlarmApi _api = AlarmApi();
 
   /// Whether there are other alarms set.
-  static bool get hasOtherAlarms => Alarm.getAlarms().length > 1;
-
-  /// Starts listening to the native alarm events.
-  static void init() => listenToNativeEvents();
-
-  /// Listens to the alarm events.
-  static void listenToNativeEvents() {
-    eventChannel.receiveBroadcastStream().listen(
-      (dynamic event) async {
-        try {
-          final eventMap = Map<String, dynamic>.from(event as Map);
-          final id = eventMap['id'] as int?;
-          final method = eventMap['method'] as String?;
-          if (id == null || method == null) return;
-
-          switch (method) {
-            case 'stop':
-              await Alarm.reload(id);
-            case 'ring':
-              final settings = Alarm.getAlarm(id);
-              if (settings != null) Alarm.ringStream.add(settings);
-          }
-        } catch (e) {
-          alarmPrint('Error receiving alarm events: $e');
-        }
-      },
-      onError: (dynamic error, StackTrace stackTrace) {
-        alarmPrint('Error listening to alarm events: $error, $stackTrace');
-      },
-    );
-  }
+  static Future<bool> get hasOtherAlarms =>
+      Alarm.getAlarms().then((alarms) => alarms.length > 1);
 
   /// Schedules a native alarm with given [settings] with its notification.
   static Future<bool> set(AlarmSettings settings) async {
-    try {
-      await methodChannel.invokeMethod(
-        'setAlarm',
-        settings.toJson(),
-      );
-    } catch (e) {
-      throw AlarmException('AndroidAlarm.setAlarm error: $e');
-    }
+    await _api
+        .setAlarm(alarmSettings: settings.toWire())
+        .catchError(AlarmExceptionHandlers.catchError<void>);
 
     alarmPrint(
       '''Alarm with id ${settings.id} scheduled at ${settings.dateTime}''',
@@ -66,12 +30,12 @@ class AndroidAlarm {
   /// can stop playing and dispose.
   static Future<bool> stop(int id) async {
     try {
-      final res =
-          await methodChannel.invokeMethod('stopAlarm', {'id': id}) as bool;
-      if (res) alarmPrint('Alarm with id $id stopped');
-      if (!hasOtherAlarms) await disableWarningNotificationOnKill();
-      return res;
-    } catch (e) {
+      await _api
+          .stopAlarm(alarmId: id)
+          .catchError(AlarmExceptionHandlers.catchError<void>);
+      if (!(await hasOtherAlarms)) await disableWarningNotificationOnKill();
+      return true;
+    } on AlarmException catch (e) {
       alarmPrint('Failed to stop alarm: $e');
       return false;
     }
@@ -80,11 +44,11 @@ class AndroidAlarm {
   /// Checks whether an alarm or any alarm (if id is null) is ringing.
   static Future<bool> isRinging([int? id]) async {
     try {
-      final res =
-          await methodChannel.invokeMethod<bool>('isRinging', {'id': id}) ??
-              false;
+      final res = await _api
+          .isRinging(alarmId: id)
+          .catchError(AlarmExceptionHandlers.catchError<bool>);
       return res;
-    } catch (e) {
+    } on AlarmException catch (e) {
       alarmPrint('Failed to check if alarm is ringing: $e');
       return false;
     }
@@ -92,17 +56,15 @@ class AndroidAlarm {
 
   /// Sets the native notification on app kill title and body.
   static Future<void> setWarningNotificationOnKill(String title, String body) =>
-      methodChannel.invokeMethod<void>(
-        'setWarningNotificationOnKill',
-        {'title': title, 'body': body},
-      );
+      _api
+          .setWarningNotificationOnKill(
+            title: title,
+            body: body,
+          )
+          .catchError(AlarmExceptionHandlers.catchError<void>);
 
   /// Disable the notification on kill service.
-  static Future<void> disableWarningNotificationOnKill() async {
-    try {
-      await methodChannel.invokeMethod('disableWarningNotificationOnKill');
-    } catch (e) {
-      throw AlarmException('NotificationOnKillService error: $e');
-    }
-  }
+  static Future<void> disableWarningNotificationOnKill() => _api
+      .disableWarningNotificationOnKill()
+      .catchError(AlarmExceptionHandlers.catchError<void>);
 }

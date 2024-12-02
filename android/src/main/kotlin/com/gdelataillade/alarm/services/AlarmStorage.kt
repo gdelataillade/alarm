@@ -12,12 +12,13 @@ import io.flutter.Log
 
 class AlarmStorage(context: Context) {
     companion object {
-        private const val PREFS_NAME = "alarm_prefs"
         private const val PREFIX = "flutter.__alarm_id__"
     }
 
-    private val prefs: SharedPreferences = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+    private val prefs: SharedPreferences =
+        context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
 
+    // TODO(gdelataillade): Ensure this function is called or remove it.
     fun saveAlarm(alarmSettings: AlarmSettings) {
         val key = "$PREFIX${alarmSettings.id}"
         val editor = prefs.edit()
@@ -33,16 +34,11 @@ class AlarmStorage(context: Context) {
     }
 
     fun getSavedAlarms(): List<AlarmSettings> {
-        val gsonBuilder = GsonBuilder().registerTypeAdapter(Date::class.java, JsonDeserializer<Date> { json, _, _ ->
-            Date(json.asJsonPrimitive.asLong)
-        })
-        val gson: Gson = gsonBuilder.create()
-
         val alarms = mutableListOf<AlarmSettings>()
         prefs.all.forEach { (key, value) ->
             if (key.startsWith(PREFIX) && value is String) {
                 try {
-                    val alarm = gson.fromJson(value, AlarmSettings::class.java)
+                    val alarm = AlarmSettings.fromJson(value)
                     if (alarm != null) {
                         alarms.add(alarm)
                     } else {
