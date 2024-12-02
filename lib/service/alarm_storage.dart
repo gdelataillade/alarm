@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:alarm/model/alarm_settings.dart';
+import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Class that handles the local storage of the alarm info.
@@ -21,7 +22,21 @@ class AlarmStorage {
   /// notification on app kill body.
   static const notificationOnAppKillBody = 'notificationOnAppKillBody';
 
-  static final _prefs = SharedPreferencesAsync();
+  /// Shared preferences instance.
+  static late SharedPreferences _prefs;
+
+  /// Stream subscription to listen to foreground/background events.
+  static late StreamSubscription<FGBGType> _fgbgSubscription;
+
+  /// Initializes shared preferences instance.
+  static Future<void> init() async {
+    _prefs = await SharedPreferences.getInstance();
+
+    /// Reloads the shared preferences instance in the case modifications
+    /// were made in the native code, after a notification action.
+    _fgbgSubscription =
+        FGBGEvents.instance.stream.listen((event) => _prefs.reload());
+  }
 
   /// Saves alarm info in local storage so we can restore it later
   /// in the case app is terminated.
@@ -36,7 +51,7 @@ class AlarmStorage {
 
   /// Whether at least one alarm is set.
   static Future<bool> hasAlarm() async {
-    final keys = await _prefs.getKeys();
+    final keys = _prefs.getKeys();
 
     for (final key in keys) {
       if (key.startsWith(prefix)) return true;
@@ -49,11 +64,11 @@ class AlarmStorage {
   /// and we need to restore previously scheduled alarms.
   static Future<List<AlarmSettings>> getSavedAlarms() async {
     final alarms = <AlarmSettings>[];
-    final keys = await _prefs.getKeys();
+    final keys = _prefs.getKeys();
 
     for (final key in keys) {
       if (key.startsWith(prefix)) {
-        final res = await _prefs.getString(key);
+        final res = _prefs.getString(key);
         alarms.add(
           AlarmSettings.fromJson(json.decode(res!) as Map<String, dynamic>),
         );
@@ -61,5 +76,10 @@ class AlarmStorage {
     }
 
     return alarms;
+  }
+
+  /// Dispose the fgbg subscription to avoid memory leaks.
+  static void dispose() {
+    _fgbgSubscription.cancel();
   }
 }

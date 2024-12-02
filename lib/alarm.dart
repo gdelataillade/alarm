@@ -45,6 +45,8 @@ class Alarm {
 
     AlarmTriggerApiImpl.ensureInitialized();
 
+    await AlarmStorage.init();
+
     await checkAlarm();
   }
 

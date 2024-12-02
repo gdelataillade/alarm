@@ -20,7 +20,7 @@ class BootReceiver : BroadcastReceiver() {
         val alarmStorage = AlarmStorage(context)
         val storedAlarms = alarmStorage.getSavedAlarms()
 
-        Log.d("BootReceiver", "Rescheduling ${storedAlarms.size} alarms")
+        Log.i("BootReceiver", "Rescheduling ${storedAlarms.size} alarms")
 
         for (alarm in storedAlarms) {
             try {

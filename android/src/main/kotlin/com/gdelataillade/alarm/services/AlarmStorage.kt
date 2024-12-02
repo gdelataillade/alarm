@@ -18,8 +18,7 @@ class AlarmStorage(context: Context) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
 
-    // TODO(gdelataillade): Ensure this function is called and alarms are rescheduled after device
-    //                      reboot.
+    // TODO(gdelataillade): Ensure this function is called or remove it.
     fun saveAlarm(alarmSettings: AlarmSettings) {
         val key = "$PREFIX${alarmSettings.id}"
         val editor = prefs.edit()
