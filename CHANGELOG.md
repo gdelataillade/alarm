@@ -1,3 +1,6 @@
+## 4.1.1
+* [Android] Show app on lock screen when alarm rings.
+
 ## 4.1.0
 * Migrated to Pigeon.
 
