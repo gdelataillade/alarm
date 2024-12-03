@@ -17,6 +17,7 @@ import android.content.pm.ServiceInfo
 import android.os.IBinder
 import android.os.PowerManager
 import android.os.Build
+import com.gdelataillade.alarm.services.AlarmRingingLiveData
 import com.gdelataillade.alarm.services.NotificationHandler
 import io.flutter.Log
 
@@ -106,6 +107,10 @@ class AlarmService : Service() {
             return START_NOT_STICKY
         }
 
+        if (fullScreenIntent) {
+            AlarmRingingLiveData.instance.update(true)
+        }
+
         // Proceed with handling the new alarm
         val assetAudioPath = intent.getStringExtra("assetAudioPath") ?: return START_NOT_STICKY
         val loopAudio = intent.getBooleanExtra("loopAudio", true)
@@ -176,6 +181,7 @@ class AlarmService : Service() {
     }
 
     private fun stopAlarm(id: Int) {
+        AlarmRingingLiveData.instance.update(false)
         try {
             val playingIds = audioService?.getPlayingMediaPlayersIds() ?: listOf()
             ringingAlarmIds = playingIds
@@ -207,6 +213,8 @@ class AlarmService : Service() {
         vibrationService?.stopVibrating()
         volumeService?.restorePreviousVolume(showSystemUI)
         volumeService?.abandonAudioFocus()
+
+        AlarmRingingLiveData.instance.update(false)
 
         stopForeground(true)
 
