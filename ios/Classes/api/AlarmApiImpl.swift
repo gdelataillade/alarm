@@ -35,25 +35,12 @@ public class AlarmApiImpl: NSObject, AlarmApi {
 
         NSLog("[SwiftAlarmPlugin] AlarmSettings: \(String(describing: alarmSettings))")
 
-        var volumeFloat: Float? = nil
-        if let volumeValue = alarmSettings.volume {
-            volumeFloat = Float(volumeValue)
-        }
-
         let id = alarmSettings.id
         let delayInSeconds = alarmSettings.dateTime.timeIntervalSinceNow
 
         NSLog("[SwiftAlarmPlugin] Alarm scheduled in \(delayInSeconds) seconds")
 
-        let alarmConfig = AlarmConfiguration(
-            id: id,
-            assetAudio: alarmSettings.assetAudioPath,
-            vibrationsEnabled: alarmSettings.vibrate,
-            loopAudio: alarmSettings.loopAudio,
-            fadeDuration: alarmSettings.fadeDuration,
-            volume: volumeFloat,
-            volumeEnforced: alarmSettings.volumeEnforced
-        )
+        let alarmConfig = AlarmConfiguration(settings: alarmSettings)
 
         self.alarms[id] = alarmConfig
 
@@ -86,6 +73,7 @@ public class AlarmApiImpl: NSObject, AlarmApi {
                 self.startSilentSound()
             }
 
+            audioPlayer.volume = 0.0
             audioPlayer.play(atTime: time + 0.5)
 
             self.alarms[id]?.audioPlayer = audioPlayer
@@ -224,7 +212,7 @@ public class AlarmApiImpl: NSObject, AlarmApi {
             do {
                 self.silentAudioPlayer = try AVAudioPlayer(contentsOf: audioUrl)
                 self.silentAudioPlayer?.numberOfLoops = -1
-                self.silentAudioPlayer?.volume = 0.1
+                self.silentAudioPlayer?.volume = 0.01
                 self.playSilent = true
                 self.silentAudioPlayer?.play()
                 NotificationCenter.default.addObserver(self, selector: #selector(self.handleInterruption), name: AVAudioSession.interruptionNotification, object: nil)
@@ -262,14 +250,14 @@ public class AlarmApiImpl: NSObject, AlarmApi {
             audioPlayer.play()
         }
 
-        if alarm.vibrationsEnabled {
+        if alarm.settings.vibrate {
             self.vibratingAlarms.insert(id)
             if self.vibratingAlarms.count == 1 {
                 self.triggerVibrations()
             }
         }
 
-        if !alarm.loopAudio {
+        if !alarm.settings.loopAudio {
             let audioDuration = audioPlayer.duration
             DispatchQueue.main.asyncAfter(deadline: .now() + audioDuration) {
                 self.stopAlarmInternal(id: id, cancelNotif: false)
@@ -279,21 +267,22 @@ public class AlarmApiImpl: NSObject, AlarmApi {
         let currentSystemVolume = self.getSystemVolume()
         let targetSystemVolume: Float
 
-        if let volumeValue = alarm.volume {
-            targetSystemVolume = volumeValue
+        if let volumeValue = alarm.settings.volumeSettings.volume {
+            targetSystemVolume = Float(volumeValue)
             self.setVolume(volume: targetSystemVolume, enable: true)
         } else {
             targetSystemVolume = currentSystemVolume
         }
 
-        if alarm.fadeDuration > 0.0 {
-            audioPlayer.volume = 0.01
-            self.fadeVolume(audioPlayer: audioPlayer, duration: alarm.fadeDuration)
+        if !alarm.settings.volumeSettings.fadeSteps.isEmpty {
+            self.fadeAlarmVolumeWithSteps(id: id, steps: alarm.settings.volumeSettings.fadeSteps)
+        } else if let fadeDuration = alarm.settings.volumeSettings.fadeDuration {
+            self.fadeAlarmVolumeWithSteps(id: id, steps: [VolumeFadeStep(time: 0, volume: 0), VolumeFadeStep(time: fadeDuration, volume: 1.0)])
         } else {
             audioPlayer.volume = 1.0
         }
 
-        if alarm.volumeEnforced {
+        if alarm.settings.volumeSettings.volumeEnforced {
             alarm.volumeEnforcementTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
                 guard let self = self else { return }
                 let currentSystemVolume = self.getSystemVolume()
@@ -330,28 +319,33 @@ public class AlarmApiImpl: NSObject, AlarmApi {
         }
     }
 
-    private func fadeVolume(audioPlayer: AVAudioPlayer, duration: TimeInterval) {
-        let fadeInterval: TimeInterval = 0.2
-        let currentVolume = audioPlayer.volume
-        let volumeDifference = 1.0 - currentVolume
-        let steps = Int(duration / fadeInterval)
-        let volumeIncrement = volumeDifference / Float(steps)
+    private func fadeAlarmVolumeWithSteps(id: Int, steps: [VolumeFadeStep]) {
+        guard let audioPlayer = self.alarms[id]?.audioPlayer else {
+            return
+        }
 
-        var currentStep = 0
-        Timer.scheduledTimer(withTimeInterval: fadeInterval, repeats: true) { timer in
-            if !audioPlayer.isPlaying {
-                timer.invalidate()
-                NSLog("[SwiftAlarmPlugin] Volume fading stopped as audioPlayer is no longer playing.")
-                return
-            }
+        if !audioPlayer.isPlaying {
+            return
+        }
 
-            NSLog("[SwiftAlarmPlugin] Fading volume: \(100 * currentStep / steps)%%")
-            if currentStep >= steps {
-                timer.invalidate()
-                audioPlayer.volume = 1.0
-            } else {
-                audioPlayer.volume += volumeIncrement
-                currentStep += 1
+        audioPlayer.volume = Float(steps[0].volume)
+
+        let now = DispatchTime.now()
+
+        for i in 0 ..< steps.count - 1 {
+            let startTime = steps[i].time
+            let nextStep = steps[i + 1]
+            // Subtract 50ms to avoid weird jumps that might occur when two fades collide.
+            let fadeDuration = nextStep.time - startTime - 0.05
+            let targetVolume = Float(nextStep.volume)
+
+            // Schedule the fade using setVolume for a smooth transition
+            DispatchQueue.main.asyncAfter(deadline: now + startTime) {
+                if !audioPlayer.isPlaying {
+                    return
+                }
+                print("[SwiftAlarmPlugin] Fading volume to \(targetVolume) over \(fadeDuration) seconds.")
+                audioPlayer.setVolume(targetVolume, fadeDuration: fadeDuration)
             }
         }
     }

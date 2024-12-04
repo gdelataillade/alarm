@@ -13,7 +13,6 @@ import com.gdelataillade.alarm.alarm.AlarmReceiver
 import com.gdelataillade.alarm.alarm.AlarmService
 import com.gdelataillade.alarm.models.AlarmSettings
 import com.gdelataillade.alarm.services.NotificationOnKillService
-import com.google.gson.Gson
 import io.flutter.Log
 
 class AlarmApiImpl(private val context: Context) : AlarmApi {
@@ -97,18 +96,7 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
 
     private fun setIntentExtras(intent: Intent, alarm: AlarmSettings) {
         intent.putExtra("id", alarm.id)
-        intent.putExtra("assetAudioPath", alarm.assetAudioPath)
-        intent.putExtra("loopAudio", alarm.loopAudio)
-        intent.putExtra("vibrate", alarm.vibrate)
-        intent.putExtra("volume", alarm.volume)
-        intent.putExtra("volumeEnforced", alarm.volumeEnforced)
-        intent.putExtra("fadeDuration", alarm.fadeDuration)
-        intent.putExtra("fullScreenIntent", alarm.androidFullScreenIntent)
-
-        val notificationSettingsMap = alarm.notificationSettings
-        val gson = Gson()
-        val notificationSettingsJson = gson.toJson(notificationSettingsMap)
-        intent.putExtra("notificationSettings", notificationSettingsJson)
+        intent.putExtra("alarmSettings", alarm.toJson())
     }
 
     private fun handleImmediateAlarm(intent: Intent, delayInSeconds: Int) {

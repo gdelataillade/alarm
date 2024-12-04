@@ -10,14 +10,10 @@ data class AlarmSettings(
     val id: Int,
     val dateTime: Date,
     val assetAudioPath: String,
+    val volumeSettings: VolumeSettings,
     val notificationSettings: NotificationSettings,
     val loopAudio: Boolean,
     val vibrate: Boolean,
-    val volume: Double?,
-    val volumeEnforced: Boolean = false,
-    val fadeDuration: Double,
-    val fadeStopTimes: List<Double>,
-    val fadeStopVolumes: List<Double>,
     val warningNotificationOnKill: Boolean,
     val androidFullScreenIntent: Boolean
 ) {
@@ -27,12 +23,10 @@ data class AlarmSettings(
                 e.id.toInt(),
                 Date(e.millisecondsSinceEpoch),
                 e.assetAudioPath,
+                VolumeSettings.fromWire(e.volumeSettings),
                 NotificationSettings.fromWire(e.notificationSettings),
                 e.loopAudio,
                 e.vibrate,
-                e.volume,
-                e.volumeEnforced,
-                e.fadeDuration,
                 e.warningNotificationOnKill,
                 e.androidFullScreenIntent,
             )
@@ -49,22 +43,6 @@ data class AlarmSettings(
                 null
             }
         }
-    }
-
-    fun toWire(): AlarmSettingsWire {
-        return AlarmSettingsWire(
-            id.toLong(),
-            dateTime.time,
-            assetAudioPath,
-            notificationSettings.toWire(),
-            loopAudio,
-            vibrate,
-            volume,
-            volumeEnforced,
-            fadeDuration,
-            warningNotificationOnKill,
-            androidFullScreenIntent,
-        )
     }
 
     fun toJson(): String {
