@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:alarm/alarm.dart';
+import 'package:alarm/model/volume_settings.dart';
 import 'package:flutter/material.dart';
 
 class ExampleAlarmEditScreen extends StatefulWidget {
@@ -20,7 +21,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
   late bool loopAudio;
   late bool vibrate;
   late double? volume;
-  late double fadeDuration;
+  late Duration? fadeDuration;
   late bool staircaseFade;
   late String assetAudio;
 
@@ -35,16 +36,16 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       loopAudio = true;
       vibrate = true;
       volume = null;
-      fadeDuration = 0;
+      fadeDuration = null;
       staircaseFade = false;
       assetAudio = 'assets/marimba.mp3';
     } else {
       selectedDateTime = widget.alarmSettings!.dateTime;
       loopAudio = widget.alarmSettings!.loopAudio;
       vibrate = widget.alarmSettings!.vibrate;
-      volume = widget.alarmSettings!.volume;
-      fadeDuration = widget.alarmSettings!.fadeDuration;
-      staircaseFade = widget.alarmSettings!.fadeStopTimes.isNotEmpty;
+      volume = widget.alarmSettings!.volumeSettings.volume;
+      fadeDuration = widget.alarmSettings!.volumeSettings.fadeDuration;
+      staircaseFade = widget.alarmSettings!.volumeSettings.fadeSteps.isNotEmpty;
       assetAudio = widget.alarmSettings!.assetAudioPath;
     }
   }
@@ -94,17 +95,32 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
         ? DateTime.now().millisecondsSinceEpoch % 10000 + 1
         : widget.alarmSettings!.id;
 
+    final VolumeSettings volumeSettings;
+    if (staircaseFade) {
+      volumeSettings = VolumeSettings.staircaseFade(
+        fadeSteps: [
+          VolumeFadeStep(Duration.zero, 0),
+          VolumeFadeStep(const Duration(seconds: 15), 0.03),
+          VolumeFadeStep(const Duration(seconds: 20), 0.5),
+          VolumeFadeStep(const Duration(seconds: 30), 1),
+        ],
+      );
+    } else if (fadeDuration != null) {
+      volumeSettings = VolumeSettings.fade(
+        fadeDuration: fadeDuration,
+      );
+    } else {
+      volumeSettings = VolumeSettings.fixed(volume: volume);
+    }
+
     final alarmSettings = AlarmSettings(
       id: id,
       dateTime: selectedDateTime,
       loopAudio: loopAudio,
       vibrate: vibrate,
-      volume: volume,
-      fadeDuration: fadeDuration,
-      fadeStopTimes: staircaseFade ? [0, 15, 20, 30] : [],
-      fadeStopVolumes: staircaseFade ? [0.0, 0.03, 0.5, 1.0] : [],
       assetAudioPath: assetAudio,
       warningNotificationOnKill: Platform.isIOS,
+      volumeSettings: volumeSettings,
       notificationSettings: NotificationSettings(
         title: 'Alarm example',
         body: 'Your alarm ($id) is ringing',
@@ -291,16 +307,19 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
                 'Fade duration',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
-              DropdownButton<double>(
-                value: fadeDuration,
+              DropdownButton<int>(
+                value: fadeDuration?.inSeconds ?? 0,
                 items: List.generate(
                   6,
-                  (index) => DropdownMenuItem<double>(
-                    value: index * 5.0,
+                  (index) => DropdownMenuItem<int>(
+                    value: index * 5,
                     child: Text('${index * 5}s'),
                   ),
                 ),
-                onChanged: (value) => setState(() => fadeDuration = value!),
+                onChanged: (value) => setState(
+                  () => fadeDuration =
+                      value != null ? Duration(seconds: value) : null,
+                ),
               ),
             ],
           ),

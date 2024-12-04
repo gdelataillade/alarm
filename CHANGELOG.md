@@ -1,3 +1,7 @@
+## 4.2.0
+* BREAKING: Some API parameters have been renamed, this update requires a small amount of refactoring for users. No features have been removed.
+* Add support for fading the alarm volume using a staircase function.
+
 ## 4.1.1
 * [Android] Show app on lock screen when alarm rings.
 

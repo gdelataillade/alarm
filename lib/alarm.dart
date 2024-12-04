@@ -121,43 +121,6 @@ class Alarm {
             'Provided: ${alarmSettings.id}',
       );
     }
-    if (alarmSettings.volume != null &&
-        (alarmSettings.volume! < 0 || alarmSettings.volume! > 1)) {
-      throw AlarmException(
-        AlarmErrorCode.invalidArguments,
-        message: 'Volume must be between 0 and 1. '
-            'Provided: ${alarmSettings.volume}',
-      );
-    }
-    if (alarmSettings.fadeDuration < 0) {
-      throw AlarmException(
-        AlarmErrorCode.invalidArguments,
-        message: 'Fade duration must be positive. '
-            'Provided: ${alarmSettings.fadeDuration}',
-      );
-    }
-    if (alarmSettings.fadeStopTimes.length !=
-        alarmSettings.fadeStopVolumes.length) {
-      throw AlarmException(
-        'Fade stop times and volumes must have the same length. '
-        'Provided: ${alarmSettings.fadeStopTimes.length} != '
-        '${alarmSettings.fadeStopVolumes.length}',
-      );
-    }
-    if (alarmSettings.fadeStopTimes.any((stopTime) => stopTime.isNegative)) {
-      throw AlarmException(
-        'Fade stop times must be positive. '
-        'Provided: ${alarmSettings.fadeStopTimes}',
-      );
-    }
-    if (alarmSettings.fadeStopVolumes.any(
-      (stopVolume) => stopVolume < 0 || stopVolume > 1,
-    )) {
-      throw AlarmException(
-        'Fade stop volumes must be between 0 and 1. '
-        'Provided: ${alarmSettings.fadeStopVolumes}',
-      );
-    }
   }
 
   /// When the app is killed, all the processes are terminated
