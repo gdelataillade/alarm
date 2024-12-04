@@ -22,7 +22,6 @@ class AlarmSettings {
     this.androidFullScreenIntent = true,
   });
 
-  // TODO(orkun1675): Ensure compatibility with older plugin versions.
   /// Constructs an `AlarmSettings` instance from the given JSON data.
   factory AlarmSettings.fromJson(Map<String, dynamic> json) =>
       _$AlarmSettingsFromJson(json);

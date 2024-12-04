@@ -1,4 +1,5 @@
-## 4.2.0
+## 5.0.0
+* **BREAKING**: Old alarms (alarms created pre v5) will be deleted.
 * BREAKING: Some API parameters have been renamed, this update requires a small amount of refactoring for users. No features have been removed.
 * Add support for fading the alarm volume using a staircase function.
 
