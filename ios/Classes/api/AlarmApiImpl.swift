@@ -313,6 +313,7 @@ public class AlarmApiImpl: NSObject, AlarmApi {
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
             if let slider = volumeView.subviews.first(where: { $0 is UISlider }) as? UISlider {
                 self.previousVolume = enable ? slider.value : nil
+                print("[SwiftAlarmPlugin] Setting system volume to \(volume).")
                 slider.value = volume
             }
             volumeView.removeFromSuperview()

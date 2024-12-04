@@ -13,40 +13,48 @@ class VolumeSettings extends Equatable {
     this.fadeDuration,
     this.fadeSteps = const [],
     this.volumeEnforced = false,
-  });
-
-  /// Constructs [VolumeSettings] with fixed volume level.
-  const VolumeSettings.fixed({
-    this.volume,
-    this.volumeEnforced = false,
   })  : assert(
           volume == null || (volume >= 0 && volume <= 1),
           'volume must be NULL or in the range [0, 1]',
         ),
-        fadeDuration = null,
-        fadeSteps = const [];
+        assert(
+          fadeDuration == null || fadeDuration > Duration.zero,
+          'fadeDuration must be NULL or stricly positive',
+        );
+
+  /// Constructs [VolumeSettings] with fixed volume level.
+  const VolumeSettings.fixed({
+    double? volume,
+    bool volumeEnforced = false,
+  }) : this._(
+          volume: volume,
+          volumeEnforced: volumeEnforced,
+        );
 
   /// Constructs [VolumeSettings] with fading volume level.
-  VolumeSettings.fade({
-    this.fadeDuration,
-    this.volumeEnforced = false,
-  })  : assert(
-          fadeDuration == null || !fadeDuration.isNegative,
-          'fadeDuration must be positive',
-        ),
-        volume = null,
-        fadeSteps = const [];
+  const VolumeSettings.fade({
+    required Duration fadeDuration,
+    double? volume,
+    bool volumeEnforced = false,
+  }) : this._(
+          volume: volume,
+          fadeDuration: fadeDuration,
+          volumeEnforced: volumeEnforced,
+        );
 
   /// Constructs [VolumeSettings] with slowly increasing (stepped) volume level.
-  const VolumeSettings.staircaseFade({
-    required this.fadeSteps,
-    this.volumeEnforced = false,
-  })  : assert(
-          fadeSteps.length > 0,
-          'fadeSteps must not be empty',
-        ),
-        volume = null,
-        fadeDuration = null;
+  factory VolumeSettings.staircaseFade({
+    required List<VolumeFadeStep> fadeSteps,
+    double? volume,
+    bool volumeEnforced = false,
+  }) {
+    assert(fadeSteps.isNotEmpty, 'fadeSteps must not be empty');
+    return VolumeSettings._(
+      volume: volume,
+      fadeSteps: fadeSteps,
+      volumeEnforced: volumeEnforced,
+    );
+  }
 
   /// Converts the JSON object to a `VolumeSettings` instance.
   factory VolumeSettings.fromJson(Map<String, dynamic> json) =>

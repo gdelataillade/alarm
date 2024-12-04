@@ -31,8 +31,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
     creating = widget.alarmSettings == null;
 
     if (creating) {
-      selectedDateTime = DateTime.now().add(const Duration(minutes: 1));
-      selectedDateTime = selectedDateTime.copyWith(second: 0, millisecond: 0);
+      selectedDateTime = DateTime.now().add(const Duration(seconds: 10));
       loopAudio = true;
       vibrate = true;
       volume = null;
@@ -98,6 +97,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
     final VolumeSettings volumeSettings;
     if (staircaseFade) {
       volumeSettings = VolumeSettings.staircaseFade(
+        volume: volume,
         fadeSteps: [
           VolumeFadeStep(Duration.zero, 0),
           VolumeFadeStep(const Duration(seconds: 15), 0.03),
@@ -107,7 +107,8 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       );
     } else if (fadeDuration != null) {
       volumeSettings = VolumeSettings.fade(
-        fadeDuration: fadeDuration,
+        volume: volume,
+        fadeDuration: fadeDuration!,
       );
     } else {
       volumeSettings = VolumeSettings.fixed(volume: volume);
