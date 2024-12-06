@@ -31,7 +31,8 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
     creating = widget.alarmSettings == null;
 
     if (creating) {
-      selectedDateTime = DateTime.now().add(const Duration(seconds: 10));
+      selectedDateTime = DateTime.now().add(const Duration(minutes: 1));
+      selectedDateTime = selectedDateTime.copyWith(second: 0, millisecond: 0);
       loopAudio = true;
       vibrate = true;
       volume = null;
