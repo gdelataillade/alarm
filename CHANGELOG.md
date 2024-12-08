@@ -1,3 +1,7 @@
+## 5.0.1
+* Fixes a bug where `isRinging` might return FALSE immediately after alarm starts to ring.
+* Handles alarm events on the platform side, increasing efficiency.
+
 ## 5.0.0
 * **BREAKING**: Old alarms (alarms created pre v5) will be deleted.
 * BREAKING: Some API parameters have been renamed, this update requires a small amount of refactoring for users. No features have been removed.
