@@ -131,6 +131,16 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             ExampleAlarmHomeShortcutButton(refreshAlarms: loadAlarms),
+            const FloatingActionButton(
+              onPressed: Alarm.stopAll,
+              backgroundColor: Colors.red,
+              heroTag: null,
+              child: Text(
+                'STOP ALL',
+                textScaler: TextScaler.linear(0.9),
+                textAlign: TextAlign.center,
+              ),
+            ),
             FloatingActionButton(
               onPressed: () => navigateToAlarmScreen(null),
               child: const Icon(Icons.alarm_add_rounded, size: 33),

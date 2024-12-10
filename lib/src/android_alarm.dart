@@ -41,6 +41,11 @@ class AndroidAlarm {
     }
   }
 
+  /// Calls the native `stopAll` function.
+  static Future<void> stopAll() async {
+    return _api.stopAll().catchError(AlarmExceptionHandlers.catchError<void>);
+  }
+
   /// Checks whether an alarm or any alarm (if id is null) is ringing.
   static Future<bool> isRinging([int? id]) async {
     try {

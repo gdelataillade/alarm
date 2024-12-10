@@ -4,6 +4,7 @@
 * Add support for fading the alarm volume using a staircase function.
 * Fixes a bug where `isRinging` might return FALSE immediately after alarm starts to ring.
 * Handles alarm events on the platform side, increasing efficiency.
+* Handles `stopAll` on the platform side for improved reliability.
 
 ## 4.1.1
 * [Android] Show app on lock screen when alarm rings.

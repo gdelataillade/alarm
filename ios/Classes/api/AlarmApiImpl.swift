@@ -93,6 +93,42 @@ public class AlarmApiImpl: NSObject, AlarmApi {
     func stopAlarm(alarmId: Int64) throws {
         self.stopAlarmInternal(id: Int(truncatingIfNeeded: alarmId), cancelNotif: true)
     }
+    
+    func stopAll() throws {
+        NotificationManager.shared.removeAllNotifications()
+
+        self.mixOtherAudios()
+
+        self.vibratingAlarms.removeAll()
+
+        if let previousVolume = self.previousVolume {
+            self.setVolume(volume: previousVolume, enable: false)
+        }
+        
+        let alarmIds = self.alarms.keys
+        
+        for (_, alarm) in self.alarms {
+            alarm.timer?.invalidate()
+            alarm.task?.cancel()
+            alarm.audioPlayer?.stop()
+            alarm.volumeEnforcementTimer?.invalidate()
+        }
+        self.alarms.removeAll()
+
+        self.stopSilentSound()
+        self.stopNotificationOnKillService()
+        
+        for (id) in alarmIds {
+            // Inform the Flutter plugin that the alarm was stopped
+            SwiftAlarmPlugin.alarmTriggerApi?.alarmStopped(alarmId: Int64(id), completion: { result in
+                if case .success = result {
+                    NSLog("[SwiftAlarmPlugin] Alarm stopped notification for \(id) was processed successfully by Flutter.")
+                } else {
+                    NSLog("[SwiftAlarmPlugin] Alarm stopped notification for \(id) encountered error in Flutter.")
+                }
+            })
+        }
+    }
 
     func isRinging(alarmId: Int64?) throws -> Bool {
         if let alarmId = alarmId {

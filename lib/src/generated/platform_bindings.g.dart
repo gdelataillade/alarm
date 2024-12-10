@@ -314,6 +314,30 @@ class AlarmApi {
     }
   }
 
+  Future<void> stopAll() async {
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.alarm.AlarmApi.stopAll$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(null) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
   Future<bool> isRinging({required int? alarmId}) async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.alarm.AlarmApi.isRinging$pigeonVar_messageChannelSuffix';
