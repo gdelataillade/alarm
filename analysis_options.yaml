@@ -1,6 +1,6 @@
 include: package:very_good_analysis/analysis_options.yaml
 
 analyzer:
-  exclude: [lib/src/generated/**]
+  exclude: [lib/src/generated/**, lib/**/*.g.dart]
   errors:
     todo: ignore

@@ -4,8 +4,6 @@ import com.gdelataillade.alarm.services.AudioService
 import com.gdelataillade.alarm.services.AlarmStorage
 import com.gdelataillade.alarm.services.VibrationService
 import com.gdelataillade.alarm.services.VolumeService
-import com.gdelataillade.alarm.models.NotificationSettings
-import com.google.gson.Gson
 
 import android.app.Service
 import android.app.PendingIntent
@@ -17,9 +15,11 @@ import android.content.pm.ServiceInfo
 import android.os.IBinder
 import android.os.PowerManager
 import android.os.Build
+import com.gdelataillade.alarm.models.AlarmSettings
 import com.gdelataillade.alarm.services.AlarmRingingLiveData
 import com.gdelataillade.alarm.services.NotificationHandler
 import io.flutter.Log
+import kotlinx.serialization.json.Json
 
 class AlarmService : Service() {
     private var audioService: AudioService? = null
@@ -65,20 +65,23 @@ class AlarmService : Service() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        val notificationSettingsJson = intent.getStringExtra("notificationSettings")
-        val notificationSettings = if (notificationSettingsJson != null) {
-            val gson = Gson()
-            gson.fromJson(notificationSettingsJson, NotificationSettings::class.java)
-        } else {
-            val notificationTitle = intent.getStringExtra("notificationTitle") ?: "Title"
-            val notificationBody = intent.getStringExtra("notificationBody") ?: "Body"
-            NotificationSettings(notificationTitle, notificationBody)
+        val alarmSettingsJson = intent.getStringExtra("alarmSettings")
+        if (alarmSettingsJson == null) {
+            Log.e("AlarmService", "Intent is missing AlarmSettings.")
+            return START_NOT_STICKY
         }
 
-        val fullScreenIntent = intent.getBooleanExtra("fullScreenIntent", true)
+        val alarmSettings: AlarmSettings
+        try {
+            alarmSettings = Json.decodeFromString<AlarmSettings>(alarmSettingsJson)
+        } catch (e: Exception) {
+            Log.e("AlarmService", "Cannot parse AlarmSettings from Intent.")
+            return START_NOT_STICKY
+        }
+
         val notification = notificationHandler.buildNotification(
-            notificationSettings,
-            fullScreenIntent,
+            alarmSettings.notificationSettings,
+            alarmSettings.androidFullScreenIntent,
             pendingIntent,
             id
         )
@@ -98,6 +101,14 @@ class AlarmService : Service() {
         } catch (e: SecurityException) {
             Log.e("AlarmService", "Security exception in starting foreground service", e)
             return START_NOT_STICKY
+        } catch (e: Exception) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (e is ForegroundServiceStartNotAllowedException) {
+                    Log.e("AlarmService", "Foreground service start not allowed", e)
+                    return START_NOT_STICKY
+                }
+            }
+            throw e
         }
 
         // Check if an alarm is already ringing
@@ -107,17 +118,9 @@ class AlarmService : Service() {
             return START_NOT_STICKY
         }
 
-        if (fullScreenIntent) {
+        if (alarmSettings.androidFullScreenIntent) {
             AlarmRingingLiveData.instance.update(true)
         }
-
-        // Proceed with handling the new alarm
-        val assetAudioPath = intent.getStringExtra("assetAudioPath") ?: return START_NOT_STICKY
-        val loopAudio = intent.getBooleanExtra("loopAudio", true)
-        val vibrate = intent.getBooleanExtra("vibrate", true)
-        val volume = intent.getDoubleExtra("volume", -1.0)
-        val volumeEnforced = intent.getBooleanExtra("volumeEnforced", false)
-        val fadeDuration = intent.getDoubleExtra("fadeDuration", 0.0)
 
         // Notify the plugin about the alarm ringing
         AlarmPlugin.alarmTriggerApi?.alarmRang(id.toLong()) {
@@ -125,8 +128,12 @@ class AlarmService : Service() {
         }
 
         // Set the volume if specified
-        if (volume in 0.0..1.0) {
-            volumeService?.setVolume(volume, volumeEnforced, showSystemUI)
+        if (alarmSettings.volumeSettings.volume != null) {
+            volumeService?.setVolume(
+                alarmSettings.volumeSettings.volume,
+                alarmSettings.volumeSettings.volumeEnforced,
+                showSystemUI
+            )
         }
 
         // Request audio focus
@@ -134,7 +141,7 @@ class AlarmService : Service() {
 
         // Set up audio completion listener
         audioService?.setOnAudioCompleteListener {
-            if (!loopAudio) {
+            if (!alarmSettings.loopAudio) {
                 vibrationService?.stopVibrating()
                 volumeService?.restorePreviousVolume(showSystemUI)
                 volumeService?.abandonAudioFocus()
@@ -142,13 +149,19 @@ class AlarmService : Service() {
         }
 
         // Play the alarm audio
-        audioService?.playAudio(id, assetAudioPath, loopAudio, fadeDuration)
+        audioService?.playAudio(
+            id,
+            alarmSettings.assetAudioPath,
+            alarmSettings.loopAudio,
+            alarmSettings.volumeSettings.fadeDuration,
+            alarmSettings.volumeSettings.fadeSteps
+        )
 
         // Update the list of ringing alarms
         ringingAlarmIds = audioService?.getPlayingMediaPlayersIds() ?: listOf()
 
         // Start vibration if enabled
-        if (vibrate) {
+        if (alarmSettings.vibrate) {
             vibrationService?.startVibrating(longArrayOf(0, 500, 500), 1)
         }
 

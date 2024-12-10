@@ -2,10 +2,13 @@ package com.gdelataillade.alarm.services
 
 import android.content.Context
 import android.media.MediaPlayer
+import com.gdelataillade.alarm.models.VolumeFadeStep
 import java.util.concurrent.ConcurrentHashMap
 import java.util.Timer
 import java.util.TimerTask
 import io.flutter.Log
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 class AudioService(private val context: Context) {
     private val mediaPlayers = ConcurrentHashMap<Int, MediaPlayer>()
@@ -25,10 +28,16 @@ class AudioService(private val context: Context) {
         return mediaPlayers.filter { (_, mediaPlayer) -> mediaPlayer.isPlaying }.keys.toList()
     }
 
-    fun playAudio(id: Int, filePath: String, loopAudio: Boolean, fadeDuration: Double?) {
+    fun playAudio(
+        id: Int,
+        filePath: String,
+        loopAudio: Boolean,
+        fadeDuration: Duration?,
+        fadeSteps: List<VolumeFadeStep>
+    ) {
         stopAudio(id) // Stop and release any existing MediaPlayer and Timer for this ID
 
-        val baseAppFlutterPath = (context.filesDir.parent ?: "") + "/app_flutter/"
+        val baseAppFlutterPath = context.filesDir.parent?.plus("/app_flutter/")
         val adjustedFilePath = when {
             filePath.startsWith("assets/") -> "flutter_assets/$filePath"
             !filePath.startsWith("/") -> baseAppFlutterPath + filePath
@@ -67,7 +76,11 @@ class AudioService(private val context: Context) {
 
                 mediaPlayers[id] = this
 
-                if (fadeDuration != null && fadeDuration > 0) {
+                if (fadeSteps.isNotEmpty()) {
+                    val timer = Timer(true)
+                    timers[id] = timer
+                    startStaircaseFadeIn(this, fadeSteps, timer)
+                } else if (fadeDuration != null) {
                     val timer = Timer(true)
                     timers[id] = timer
                     startFadeIn(this, fadeDuration, timer)
@@ -93,9 +106,9 @@ class AudioService(private val context: Context) {
         mediaPlayers.remove(id)
     }
 
-    private fun startFadeIn(mediaPlayer: MediaPlayer, duration: Double, timer: Timer) {
+    private fun startFadeIn(mediaPlayer: MediaPlayer, duration: Duration, timer: Timer) {
         val maxVolume = 1.0f
-        val fadeDuration = (duration * 1000).toLong()
+        val fadeDuration = duration.inWholeMilliseconds
         val fadeInterval = 100L
         val numberOfSteps = fadeDuration / fadeInterval
         val deltaVolume = maxVolume / numberOfSteps
@@ -117,6 +130,47 @@ class AudioService(private val context: Context) {
                 }
             }
         }, 0, fadeInterval)
+    }
+
+    private fun startStaircaseFadeIn(
+        mediaPlayer: MediaPlayer,
+        steps: List<VolumeFadeStep>,
+        timer: Timer
+    ) {
+        val fadeIntervalMillis = 100L
+        var currentStep = 0
+
+        timer.schedule(object : TimerTask() {
+            override fun run() {
+                if (!mediaPlayer.isPlaying) {
+                    cancel()
+                    return
+                }
+
+                val currentTime = (currentStep * fadeIntervalMillis).milliseconds
+                val nextIndex = steps.indexOfFirst { it.time >= currentTime }
+
+                if (nextIndex < 0) {
+                    cancel()
+                    return
+                }
+
+                val nextVolume = steps[nextIndex].volume
+                var currentVolume = nextVolume
+
+                if (nextIndex > 0) {
+                    val prevTime = steps[nextIndex - 1].time
+                    val nextTime = steps[nextIndex].time
+                    val nextRatio = (currentTime - prevTime) / (nextTime - prevTime)
+
+                    val prevVolume = steps[nextIndex - 1].volume
+                    currentVolume = nextVolume * nextRatio + prevVolume * (1 - nextRatio)
+                }
+
+                mediaPlayer.setVolume(currentVolume.toFloat(), currentVolume.toFloat())
+                currentStep++
+            }
+        }, 0, fadeIntervalMillis)
     }
 
     fun cleanUp() {
