@@ -66,7 +66,7 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
       ),
       builder: (context) {
         return FractionallySizedBox(
-          heightFactor: 0.75,
+          heightFactor: 0.85,
           child: ExampleAlarmEditScreen(alarmSettings: settings),
         );
       },
