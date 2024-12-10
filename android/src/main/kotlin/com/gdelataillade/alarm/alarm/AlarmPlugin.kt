@@ -1,7 +1,7 @@
 package com.gdelataillade.alarm.alarm
 
-import AlarmApi
-import AlarmTriggerApi
+import com.gdelataillade.alarm.generated.AlarmApi
+import com.gdelataillade.alarm.generated.AlarmTriggerApi
 import android.app.Activity
 import android.app.KeyguardManager
 import android.content.Context
