@@ -10,7 +10,7 @@ import android.os.Looper
 import kotlin.math.round
 import io.flutter.Log
 
-class VolumeService(private val context: Context) {
+class VolumeService(context: Context) {
     private var previousVolume: Int? = null
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private var focusRequest: AudioFocusRequest? = null
