@@ -1,7 +1,7 @@
 package com.gdelataillade.alarm.api
 
-import AlarmApi
-import AlarmSettingsWire
+import com.gdelataillade.alarm.generated.AlarmApi
+import com.gdelataillade.alarm.generated.AlarmSettingsWire
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context

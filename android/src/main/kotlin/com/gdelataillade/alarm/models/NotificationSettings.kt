@@ -1,7 +1,7 @@
 package com.gdelataillade.alarm.models
 
-import NotificationSettingsWire
-import kotlinx.serialization.Serializable
+import com.gdelataillade.alarm.generated.NotificationSettingsWire
+import com.google.gson.Gson
 
 @Serializable
 data class NotificationSettings(

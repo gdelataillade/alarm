@@ -1,7 +1,7 @@
 package com.gdelataillade.alarm.models
 
-import AlarmSettingsWire
-import kotlinx.serialization.KSerializer
+import com.gdelataillade.alarm.generated.AlarmSettingsWire
+import com.google.gson.*
 import java.util.Date
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.PrimitiveKind
