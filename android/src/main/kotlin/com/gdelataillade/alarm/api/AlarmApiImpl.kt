@@ -62,7 +62,8 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
         for (alarm in AlarmStorage(context).getSavedAlarms()) {
             stopAlarm(alarm.id.toLong())
         }
-        for (alarmId in alarmIds.toList()) {
+        val alarmIdsCopy = alarmIds.toList()
+        for (alarmId in alarmIdsCopy) {
             stopAlarm(alarmId.toLong())
         }
     }
