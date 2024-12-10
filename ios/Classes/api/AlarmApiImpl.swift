@@ -1,4 +1,5 @@
 import AVFoundation
+import Flutter
 import MediaPlayer
 
 public class AlarmApiImpl: NSObject, AlarmApi {
@@ -62,6 +63,7 @@ public class AlarmApiImpl: NSObject, AlarmApi {
             let currentTime = audioPlayer.deviceCurrentTime
             let time = currentTime + delayInSeconds
             let dateTime = Date().addingTimeInterval(delayInSeconds)
+            self.alarms[id]?.triggerTime = dateTime
 
             if alarmSettings.loopAudio {
                 audioPlayer.numberOfLoops = -1
@@ -77,7 +79,6 @@ public class AlarmApiImpl: NSObject, AlarmApi {
             audioPlayer.play(atTime: time + 0.5)
 
             self.alarms[id]?.audioPlayer = audioPlayer
-            self.alarms[id]?.triggerTime = dateTime
             self.alarms[id]?.task = DispatchWorkItem(block: {
                 self.handleAlarmAfterDelay(id: id)
             })
@@ -96,9 +97,7 @@ public class AlarmApiImpl: NSObject, AlarmApi {
     func isRinging(alarmId: Int64?) throws -> Bool {
         if let alarmId = alarmId {
             let id = Int(truncatingIfNeeded: alarmId)
-            let isPlaying = self.alarms[id]?.audioPlayer?.isPlaying ?? false
-            let currentTime = self.alarms[id]?.audioPlayer?.currentTime ?? 0.0
-            return isPlaying && currentTime > 0
+            return self.alarms[id]?.triggerTime?.timeIntervalSinceNow ?? 1.0 <= 0.0
         } else {
             return self.isAnyAlarmRinging()
         }
@@ -226,7 +225,16 @@ public class AlarmApiImpl: NSObject, AlarmApi {
 
     private func isAnyAlarmRinging() -> Bool {
         for (_, alarmConfig) in self.alarms {
-            if let audioPlayer = alarmConfig.audioPlayer, audioPlayer.isPlaying, audioPlayer.currentTime > 0 {
+            if alarmConfig.triggerTime?.timeIntervalSinceNow ?? 1.0 <= 0.0 {
+                return true
+            }
+        }
+        return false
+    }
+    
+    private func isAnyAlarmRingingExcept(id: Int) -> Bool {
+        for (alarmId, alarmConfig) in self.alarms {
+            if alarmId != id && alarmConfig.triggerTime?.timeIntervalSinceNow ?? 1.0 <= 0.0 {
                 return true
             }
         }
@@ -234,7 +242,7 @@ public class AlarmApiImpl: NSObject, AlarmApi {
     }
 
     private func handleAlarmAfterDelay(id: Int) {
-        if self.isAnyAlarmRinging() {
+        if self.isAnyAlarmRingingExcept(id: id) {
             NSLog("[SwiftAlarmPlugin] Ignoring alarm with id \(id) because another alarm is already ringing.")
             self.unsaveAlarm(id: id)
             return
@@ -249,6 +257,15 @@ public class AlarmApiImpl: NSObject, AlarmApi {
         if !audioPlayer.isPlaying || audioPlayer.currentTime == 0.0 {
             audioPlayer.play()
         }
+        
+        // Inform the Flutter plugin that the alarm rang
+        SwiftAlarmPlugin.alarmTriggerApi?.alarmRang(alarmId: Int64(id), completion: { result in
+            if case .success = result {
+                NSLog("[SwiftAlarmPlugin] Alarm rang notification for \(id) was processed successfully by Flutter.")
+            } else {
+                NSLog("[SwiftAlarmPlugin] Alarm rang notification for \(id) encountered error in Flutter.")
+            }
+        })
 
         if alarm.settings.vibrate {
             self.vibratingAlarms.insert(id)
@@ -375,6 +392,15 @@ public class AlarmApiImpl: NSObject, AlarmApi {
 
         self.stopSilentSound()
         self.stopNotificationOnKillService()
+        
+        // Inform the Flutter plugin that the alarm was stopped
+        SwiftAlarmPlugin.alarmTriggerApi?.alarmStopped(alarmId: Int64(id), completion: { result in
+            if case .success = result {
+                NSLog("[SwiftAlarmPlugin] Alarm stopped notification for \(id) was processed successfully by Flutter.")
+            } else {
+                NSLog("[SwiftAlarmPlugin] Alarm stopped notification for \(id) encountered error in Flutter.")
+            }
+        })
     }
 
     private func stopSilentSound() {
