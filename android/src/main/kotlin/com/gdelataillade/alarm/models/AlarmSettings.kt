@@ -1,13 +1,18 @@
 package com.gdelataillade.alarm.models
 
 import AlarmSettingsWire
-import com.google.gson.*
+import kotlinx.serialization.KSerializer
 import java.util.Date
-import io.flutter.Log
-import java.lang.reflect.Type
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 
+@Serializable
 data class AlarmSettings(
     val id: Int,
+    @Serializable(with = DateSerializer::class)
     val dateTime: Date,
     val assetAudioPath: String,
     val volumeSettings: VolumeSettings,
@@ -31,47 +36,11 @@ data class AlarmSettings(
                 e.androidFullScreenIntent,
             )
         }
-
-        fun fromJson(jsonString: String): AlarmSettings? {
-            return try {
-                val gson = GsonBuilder()
-                    .registerTypeAdapter(Date::class.java, DateDeserializer())
-                    .create()
-                gson.fromJson(jsonString, AlarmSettings::class.java)
-            } catch (e: Exception) {
-                Log.e("AlarmSettings", "Error parsing JSON to AlarmSettings: ${e.message}", e)
-                null
-            }
-        }
-    }
-
-    fun toJson(): String {
-        val gson = GsonBuilder()
-            .registerTypeAdapter(Date::class.java, DateSerializer())
-            .create()
-        return gson.toJson(this)
     }
 }
 
-class DateDeserializer : JsonDeserializer<Date> {
-    override fun deserialize(
-        json: JsonElement?,
-        typeOfT: Type?,
-        context: JsonDeserializationContext?
-    ): Date {
-        val dateTimeMicroseconds = json?.asLong ?: 0L
-        val dateTimeMilliseconds = dateTimeMicroseconds / 1000
-        return Date(dateTimeMilliseconds)
-    }
-}
-
-class DateSerializer : JsonSerializer<Date> {
-    override fun serialize(
-        src: Date?,
-        typeOfSrc: Type?,
-        context: JsonSerializationContext?
-    ): JsonElement {
-        val dateTimeMicroseconds = src?.time?.times(1000) ?: 0L
-        return JsonPrimitive(dateTimeMicroseconds)
-    }
+object DateSerializer : KSerializer<Date> {
+    override val descriptor = PrimitiveSerialDescriptor("Date", PrimitiveKind.LONG)
+    override fun serialize(encoder: Encoder, value: Date) = encoder.encodeLong(value.time)
+    override fun deserialize(decoder: Decoder): Date = Date(decoder.decodeLong())
 }

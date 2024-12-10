@@ -2,9 +2,11 @@ package com.gdelataillade.alarm.models
 
 import VolumeFadeStepWire
 import VolumeSettingsWire
+import kotlinx.serialization.Serializable
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
+@Serializable
 data class VolumeSettings(
     val volume: Double?,
     val fadeDuration: Duration?,
@@ -23,6 +25,7 @@ data class VolumeSettings(
     }
 }
 
+@Serializable
 data class VolumeFadeStep(
     val time: Duration,
     val volume: Double

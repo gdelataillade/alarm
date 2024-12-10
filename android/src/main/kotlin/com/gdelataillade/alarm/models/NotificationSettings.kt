@@ -1,7 +1,9 @@
 package com.gdelataillade.alarm.models
 
 import NotificationSettingsWire
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class NotificationSettings(
     val title: String,
     val body: String,

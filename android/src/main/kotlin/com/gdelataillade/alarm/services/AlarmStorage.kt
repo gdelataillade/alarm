@@ -3,50 +3,68 @@ package com.gdelataillade.alarm.services
 import com.gdelataillade.alarm.models.AlarmSettings
 
 import android.content.Context
-import android.content.SharedPreferences
 import io.flutter.Log
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.encodeToString
+
+const val SHARED_PREFERENCES_NAME = "AlarmSharedPreferences"
+
+private val Context.dataStore: DataStore<Preferences> by
+preferencesDataStore(SHARED_PREFERENCES_NAME)
 
 class AlarmStorage(context: Context) {
     companion object {
-        private const val PREFIX = "flutter.__alarm_id__"
+        private const val PREFIX = "__alarm_id__"
     }
 
-    private val prefs: SharedPreferences =
-        context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+    private val dataStore = context.dataStore
 
-    // TODO(gdelataillade): Ensure this function is called or remove it.
     fun saveAlarm(alarmSettings: AlarmSettings) {
-        val key = "$PREFIX${alarmSettings.id}"
-        val editor = prefs.edit()
-        editor.putString(key, alarmSettings.toJson())
-        editor.apply()
+        return runBlocking {
+            val key = stringPreferencesKey("$PREFIX${alarmSettings.id}")
+            val value = Json.encodeToString(alarmSettings)
+            dataStore.edit { preferences -> preferences[key] = value }
+        }
     }
 
     fun unsaveAlarm(id: Int) {
-        val key = "$PREFIX$id"
-        val editor = prefs.edit()
-        editor.remove(key)
-        editor.apply()
+        return runBlocking {
+            val key = stringPreferencesKey("$PREFIX$id")
+            dataStore.edit { preferences -> preferences.remove(key) }
+        }
     }
 
     fun getSavedAlarms(): List<AlarmSettings> {
-        val alarms = mutableListOf<AlarmSettings>()
-        prefs.all.forEach { (key, value) ->
-            if (key.startsWith(PREFIX) && value is String) {
-                try {
-                    val alarm = AlarmSettings.fromJson(value)
-                    if (alarm != null) {
+        return runBlocking {
+            val preferences = dataStore.data.map { prefs ->
+                prefs.asMap().filterKeys { it.name.startsWith(PREFIX) }
+            }.first()
+
+            val alarms = mutableListOf<AlarmSettings>()
+            preferences.forEach { (key, value) ->
+                if (value is String) {
+                    try {
+                        val alarm = Json.decodeFromString<AlarmSettings>(value)
                         alarms.add(alarm)
-                    } else {
-                        Log.e("AlarmStorage", "Alarm for key $key could not be deserialized")
+                    } catch (e: Exception) {
+                        Log.e(
+                            "AlarmStorage",
+                            "Error parsing alarm settings for key ${key.name}: ${e.message}"
+                        )
                     }
-                } catch (e: Exception) {
-                    Log.e("AlarmStorage", "Error parsing alarm settings for key $key: ${e.message}")
+                } else {
+                    Log.w("AlarmStorage", "Skipping non-alarm preference with key: ${key.name}")
                 }
-            } else {
-                Log.w("AlarmStorage", "Skipping non-alarm preference with key: $key")
             }
+            alarms
         }
-        return alarms
     }
 }

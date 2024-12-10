@@ -19,6 +19,7 @@ import com.gdelataillade.alarm.models.AlarmSettings
 import com.gdelataillade.alarm.services.AlarmRingingLiveData
 import com.gdelataillade.alarm.services.NotificationHandler
 import io.flutter.Log
+import kotlinx.serialization.json.Json
 
 class AlarmService : Service() {
     private var audioService: AudioService? = null
@@ -70,8 +71,10 @@ class AlarmService : Service() {
             return START_NOT_STICKY
         }
 
-        val alarmSettings = AlarmSettings.fromJson(alarmSettingsJson)
-        if (alarmSettings == null) {
+        val alarmSettings: AlarmSettings
+        try {
+            alarmSettings = Json.decodeFromString<AlarmSettings>(alarmSettingsJson)
+        } catch (e: Exception) {
             Log.e("AlarmService", "Cannot parse AlarmSettings from Intent.")
             return START_NOT_STICKY
         }
