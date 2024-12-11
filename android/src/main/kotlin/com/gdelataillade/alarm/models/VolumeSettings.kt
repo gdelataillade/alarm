@@ -1,7 +1,7 @@
 package com.gdelataillade.alarm.models
 
-import VolumeFadeStepWire
-import VolumeSettingsWire
+import com.gdelataillade.alarm.generated.VolumeFadeStepWire
+import com.gdelataillade.alarm.generated.VolumeSettingsWire
 import kotlinx.serialization.Serializable
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
