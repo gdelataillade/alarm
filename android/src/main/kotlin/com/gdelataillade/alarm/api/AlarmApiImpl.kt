@@ -58,6 +58,16 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
         }
     }
 
+    override fun stopAll() {
+        for (alarm in AlarmStorage(context).getSavedAlarms()) {
+            stopAlarm(alarm.id.toLong())
+        }
+        val alarmIdsCopy = alarmIds.toList()
+        for (alarmId in alarmIdsCopy) {
+            stopAlarm(alarmId.toLong())
+        }
+    }
+
     override fun isRinging(alarmId: Long?): Boolean {
         val ringingAlarmIds = AlarmService.ringingAlarmIds
         if (alarmId == null) {

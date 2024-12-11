@@ -251,6 +251,7 @@ private open class FlutterBindingsPigeonCodec : StandardMessageCodec() {
 interface AlarmApi {
   fun setAlarm(alarmSettings: AlarmSettingsWire)
   fun stopAlarm(alarmId: Long)
+  fun stopAll()
   fun isRinging(alarmId: Long?): Boolean
   fun setWarningNotificationOnKill(title: String, body: String)
   fun disableWarningNotificationOnKill()
@@ -290,6 +291,22 @@ interface AlarmApi {
             val alarmIdArg = args[0] as Long
             val wrapped: List<Any?> = try {
               api.stopAlarm(alarmIdArg)
+              listOf(null)
+            } catch (exception: Throwable) {
+              wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.alarm.AlarmApi.stopAll$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            val wrapped: List<Any?> = try {
+              api.stopAll()
               listOf(null)
             } catch (exception: Throwable) {
               wrapError(exception)

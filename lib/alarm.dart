@@ -152,8 +152,12 @@ class Alarm {
   static Future<void> stopAll() async {
     final alarms = await getAlarms();
 
+    iOS ? await IOSAlarm.stopAll() : await AndroidAlarm.stopAll();
+
+    await AlarmStorage.unsaveAll();
+
     for (final alarm in alarms) {
-      await stop(alarm.id);
+      updateStream.add(alarm.id);
     }
   }
 

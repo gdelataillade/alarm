@@ -64,6 +64,18 @@ class AlarmStorage {
     await _prefs.remove('$prefix$id');
   }
 
+  /// Removes all alarms from local storage.
+  static Future<void> unsaveAll() async {
+    await _waitUntilInitialized();
+
+    final keys = _prefs.getKeys();
+    for (final key in keys) {
+      if (key.startsWith(prefix)) {
+        await _prefs.remove(key);
+      }
+    }
+  }
+
   /// Whether at least one alarm is set.
   static Future<bool> hasAlarm() async {
     await _waitUntilInitialized();

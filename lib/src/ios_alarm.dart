@@ -31,7 +31,6 @@ class IOSAlarm {
     return true;
   }
 
-  /// Disposes timer and FGBG subscription
   /// and calls the native `stopAlarm` function.
   static Future<bool> stopAlarm(int id) async {
     try {
@@ -44,6 +43,11 @@ class IOSAlarm {
       alarmPrint('Failed to stop alarm $id. $e');
       return false;
     }
+  }
+
+  /// Calls the native `stopAll` function.
+  static Future<void> stopAll() async {
+    return _api.stopAll().catchError(AlarmExceptionHandlers.catchError<void>);
   }
 
   /// Checks whether an alarm or any alarm (if id is null) is ringing.

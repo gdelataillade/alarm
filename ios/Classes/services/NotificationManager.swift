@@ -74,6 +74,11 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         let notificationIdentifier = "alarm-\(id)"
         UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [notificationIdentifier])
     }
+    
+    func removeAllNotifications() {
+        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+        UNUserNotificationCenter.current().removeAllDeliveredNotifications()
+    }
 
     func handleAction(withIdentifier identifier: String?, for notification: UNNotification) {
         guard let identifier = identifier else { return }

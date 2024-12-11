@@ -144,7 +144,6 @@ struct VolumeSettingsWire {
   var volumeEnforced: Bool
 
 
-
   // swift-format-ignore: AlwaysUseLowerCamelCase
   static func fromList(_ pigeonVar_list: [Any?]) -> VolumeSettingsWire? {
     let volume: Double? = nilOrValue(pigeonVar_list[0])
@@ -173,7 +172,6 @@ struct VolumeSettingsWire {
 struct VolumeFadeStepWire {
   var timeMillis: Int64
   var volume: Double
-
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -290,6 +288,7 @@ class FlutterBindingsPigeonCodec: FlutterStandardMessageCodec, @unchecked Sendab
 protocol AlarmApi {
   func setAlarm(alarmSettings: AlarmSettingsWire) throws
   func stopAlarm(alarmId: Int64) throws
+  func stopAll() throws
   func isRinging(alarmId: Int64?) throws -> Bool
   func setWarningNotificationOnKill(title: String, body: String) throws
   func disableWarningNotificationOnKill() throws
@@ -330,6 +329,19 @@ class AlarmApiSetup {
       }
     } else {
       stopAlarmChannel.setMessageHandler(nil)
+    }
+    let stopAllChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.alarm.AlarmApi.stopAll\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      stopAllChannel.setMessageHandler { _, reply in
+        do {
+          try api.stopAll()
+          reply(wrapResult(nil))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      stopAllChannel.setMessageHandler(nil)
     }
     let isRingingChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.alarm.AlarmApi.isRinging\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {

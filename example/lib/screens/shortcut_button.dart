@@ -60,9 +60,13 @@ class _ExampleAlarmHomeShortcutButtonState
           },
           child: FloatingActionButton(
             onPressed: () => onPressButton(0),
-            backgroundColor: Colors.red,
+            backgroundColor: Colors.green[700],
             heroTag: null,
-            child: const Text('RING NOW', textAlign: TextAlign.center),
+            child: const Text(
+              'RING NOW',
+              textScaler: TextScaler.linear(0.9),
+              textAlign: TextAlign.center,
+            ),
           ),
         ),
         if (showMenu)
