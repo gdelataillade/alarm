@@ -56,8 +56,10 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.datastore:datastore:1.1.1'
-    implementation 'androidx.datastore:datastore-preferences:1.1.1'
+    //noinspection v1.1.1 has a bug that prevents native_debug_symbol generation
+    //             see: https://issuetracker.google.com/u/0/issues/342671895
+    implementation 'androidx.datastore:datastore:1.0.0'
+    implementation 'androidx.datastore:datastore-preferences:1.0.0'
     //noinspection GradleDependency: 1.7+ requires Kotlin 2
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3'
 }
