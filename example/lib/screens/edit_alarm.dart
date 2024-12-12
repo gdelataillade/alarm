@@ -187,7 +187,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
             style: Theme.of(context)
                 .textTheme
                 .titleMedium!
-                .copyWith(color: Colors.blueAccent.withOpacity(0.8)),
+                .copyWith(color: Colors.blueAccent.withValues(alpha: 0.8)),
           ),
           RawMaterialButton(
             onPressed: pickTime,
