@@ -1,12 +1,15 @@
+## 5.0.0-dev.3
+* [Android] Fixed build error & downgrade datastore.
+
 ## 5.0.0-dev.2
 * Handles `stopAll` on the platform side for improved reliability.
 
 ## 5.0.0-dev.1
-* **BREAKING**: Old alarms (alarms created pre v5) will be deleted.
-* BREAKING: Some API parameters have been renamed, this update requires a small amount of refactoring for users. No features have been removed.
-* Add support for fading the alarm volume using a staircase function.
-* Fixes a bug where `isRinging` might return FALSE immediately after alarm starts to ring.
-* Handles alarm events on the platform side, increasing efficiency.
+**💥 Breaking Changes**
+* Old alarms (alarms created pre v5) will be deleted and some API parameters have been renamed, this update requires a small amount of refactoring for users. No features have been removed.
+* Added support for fading the alarm volume using a staircase function.
+* Fixed a bug where `isRinging` might return FALSE immediately after alarm starts to ring.
+* Handled alarm events on the platform side, increasing efficiency.
 
 ## 4.1.1
 * [Android] Show app on lock screen when alarm rings.
