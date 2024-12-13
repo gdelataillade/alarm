@@ -57,6 +57,7 @@ class AlarmSettingsWire {
     this.vibrate = true,
     this.warningNotificationOnKill = true,
     this.androidFullScreenIntent = true,
+    this.allowAlarmOverlap = false,
   });
 
   int id;
@@ -77,6 +78,8 @@ class AlarmSettingsWire {
 
   bool androidFullScreenIntent;
 
+  bool allowAlarmOverlap;
+
   Object encode() {
     return <Object?>[
       id,
@@ -88,6 +91,7 @@ class AlarmSettingsWire {
       vibrate,
       warningNotificationOnKill,
       androidFullScreenIntent,
+      allowAlarmOverlap,
     ];
   }
 
@@ -103,6 +107,7 @@ class AlarmSettingsWire {
       vibrate: result[6]! as bool,
       warningNotificationOnKill: result[7]! as bool,
       androidFullScreenIntent: result[8]! as bool,
+      allowAlarmOverlap: result[9]! as bool,
     );
   }
 }

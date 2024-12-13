@@ -83,7 +83,8 @@ data class AlarmSettingsWire (
   val loopAudio: Boolean,
   val vibrate: Boolean,
   val warningNotificationOnKill: Boolean,
-  val androidFullScreenIntent: Boolean
+  val androidFullScreenIntent: Boolean,
+  val allowAlarmOverlap: Boolean
 )
  {
   companion object {
@@ -97,7 +98,8 @@ data class AlarmSettingsWire (
       val vibrate = pigeonVar_list[6] as Boolean
       val warningNotificationOnKill = pigeonVar_list[7] as Boolean
       val androidFullScreenIntent = pigeonVar_list[8] as Boolean
-      return AlarmSettingsWire(id, millisecondsSinceEpoch, assetAudioPath, volumeSettings, notificationSettings, loopAudio, vibrate, warningNotificationOnKill, androidFullScreenIntent)
+      val allowAlarmOverlap = pigeonVar_list[9] as Boolean
+      return AlarmSettingsWire(id, millisecondsSinceEpoch, assetAudioPath, volumeSettings, notificationSettings, loopAudio, vibrate, warningNotificationOnKill, androidFullScreenIntent, allowAlarmOverlap)
     }
   }
   fun toList(): List<Any?> {
@@ -111,6 +113,7 @@ data class AlarmSettingsWire (
       vibrate,
       warningNotificationOnKill,
       androidFullScreenIntent,
+      allowAlarmOverlap,
     )
   }
 }
