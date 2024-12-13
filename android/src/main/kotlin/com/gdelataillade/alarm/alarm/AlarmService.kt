@@ -112,7 +112,7 @@ class AlarmService : Service() {
         }
 
         // Check if an alarm is already ringing
-        if (!alarmSettings.allowAlarmOverlap && ringingAlarmIds.isNotEmpty()) {
+        if (!alarmSettings.allowAlarmOverlap && ringingAlarmIds.isNotEmpty() && action != "STOP_ALARM") {
             Log.d("AlarmService", "An alarm is already ringing. Ignoring new alarm with id: $id")
             unsaveAlarm(id)
             return START_NOT_STICKY
