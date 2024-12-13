@@ -278,13 +278,13 @@ public class AlarmApiImpl: NSObject, AlarmApi {
     }
 
     private func handleAlarmAfterDelay(id: Int) {
-        if self.isAnyAlarmRingingExcept(id: id) {
-            NSLog("[SwiftAlarmPlugin] Ignoring alarm with id \(id) because another alarm is already ringing.")
-            self.unsaveAlarm(id: id)
+        guard let alarm = self.alarms[id], let audioPlayer = alarm.audioPlayer else {
             return
         }
 
-        guard let alarm = self.alarms[id], let audioPlayer = alarm.audioPlayer else {
+        if !alarm.settings.allowAlarmOverlap && self.isAnyAlarmRingingExcept(id: id) {
+            NSLog("[SwiftAlarmPlugin] Ignoring alarm with id \(id) because another alarm is already ringing.")
+            self.unsaveAlarm(id: id)
             return
         }
 

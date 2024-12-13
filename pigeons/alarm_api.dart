@@ -26,6 +26,7 @@ class AlarmSettingsWire {
     this.vibrate = true,
     this.warningNotificationOnKill = true,
     this.androidFullScreenIntent = true,
+    this.allowAlarmOverlap = false,
   });
 
   final int id;
@@ -37,6 +38,7 @@ class AlarmSettingsWire {
   final bool vibrate;
   final bool warningNotificationOnKill;
   final bool androidFullScreenIntent;
+  final bool allowAlarmOverlap;
 }
 
 class VolumeSettingsWire {

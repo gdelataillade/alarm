@@ -20,6 +20,7 @@ class AlarmSettings {
     this.vibrate = true,
     this.warningNotificationOnKill = true,
     this.androidFullScreenIntent = true,
+    this.allowAlarmOverlap = false,
   });
 
   /// Constructs an `AlarmSettings` instance from the given JSON data.
@@ -38,7 +39,8 @@ class AlarmSettings {
         loopAudio = wire.loopAudio,
         vibrate = wire.vibrate,
         warningNotificationOnKill = wire.warningNotificationOnKill,
-        androidFullScreenIntent = wire.androidFullScreenIntent;
+        androidFullScreenIntent = wire.androidFullScreenIntent,
+        allowAlarmOverlap = false;
 
   /// Unique identifier assiocated with the alarm. Cannot be 0 or -1;
   final int id;
@@ -103,6 +105,11 @@ class AlarmSettings {
   /// package.
   final bool androidFullScreenIntent;
 
+  /// Whether the alarm should ring if another alarm is already ringing.
+  ///
+  /// Defaults to `false`.
+  final bool allowAlarmOverlap;
+
   /// Converts the `AlarmSettings` instance to a JSON object.
   Map<String, dynamic> toJson() => _$AlarmSettingsToJson(this);
 
@@ -117,6 +124,7 @@ class AlarmSettings {
         vibrate: vibrate,
         warningNotificationOnKill: warningNotificationOnKill,
         androidFullScreenIntent: androidFullScreenIntent,
+        allowAlarmOverlap: allowAlarmOverlap,
       );
 
   /// Creates a copy of `AlarmSettings` but with the given fields replaced with
@@ -138,6 +146,7 @@ class AlarmSettings {
     String? notificationBody,
     bool? warningNotificationOnKill,
     bool? androidFullScreenIntent,
+    bool? allowAlarmOverlap,
   }) {
     return AlarmSettings(
       id: id ?? this.id,
@@ -151,6 +160,7 @@ class AlarmSettings {
           warningNotificationOnKill ?? this.warningNotificationOnKill,
       androidFullScreenIntent:
           androidFullScreenIntent ?? this.androidFullScreenIntent,
+      allowAlarmOverlap: allowAlarmOverlap ?? this.allowAlarmOverlap,
     );
   }
 }

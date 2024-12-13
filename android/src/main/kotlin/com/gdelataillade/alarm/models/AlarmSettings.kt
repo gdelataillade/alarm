@@ -20,7 +20,8 @@ data class AlarmSettings(
     val loopAudio: Boolean,
     val vibrate: Boolean,
     val warningNotificationOnKill: Boolean,
-    val androidFullScreenIntent: Boolean
+    val androidFullScreenIntent: Boolean,
+    val allowAlarmOverlap: Boolean = false
 ) {
     companion object {
         fun fromWire(e: AlarmSettingsWire): AlarmSettings {
@@ -34,6 +35,7 @@ data class AlarmSettings(
                 e.vibrate,
                 e.warningNotificationOnKill,
                 e.androidFullScreenIntent,
+                e.allowAlarmOverlap
             )
         }
     }

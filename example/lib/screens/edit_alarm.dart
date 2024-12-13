@@ -123,6 +123,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       assetAudioPath: assetAudio,
       warningNotificationOnKill: Platform.isIOS,
       volumeSettings: volumeSettings,
+      allowAlarmOverlap: true,
       notificationSettings: NotificationSettings(
         title: 'Alarm example',
         body: 'Your alarm ($id) is ringing',
