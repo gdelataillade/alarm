@@ -28,8 +28,12 @@ class AlarmSettings {
   /// This factory adds backward compatibility for v4 JSON structures
   /// by detecting the absence of certain fields and adjusting them.
   factory AlarmSettings.fromJson(Map<String, dynamic> json) {
-    // Handle backward compatibility for v4 JSON structures
-    if (!json.containsKey('volumeSettings')) {
+    try {
+      // Try parsing with the default (v5) parser
+      return _$AlarmSettingsFromJson(json);
+    } catch (e) {
+      // Fallback to v4 parsing logic
+
       // Process volume settings for v4
       final volume = (json['volume'] as num?)?.toDouble();
       final fadeDurationSeconds = (json['fadeDuration'] as num?)?.toDouble();
@@ -47,19 +51,16 @@ class AlarmSettings {
       };
 
       // Default `allowAlarmOverlap` to false for v4
-      if (!json.containsKey('allowAlarmOverlap')) {
-        json['allowAlarmOverlap'] = false;
-      }
+      json['allowAlarmOverlap'] = json['allowAlarmOverlap'] ?? false;
 
       // Adjust `dateTime` field for v4
       if (json['dateTime'] != null) {
         if (json['dateTime'] is int) {
           final dateTimeValue = json['dateTime'] as int;
-          // In v4, dateTime was stored in microseconds,
-          // so convert to milliseconds
+          // In v4, dateTime was stored in microseconds, convert to milliseconds
           json['dateTime'] = dateTimeValue ~/ 1000;
         } else if (json['dateTime'] is String) {
-          // If `dateTime` is a string (ISO 8601 format), parse it
+          // Parse ISO 8601 date string
           json['dateTime'] =
               DateTime.parse(json['dateTime'] as String).millisecondsSinceEpoch;
         } else {
@@ -68,9 +69,10 @@ class AlarmSettings {
       } else {
         throw ArgumentError('dateTime is missing in the JSON data');
       }
-    }
 
-    return _$AlarmSettingsFromJson(json);
+      // Try parsing again with the adjusted JSON
+      return _$AlarmSettingsFromJson(json);
+    }
   }
 
   /// Converts from wire datatype.
