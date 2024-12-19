@@ -24,8 +24,56 @@ class AlarmSettings {
   });
 
   /// Constructs an `AlarmSettings` instance from the given JSON data.
-  factory AlarmSettings.fromJson(Map<String, dynamic> json) =>
-      _$AlarmSettingsFromJson(json);
+  ///
+  /// This factory adds backward compatibility for v4 JSON structures
+  /// by detecting the absence of certain fields and adjusting them.
+  factory AlarmSettings.fromJson(Map<String, dynamic> json) {
+    try {
+      // Try parsing with the default (v5) parser
+      return _$AlarmSettingsFromJson(json);
+    } catch (e) {
+      // Fallback to v4 parsing logic
+
+      // Process volume settings for v4
+      final volume = (json['volume'] as num?)?.toDouble();
+      final fadeDurationSeconds = (json['fadeDuration'] as num?)?.toDouble();
+      final fadeDurationMillis =
+          (fadeDurationSeconds != null && fadeDurationSeconds > 0)
+              ? (fadeDurationSeconds * 1000).toInt()
+              : null;
+      final volumeEnforced = json['volumeEnforced'] as bool? ?? false;
+
+      json['volumeSettings'] = {
+        'volume': volume,
+        'fadeDuration': fadeDurationMillis,
+        'fadeSteps': <Map<String, dynamic>>[],
+        'volumeEnforced': volumeEnforced,
+      };
+
+      // Default `allowAlarmOverlap` to false for v4
+      json['allowAlarmOverlap'] = json['allowAlarmOverlap'] ?? false;
+
+      // Adjust `dateTime` field for v4
+      if (json['dateTime'] != null) {
+        if (json['dateTime'] is int) {
+          final dateTimeValue = json['dateTime'] as int;
+          // In v4, dateTime was stored in microseconds, convert to milliseconds
+          json['dateTime'] = dateTimeValue ~/ 1000;
+        } else if (json['dateTime'] is String) {
+          // Parse ISO 8601 date string
+          json['dateTime'] =
+              DateTime.parse(json['dateTime'] as String).millisecondsSinceEpoch;
+        } else {
+          throw ArgumentError('Invalid dateTime value: ${json['dateTime']}');
+        }
+      } else {
+        throw ArgumentError('dateTime is missing in the JSON data');
+      }
+
+      // Try parsing again with the adjusted JSON
+      return _$AlarmSettingsFromJson(json);
+    }
+  }
 
   /// Converts from wire datatype.
   AlarmSettings.fromWire(AlarmSettingsWire wire)
@@ -40,12 +88,16 @@ class AlarmSettings {
         vibrate = wire.vibrate,
         warningNotificationOnKill = wire.warningNotificationOnKill,
         androidFullScreenIntent = wire.androidFullScreenIntent,
-        allowAlarmOverlap = false;
+        allowAlarmOverlap = wire.allowAlarmOverlap;
 
-  /// Unique identifier assiocated with the alarm. Cannot be 0 or -1;
+  /// Unique identifier associated with the alarm. Cannot be 0 or -1.
   final int id;
 
   /// Date and time when the alarm will be triggered.
+  @JsonKey(
+    fromJson: _dateTimeFromJson,
+    toJson: _dateTimeToJson,
+  )
   final DateTime dateTime;
 
   /// Path to audio asset to be used as the alarm ringtone. Accepted formats:
@@ -163,4 +215,10 @@ class AlarmSettings {
       allowAlarmOverlap: allowAlarmOverlap ?? this.allowAlarmOverlap,
     );
   }
+
+  static DateTime _dateTimeFromJson(int millisecondsSinceEpoch) =>
+      DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch);
+
+  static int _dateTimeToJson(DateTime dateTime) =>
+      dateTime.millisecondsSinceEpoch;
 }
