@@ -1,3 +1,6 @@
+## 5.0.0-dev.4
+* Added backward compatibility with package versions below 5.
+
 ## 5.0.0-dev.3
 * [Android] Fixed build error & downgrade datastore.
 
