@@ -1,3 +1,5 @@
+import Foundation
+
 struct AlarmSettings: Codable {
     let id: Int
     let dateTime: Date
@@ -13,25 +15,62 @@ struct AlarmSettings: Codable {
     enum CodingKeys: String, CodingKey {
         case id, dateTime, assetAudioPath, volumeSettings, notificationSettings,
              loopAudio, vibrate, warningNotificationOnKill, androidFullScreenIntent,
-             allowAlarmOverlap
+             allowAlarmOverlap, volume, fadeDuration, volumeEnforced
     }
 
-    // Custom initializer to handle missing keys
+    /// Custom initializer to handle backward compatibility for older models
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        // Decode mandatory fields
         id = try container.decode(Int.self, forKey: .id)
         dateTime = try container.decode(Date.self, forKey: .dateTime)
         assetAudioPath = try container.decode(String.self, forKey: .assetAudioPath)
-        volumeSettings = try container.decode(VolumeSettings.self, forKey: .volumeSettings)
         notificationSettings = try container.decode(NotificationSettings.self, forKey: .notificationSettings)
         loopAudio = try container.decode(Bool.self, forKey: .loopAudio)
         vibrate = try container.decode(Bool.self, forKey: .vibrate)
         warningNotificationOnKill = try container.decode(Bool.self, forKey: .warningNotificationOnKill)
         androidFullScreenIntent = try container.decode(Bool.self, forKey: .androidFullScreenIntent)
+
+        // Backward compatibility for `allowAlarmOverlap`
         allowAlarmOverlap = try container.decodeIfPresent(Bool.self, forKey: .allowAlarmOverlap) ?? false
+
+        // Backward compatibility for `volumeSettings`
+        if let volumeSettingsDecoded = try? container.decode(VolumeSettings.self, forKey: .volumeSettings) {
+            volumeSettings = volumeSettingsDecoded
+        } else {
+            // Reconstruct `volumeSettings` from older fields
+            let volume = try container.decodeIfPresent(Double.self, forKey: .volume)
+            let fadeDurationSeconds = try container.decodeIfPresent(Double.self, forKey: .fadeDuration)
+            let fadeDuration = fadeDurationSeconds.map { TimeInterval($0) }
+            let volumeEnforced = try container.decodeIfPresent(Bool.self, forKey: .volumeEnforced) ?? false
+
+            volumeSettings = VolumeSettings(
+                volume: volume,
+                fadeDuration: fadeDuration,
+                fadeSteps: [], // No equivalent for fadeSteps in older models
+                volumeEnforced: volumeEnforced
+            )
+        }
     }
 
-    // Memberwise initializer
+    /// Encode method to support `Encodable` protocol
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        try container.encode(id, forKey: .id)
+        try container.encode(dateTime, forKey: .dateTime)
+        try container.encode(assetAudioPath, forKey: .assetAudioPath)
+        try container.encode(volumeSettings, forKey: .volumeSettings)
+        try container.encode(notificationSettings, forKey: .notificationSettings)
+        try container.encode(loopAudio, forKey: .loopAudio)
+        try container.encode(vibrate, forKey: .vibrate)
+        try container.encode(warningNotificationOnKill, forKey: .warningNotificationOnKill)
+        try container.encode(androidFullScreenIntent, forKey: .androidFullScreenIntent)
+        try container.encode(allowAlarmOverlap, forKey: .allowAlarmOverlap)
+    }
+
+    /// Memberwise initializer
     init(
         id: Int,
         dateTime: Date,
@@ -56,6 +95,7 @@ struct AlarmSettings: Codable {
         self.allowAlarmOverlap = allowAlarmOverlap
     }
 
+    /// Converts from wire model to `AlarmSettings`.
     static func from(wire: AlarmSettingsWire) -> AlarmSettings {
         return AlarmSettings(
             id: Int(truncatingIfNeeded: wire.id),
