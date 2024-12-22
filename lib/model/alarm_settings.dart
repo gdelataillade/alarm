@@ -28,12 +28,8 @@ class AlarmSettings {
   /// This factory adds backward compatibility for v4 JSON structures
   /// by detecting the absence of certain fields and adjusting them.
   factory AlarmSettings.fromJson(Map<String, dynamic> json) {
-    try {
-      // Try parsing with the default (v5) parser
-      return _$AlarmSettingsFromJson(json);
-    } catch (e) {
-      // Fallback to v4 parsing logic
-
+    // Check if 'volumeSettings' key is absent, indicating v4 data
+    if (!json.containsKey('volumeSettings')) {
       // Process volume settings for v4
       final volume = (json['volume'] as num?)?.toDouble();
       final fadeDurationSeconds = (json['fadeDuration'] as num?)?.toDouble();
@@ -69,10 +65,9 @@ class AlarmSettings {
       } else {
         throw ArgumentError('dateTime is missing in the JSON data');
       }
-
-      // Try parsing again with the adjusted JSON
-      return _$AlarmSettingsFromJson(json);
     }
+    // Parse using the default parser (v5)
+    return _$AlarmSettingsFromJson(json);
   }
 
   /// Converts from wire datatype.
@@ -94,10 +89,6 @@ class AlarmSettings {
   final int id;
 
   /// Date and time when the alarm will be triggered.
-  @JsonKey(
-    fromJson: _dateTimeFromJson,
-    toJson: _dateTimeToJson,
-  )
   final DateTime dateTime;
 
   /// Path to audio asset to be used as the alarm ringtone. Accepted formats:
