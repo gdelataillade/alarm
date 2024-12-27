@@ -22,11 +22,12 @@ class AlarmSettingsWire {
     required this.assetAudioPath,
     required this.volumeSettings,
     required this.notificationSettings,
-    this.loopAudio = true,
-    this.vibrate = true,
-    this.warningNotificationOnKill = true,
-    this.androidFullScreenIntent = true,
-    this.allowAlarmOverlap = false,
+    required this.loopAudio,
+    required this.vibrate,
+    required this.warningNotificationOnKill,
+    required this.androidFullScreenIntent,
+    required this.allowAlarmOverlap,
+    required this.iOSBackgroundAudio,
   });
 
   final int id;
@@ -39,6 +40,7 @@ class AlarmSettingsWire {
   final bool warningNotificationOnKill;
   final bool androidFullScreenIntent;
   final bool allowAlarmOverlap;
+  final bool iOSBackgroundAudio;
 }
 
 class VolumeSettingsWire {
@@ -69,8 +71,8 @@ class NotificationSettingsWire {
   const NotificationSettingsWire({
     required this.title,
     required this.body,
-    this.stopButton,
-    this.icon,
+    required this.stopButton,
+    required this.icon,
   });
 
   final String title;

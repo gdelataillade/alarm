@@ -14,7 +14,7 @@ dependencies:
   flutter_fgbg: ^0.6.0
   json_annotation: ^4.9.0
   plugin_platform_interface: ^2.1.8
-  shared_preferences: ^2.3.3
+  shared_preferences: ^2.3.4
 
 dev_dependencies:
   build_runner: ^2.4.13
