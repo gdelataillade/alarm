@@ -21,6 +21,7 @@ class AlarmSettings {
     this.warningNotificationOnKill = true,
     this.androidFullScreenIntent = true,
     this.allowAlarmOverlap = false,
+    this.iOSBackgroundAudio = true,
   });
 
   /// Constructs an `AlarmSettings` instance from the given JSON data.
@@ -48,6 +49,9 @@ class AlarmSettings {
 
       // Default `allowAlarmOverlap` to false for v4
       json['allowAlarmOverlap'] = json['allowAlarmOverlap'] ?? false;
+
+      // Default `iOSBackgroundAudio` to true for v4
+      json['iOSBackgroundAudio'] = json['iOSBackgroundAudio'] ?? true;
 
       // Adjust `dateTime` field for v4
       if (json['dateTime'] != null) {
@@ -83,7 +87,8 @@ class AlarmSettings {
         vibrate = wire.vibrate,
         warningNotificationOnKill = wire.warningNotificationOnKill,
         androidFullScreenIntent = wire.androidFullScreenIntent,
-        allowAlarmOverlap = wire.allowAlarmOverlap;
+        allowAlarmOverlap = wire.allowAlarmOverlap,
+        iOSBackgroundAudio = wire.iOSBackgroundAudio;
 
   /// Unique identifier associated with the alarm. Cannot be 0 or -1.
   final int id;
@@ -153,6 +158,19 @@ class AlarmSettings {
   /// Defaults to `false`.
   final bool allowAlarmOverlap;
 
+  /// iOS apps are killed if they remain inactive in the background. Android
+  /// does not have this limitation due to native AlarmManager support.
+  ///
+  /// This flag controls whether a silent audio player should start playing when
+  /// there is an active alarm. Apps that already have background activity can
+  /// set this to `false` to conserve battery.
+  ///
+  /// DO NOT set this to `false` unless you are certain. Otherwise your alarms
+  /// may not ring!
+  ///
+  /// Defaults to `true`. Has no effect on Android.
+  final bool iOSBackgroundAudio;
+
   /// Converts the `AlarmSettings` instance to a JSON object.
   Map<String, dynamic> toJson() => _$AlarmSettingsToJson(this);
 
@@ -168,6 +186,7 @@ class AlarmSettings {
         warningNotificationOnKill: warningNotificationOnKill,
         androidFullScreenIntent: androidFullScreenIntent,
         allowAlarmOverlap: allowAlarmOverlap,
+        iOSBackgroundAudio: iOSBackgroundAudio,
       );
 
   /// Creates a copy of `AlarmSettings` but with the given fields replaced with
@@ -190,6 +209,7 @@ class AlarmSettings {
     bool? warningNotificationOnKill,
     bool? androidFullScreenIntent,
     bool? allowAlarmOverlap,
+    bool? iOSBackgroundAudio,
   }) {
     return AlarmSettings(
       id: id ?? this.id,
@@ -204,12 +224,7 @@ class AlarmSettings {
       androidFullScreenIntent:
           androidFullScreenIntent ?? this.androidFullScreenIntent,
       allowAlarmOverlap: allowAlarmOverlap ?? this.allowAlarmOverlap,
+      iOSBackgroundAudio: iOSBackgroundAudio ?? this.iOSBackgroundAudio,
     );
   }
-
-  static DateTime _dateTimeFromJson(int millisecondsSinceEpoch) =>
-      DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch);
-
-  static int _dateTimeToJson(DateTime dateTime) =>
-      dateTime.millisecondsSinceEpoch;
 }

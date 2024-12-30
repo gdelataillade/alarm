@@ -71,7 +71,7 @@ public class AlarmApiImpl: NSObject, AlarmApi {
 
             audioPlayer.prepareToPlay()
 
-            if !self.playSilent {
+            if !self.playSilent && alarmSettings.iOSBackgroundAudio {
                 self.startSilentSound()
             }
 
@@ -312,7 +312,7 @@ public class AlarmApiImpl: NSObject, AlarmApi {
 
         if !alarm.settings.loopAudio {
             let audioDuration = audioPlayer.duration
-            DispatchQueue.main.asyncAfter(deadline: .now() + audioDuration) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + audioDuration.toDispatchInterval()) {
                 self.stopAlarmInternal(id: id, cancelNotif: false)
             }
         }
@@ -349,7 +349,7 @@ public class AlarmApiImpl: NSObject, AlarmApi {
     private func triggerVibrations() {
         if !self.vibratingAlarms.isEmpty && self.isDevice {
             AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) {
                 self.triggerVibrations()
             }
         }
@@ -363,7 +363,7 @@ public class AlarmApiImpl: NSObject, AlarmApi {
     public func setVolume(volume: Float, enable: Bool) {
         let volumeView = MPVolumeView()
 
-        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + .milliseconds(100)) {
             if let slider = volumeView.subviews.first(where: { $0 is UISlider }) as? UISlider {
                 self.previousVolume = enable ? slider.value : nil
                 print("[SwiftAlarmPlugin] Setting system volume to \(volume).")
@@ -394,7 +394,7 @@ public class AlarmApiImpl: NSObject, AlarmApi {
             let targetVolume = Float(nextStep.volume)
 
             // Schedule the fade using setVolume for a smooth transition
-            DispatchQueue.main.asyncAfter(deadline: now + startTime) {
+            DispatchQueue.main.asyncAfter(deadline: now + startTime.toDispatchInterval()) {
                 if !audioPlayer.isPlaying {
                     return
                 }
@@ -481,5 +481,11 @@ public class AlarmApiImpl: NSObject, AlarmApi {
             default:
                 break
         }
+    }
+}
+
+extension TimeInterval {
+    func toDispatchInterval() -> DispatchTimeInterval {
+        return DispatchTimeInterval.milliseconds(Int(self * 1_000))
     }
 }

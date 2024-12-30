@@ -53,11 +53,12 @@ class AlarmSettingsWire {
     required this.assetAudioPath,
     required this.volumeSettings,
     required this.notificationSettings,
-    this.loopAudio = true,
-    this.vibrate = true,
-    this.warningNotificationOnKill = true,
-    this.androidFullScreenIntent = true,
-    this.allowAlarmOverlap = false,
+    required this.loopAudio,
+    required this.vibrate,
+    required this.warningNotificationOnKill,
+    required this.androidFullScreenIntent,
+    required this.allowAlarmOverlap,
+    required this.iOSBackgroundAudio,
   });
 
   int id;
@@ -80,6 +81,8 @@ class AlarmSettingsWire {
 
   bool allowAlarmOverlap;
 
+  bool iOSBackgroundAudio;
+
   Object encode() {
     return <Object?>[
       id,
@@ -92,6 +95,7 @@ class AlarmSettingsWire {
       warningNotificationOnKill,
       androidFullScreenIntent,
       allowAlarmOverlap,
+      iOSBackgroundAudio,
     ];
   }
 
@@ -108,6 +112,7 @@ class AlarmSettingsWire {
       warningNotificationOnKill: result[7]! as bool,
       androidFullScreenIntent: result[8]! as bool,
       allowAlarmOverlap: result[9]! as bool,
+      iOSBackgroundAudio: result[10]! as bool,
     );
   }
 }

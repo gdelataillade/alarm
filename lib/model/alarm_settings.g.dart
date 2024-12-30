@@ -13,8 +13,8 @@ AlarmSettings _$AlarmSettingsFromJson(Map<String, dynamic> json) =>
       ($checkedConvert) {
         final val = AlarmSettings(
           id: $checkedConvert('id', (v) => (v as num).toInt()),
-          dateTime: $checkedConvert('dateTime',
-              (v) => AlarmSettings._dateTimeFromJson((v as num).toInt())),
+          dateTime:
+              $checkedConvert('dateTime', (v) => DateTime.parse(v as String)),
           assetAudioPath: $checkedConvert('assetAudioPath', (v) => v as String),
           volumeSettings: $checkedConvert('volumeSettings',
               (v) => VolumeSettings.fromJson(v as Map<String, dynamic>)),
@@ -28,6 +28,8 @@ AlarmSettings _$AlarmSettingsFromJson(Map<String, dynamic> json) =>
               'androidFullScreenIntent', (v) => v as bool? ?? true),
           allowAlarmOverlap:
               $checkedConvert('allowAlarmOverlap', (v) => v as bool? ?? false),
+          iOSBackgroundAudio:
+              $checkedConvert('iOSBackgroundAudio', (v) => v as bool? ?? true),
         );
         return val;
       },
@@ -36,7 +38,7 @@ AlarmSettings _$AlarmSettingsFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$AlarmSettingsToJson(AlarmSettings instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'dateTime': AlarmSettings._dateTimeToJson(instance.dateTime),
+      'dateTime': instance.dateTime.toIso8601String(),
       'assetAudioPath': instance.assetAudioPath,
       'volumeSettings': instance.volumeSettings.toJson(),
       'notificationSettings': instance.notificationSettings.toJson(),
@@ -45,4 +47,5 @@ Map<String, dynamic> _$AlarmSettingsToJson(AlarmSettings instance) =>
       'warningNotificationOnKill': instance.warningNotificationOnKill,
       'androidFullScreenIntent': instance.androidFullScreenIntent,
       'allowAlarmOverlap': instance.allowAlarmOverlap,
+      'iOSBackgroundAudio': instance.iOSBackgroundAudio,
     };
