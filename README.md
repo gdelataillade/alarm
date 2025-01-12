@@ -60,7 +60,7 @@ And finally set the alarm:
 await Alarm.set(alarmSettings: alarmSettings)
 ```
 
-#### AlarmSettings model
+### AlarmSettings model
 Property |   Type     | Description
 -------- |------------| ---------------
 id |   `int`     | Unique identifier of the alarm.
@@ -80,7 +80,7 @@ If you enabled `warningNotificationOnKill`, you can choose your own notification
 await Alarm.setWarningNotificationOnKill(title, body)
 ```
 
-#### NotificationSettings model
+### NotificationSettings model
 
 Property |   Type     | Description
 -------- |------------| ---------------
@@ -89,7 +89,7 @@ body |   `String`     | Body of the alarm notification.
 stopButton | `String?` | Text shown in the stop button of the alarm notification. Button not shown if null.
 icon | `String?` | Icon to display on the notification. Only customizable on Android.
 
-#### VolumeSettings model
+### VolumeSettings model
 
 Property |   Type     | Description
 -------- |------------| ---------------
