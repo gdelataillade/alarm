@@ -1,13 +1,11 @@
 ![Pub Version](https://img.shields.io/pub/v/alarm)
 ![Pub Likes](https://img.shields.io/pub/likes/alarm)
 ![Pub Points](https://img.shields.io/pub/points/alarm)
-![Pub Popularity](https://img.shields.io/pub/popularity/alarm)
+![Pub Downloads](https://img.shields.io/pub/dm/alarm)
 
 [![alarm](https://github.com/gdelataillade/alarm/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/gdelataillade/alarm/actions/workflows/main.yml)
 [![style: very good analysis](https://img.shields.io/badge/style-very_good_analysis-B22C89.svg)](https://pub.dev/packages/very_good_analysis)
 [![GitHub Sponsor](https://img.shields.io/github/sponsors/gdelataillade?label=Sponsor&logo=GitHub)](https://github.com/sponsors/gdelataillade)
-
-🏆 Winner of the [2023 OnePub Community Choice Awards](https://onepub.dev/Competition).
 
 # Alarm plugin for iOS and Android
 
@@ -15,7 +13,7 @@ This plugin offers a straightforward interface to set and cancel alarms on both 
 
 ## 🔧 Installation steps
 
-Please carefully follow these installation steps. They have been updated for plugin version `3.0.0`.
+Please carefully follow these installation steps. They have been updated for plugin version `5.0.0`.
 
 ### [iOS Setup](https://github.com/gdelataillade/alarm/blob/main/help/INSTALL-IOS.md)
 ### [Android Setup](https://github.com/gdelataillade/alarm/blob/main/help/INSTALL-ANDROID.md)
@@ -41,10 +39,13 @@ final alarmSettings = AlarmSettings(
   assetAudioPath: 'assets/alarm.mp3',
   loopAudio: true,
   vibrate: true,
-  volume: 0.8,
-  fadeDuration: 3.0,
   warningNotificationOnKill: Platform.isIOS,
   androidFullScreenIntent: true,
+  volumeSettings: VolumeSettings.fixed(
+    volume: 0.8,
+    fadeDuration: Duration(seconds: 5),
+    volumeEnforced: true,
+  ),
   notificationSettings: const NotificationSettings(
     title: 'This is the title',
     body: 'This is the body',
@@ -59,24 +60,43 @@ And finally set the alarm:
 await Alarm.set(alarmSettings: alarmSettings)
 ```
 
+#### AlarmSettings model
 Property |   Type     | Description
 -------- |------------| ---------------
 id |   `int`     | Unique identifier of the alarm.
-alarmDateTime |   `DateTime`     | The date and time you want your alarm to ring.
-assetAudio |   `String`     | The path to you audio asset you want to use as ringtone. Can be a path in your assets folder or a local file path with android permission.
-notificationSettings | `NotificationSettings` | Settings for notification title, body, icon and action buttons (only stop at the moment).
+dateTime |   `DateTime`     | The date and time you want your alarm to ring.
+assetAudioPath |   `String`     | The path to you audio asset you want to use as ringtone. Can be a path in your assets folder or a local file path with Android permission.
 loopAudio |   `bool`     | If true, audio will repeat indefinitely until alarm is stopped.
 vibrate |   `bool`     | If true, device will vibrate indefinitely until alarm is stopped. If [loopAudio] is set to false, vibrations will stop when audio ends.
-volume |   `double`     | Sets system volume level (0.0 to 1.0) at [dateTime]; reverts on alarm stop. Defaults to current volume if null.
-fadeDuration |   `double`     | Duration, in seconds, over which to fade the alarm volume. Set to 0.0 by default, which means no fade.
 warningNotificationOnKill |   `bool`     | Whether to show a notification when application is killed to warn the user that the alarm he set may not ring. Recommanded for iOS. Enabled by default.
 androidFullScreenIntent |   `bool`     | Whether to turn screen on when android alarm notification is triggered. Enabled by default.
+allowAlarmOverlap | `bool` | Whether the alarm should ring if another alarm is already ringing. Disabled by default.
+[notificationSettings](#notificationsettings-model) | `NotificationSettings` | Settings for notification title, body, icon and action buttons (only stop at the moment).
+[volumeSettings](#volumesettings-model) | `VolumeSettings` | Settings for alarm volume and fade durations.
 
 
 If you enabled `warningNotificationOnKill`, you can choose your own notification title and body by using this method before setting your alarms:
 ```Dart
 await Alarm.setWarningNotificationOnKill(title, body)
 ```
+
+#### NotificationSettings model
+
+Property |   Type     | Description
+-------- |------------| ---------------
+title |   `String`     | Title of the alarm notification.
+body |   `String`     | Body of the alarm notification.
+stopButton | `String?` | Text shown in the stop button of the alarm notification. Button not shown if null.
+icon | `String?` | Icon to display on the notification. Only customizable on Android.
+
+#### VolumeSettings model
+
+Property |   Type     | Description
+-------- |------------| ---------------
+volume |   `double?`     | Sets system volume level (0.0 to 1.0). Reverts on alarm stop. Defaults to current volume if null.
+fadeDuration | `Duration?` | Duration over which to fade the alarm ringtone. Null means no fade.
+fadeSteps | `List<VolumeFadeStep>` | Controls how the alarm volume will fade over time.
+volumeEnforced | `bool` | Automatically resets to the original alarm [volume] if the user attempts to adjust it. Disabled by default.
 
 This is how to stop/cancel your alarm:
 ```Dart
@@ -150,7 +170,7 @@ Related issue [here](https://github.com/gdelataillade/alarm/issues/47#issuecomme
 ### Why does my app crash on iOS?
 
 Crashes such as `EXC_BAD_ACCESS KERN_INVALID_ADDRESS` occur if `Alarm.set` and `Alarm.stop` methods are called concurrently, as they both modify shared resources. To prevent this, ensure each method call is completed before starting the next by using the `await` keyword in Dart:
-```
+```Dart
 await Alarm.set
 await Alarm.stop
 ```
@@ -185,15 +205,15 @@ We welcome contributions to this plugin! If you would like to make a change or a
 4.  Submit a pull request with a detailed description of your changes.
 
 These are some features that I have in mind that could be useful:
-- [Android] Reschedule alarms after device reboot.
+- Add actions on notification tap or dismiss.
 - Use `ffigen` and `jnigen` binding generators to call native code more efficiently instead of using method channels.
-- Stop alarm sound when notification is dismissed.
 
 Thank you for considering contributing to this plugin. Your help is greatly appreciated!
 
-🙏 Special thanks to the main contributors 🇫🇷
+🙏 Special thanks to the main contributors:
 - [evolum](https://evolum.co)
 - [WayUp](https://wayuphealth.fr)
+- [orkun1675](https://github.com/orkun1675)
 
 ❤️ Let me know if you like the plugin by liking it on [pub.dev](https://pub.dev/packages/alarm) and starring the repo on [Github](https://github.com/gdelataillade/alarm) 🙂
 

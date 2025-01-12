@@ -1,3 +1,6 @@
+## 5.0.0-dev.6
+* Update README.
+
 ## 5.0.0-dev.5
 * [iOS] Added `iOSBackgroundAudio` parameter to disable background silent audio player, which is not necessary if your app already has a background process that keeps app active in the background.
 
