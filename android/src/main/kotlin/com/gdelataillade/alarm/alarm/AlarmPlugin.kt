@@ -11,6 +11,7 @@ import androidx.lifecycle.Observer
 import com.gdelataillade.alarm.api.AlarmApiImpl
 import com.gdelataillade.alarm.services.AlarmRingingLiveData
 import io.flutter.Log
+import io.flutter.embedding.engine.dart.DartExecutor
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -19,18 +20,30 @@ class AlarmPlugin : FlutterPlugin, ActivityAware {
     private var activity: Activity? = null
 
     companion object {
+        private var mainEngine: DartExecutor? = null
+        
         @JvmStatic
         var alarmTriggerApi: AlarmTriggerApi? = null
     }
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-        AlarmApi.setUp(binding.binaryMessenger, AlarmApiImpl(binding.applicationContext))
-        alarmTriggerApi = AlarmTriggerApi(binding.binaryMessenger)
+        val engine = binding.binaryMessenger as DartExecutor
+        if (mainEngine == null) {
+            // If this is our first engine, consider it the main one
+            mainEngine = engine
+            AlarmApi.setUp(binding.binaryMessenger, AlarmApiImpl(binding.applicationContext))
+            alarmTriggerApi = AlarmTriggerApi(binding.binaryMessenger)
 
+        }
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-        alarmTriggerApi = null
+        val engine = binding.binaryMessenger as DartExecutor
+        
+        if (engine == mainEngine) {
+            mainEngine = null
+            alarmTriggerApi = null
+        }
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
