@@ -1,3 +1,6 @@
+## 5.0.0-dev.7
+* [Android] Fix collition between package and FCM.
+
 ## 5.0.0-dev.6
 * Update README.
 
