@@ -1,4 +1,4 @@
-import 'package:alarm/model/notification_settings.dart';
+import 'package:alarm/alarm.dart';
 import 'package:alarm/model/volume_settings.dart';
 import 'package:alarm/src/generated/platform_bindings.g.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -31,6 +31,8 @@ class AlarmSettings {
   factory AlarmSettings.fromJson(Map<String, dynamic> json) {
     // Check if 'volumeSettings' key is absent, indicating v4 data
     if (!json.containsKey('volumeSettings')) {
+      alarmPrint('Detected v4 JSON data, adjusting fields...');
+      alarmPrint('Data to adjust: $json');
       // Process volume settings for v4
       final volume = (json['volume'] as num?)?.toDouble();
       final fadeDurationSeconds = (json['fadeDuration'] as num?)?.toDouble();
@@ -53,6 +55,10 @@ class AlarmSettings {
       // Default `iOSBackgroundAudio` to true for v4
       json['iOSBackgroundAudio'] = json['iOSBackgroundAudio'] ?? true;
 
+      alarmPrint(
+        'dateTime: ${json['dateTime']} of type ${json['dateTime'].runtimeType}',
+      );
+
       // Adjust `dateTime` field for v4
       if (json['dateTime'] != null) {
         if (json['dateTime'] is int) {
@@ -69,7 +75,11 @@ class AlarmSettings {
       } else {
         throw ArgumentError('dateTime is missing in the JSON data');
       }
+      alarmPrint('Adjusted data: $json');
+    } else {
+      alarmPrint('Detected v5 JSON data, no adjustments needed.');
     }
+    alarmPrint('Running fromJson with data: $json');
     // Parse using the default parser (v5)
     return _$AlarmSettingsFromJson(json);
   }

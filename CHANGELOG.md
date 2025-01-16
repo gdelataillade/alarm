@@ -1,3 +1,6 @@
+## 5.0.0-dev.8
+* Add debug logs to understand why backward compatibility fails.
+
 ## 5.0.0-dev.7
 * [Android] Fix collition between package and FCM.
 
