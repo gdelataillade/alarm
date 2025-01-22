@@ -1,11 +1,14 @@
+## 5.0.0-dev.9
+* Fixed backward compatibility for v4 Dart JSON structures
+
 ## 5.0.0-dev.8
-* Add debug logs to understand why backward compatibility fails.
+* Added debug logs to understand why backward compatibility fails.
 
 ## 5.0.0-dev.7
-* [Android] Fix collition between package and FCM.
+* [Android] Fixed collition between package and FCM.
 
 ## 5.0.0-dev.6
-* Update README.
+* Updated README.
 
 ## 5.0.0-dev.5
 * [iOS] Added `iOSBackgroundAudio` parameter to disable background silent audio player, which is not necessary if your app already has a background process that keeps app active in the background.
