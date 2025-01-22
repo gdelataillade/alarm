@@ -33,7 +33,7 @@ class AlarmSettings {
     if (!json.containsKey('volumeSettings')) {
       alarmPrint('Detected v4 JSON data, adjusting fields...');
       alarmPrint('Data to adjust: $json');
-      // Process volume settings for v4
+
       final volume = (json['volume'] as num?)?.toDouble();
       final fadeDurationSeconds = (json['fadeDuration'] as num?)?.toDouble();
       final fadeDurationMillis =
@@ -59,28 +59,31 @@ class AlarmSettings {
         'dateTime: ${json['dateTime']} of type ${json['dateTime'].runtimeType}',
       );
 
-      // Adjust `dateTime` field for v4
-      if (json['dateTime'] != null) {
-        if (json['dateTime'] is int) {
-          final dateTimeValue = json['dateTime'] as int;
-          // In v4, dateTime was stored in microseconds, convert to milliseconds
-          json['dateTime'] = dateTimeValue ~/ 1000;
-        } else if (json['dateTime'] is String) {
-          // Parse ISO 8601 date string
-          json['dateTime'] =
-              DateTime.parse(json['dateTime'] as String).millisecondsSinceEpoch;
-        } else {
-          throw ArgumentError('Invalid dateTime value: ${json['dateTime']}');
-        }
-      } else {
+      // Convert dateTime to string so the default JSON parser can handle it
+      final dateTimeValue = json['dateTime'];
+      if (dateTimeValue == null) {
         throw ArgumentError('dateTime is missing in the JSON data');
       }
+      if (dateTimeValue is int) {
+        // Convert the int (milliseconds) into a DateTime and then to ISO string
+        final dt = DateTime.fromMillisecondsSinceEpoch(dateTimeValue);
+        json['dateTime'] = dt.toIso8601String();
+      } else if (dateTimeValue is String) {
+        // Already a string, just ensure it's valid
+        // Optionally parse and reassign as an ISO 8601 string again
+        final dt = DateTime.parse(dateTimeValue);
+        json['dateTime'] = dt.toIso8601String();
+      } else {
+        throw ArgumentError('Invalid dateTime value: $dateTimeValue');
+      }
+
       alarmPrint('Adjusted data: $json');
     } else {
       alarmPrint('Detected v5 JSON data, no adjustments needed.');
+      // If an old v5 user stored it as a string, it's already good to parse
     }
+
     alarmPrint('Running fromJson with data: $json');
-    // Parse using the default parser (v5)
     return _$AlarmSettingsFromJson(json);
   }
 
