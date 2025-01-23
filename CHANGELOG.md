@@ -1,5 +1,8 @@
+## 5.0.0-dev.10
+* Fixed backward compatibility for v4 Dart JSON structures.
+
 ## 5.0.0-dev.9
-* Fixed backward compatibility for v4 Dart JSON structures
+* Fixed backward compatibility for v4 Dart JSON structures.
 
 ## 5.0.0-dev.8
 * Added debug logs to understand why backward compatibility fails.
