@@ -66,7 +66,7 @@ class AlarmSettings {
       }
       if (dateTimeValue is int) {
         // Convert the int (milliseconds) into a DateTime and then to ISO string
-        final dt = DateTime.fromMillisecondsSinceEpoch(dateTimeValue);
+        final dt = DateTime.fromMillisecondsSinceEpoch(dateTimeValue ~/ 1000);
         json['dateTime'] = dt.toIso8601String();
       } else if (dateTimeValue is String) {
         // Already a string, just ensure it's valid
