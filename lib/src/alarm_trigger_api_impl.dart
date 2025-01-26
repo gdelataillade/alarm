@@ -49,15 +49,13 @@ class AlarmTriggerApiImpl extends AlarmTriggerApi {
           'https://github.com/gdelataillade/alarm/issues');
       return;
     }
-    // Ignoring deperecated member use for backwards compatibility.
-    // ignore: deprecated_member_use_from_same_package
-    Alarm.ringStream.add(settings);
+    _log.info('Alarm with id $alarmId started ringing.');
     _alarmRang(settings);
   }
 
   @override
   Future<void> alarmStopped(int alarmId) async {
-    await Alarm.stop(alarmId);
+    _log.info('Alarm with id $alarmId stopped.');
     _alarmStopped(alarmId);
   }
 }

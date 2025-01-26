@@ -2,9 +2,10 @@ import 'dart:collection';
 
 import 'package:alarm/model/alarm_settings.dart';
 import 'package:collection/collection.dart';
+import 'package:equatable/equatable.dart';
 
 /// A set of alarms where uniqueness is determined by the [AlarmSettings.id].
-class AlarmSet {
+class AlarmSet extends Equatable {
   /// Constructs an instance of [AlarmSet] using the given [alarms].
   AlarmSet(Iterable<AlarmSettings> alarms)
       : _alarms = UnmodifiableSetView(
@@ -50,4 +51,7 @@ class AlarmSet {
     if (alarm == null) return this;
     return remove(alarm);
   }
+
+  @override
+  List<Object?> get props => [_alarms];
 }

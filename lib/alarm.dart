@@ -245,10 +245,17 @@ class Alarm {
   static void _alarmRang(AlarmSettings alarm) {
     _scheduled.add(_scheduled.value.remove(alarm));
     _ringing.add(_ringing.value.add(alarm));
+    ringStream.add(alarm);
   }
 
-  static void _alarmStopped(int alarmId) {
+  static Future<void> _alarmStopped(int alarmId) async {
+    // Incase the alarm was stopped via the platform (e.g. notification action),
+    // we need to make sure it is deleted from storage.
+    await AlarmStorage.unsaveAlarm(alarmId);
+
     _scheduled.add(_scheduled.value.removeById(alarmId));
     _ringing.add(_ringing.value.removeById(alarmId));
+
+    updateStream.add(alarmId);
   }
 }
