@@ -8,9 +8,13 @@ import com.gdelataillade.alarm.services.AlarmStorage
 import com.gdelataillade.alarm.api.AlarmApiImpl
 
 class BootReceiver : BroadcastReceiver() {
+    companion object {
+        private const val TAG = "BootReceiver"
+    }
+
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
-            Log.d("BootReceiver", "Device rebooted, rescheduling alarms")
+            Log.d(TAG, "Device rebooted, rescheduling alarms")
 
             rescheduleAlarms(context)
         }
@@ -20,19 +24,19 @@ class BootReceiver : BroadcastReceiver() {
         val alarmStorage = AlarmStorage(context)
         val storedAlarms = alarmStorage.getSavedAlarms()
 
-        Log.i("BootReceiver", "Rescheduling ${storedAlarms.size} alarms")
+        Log.i(TAG, "Rescheduling ${storedAlarms.size} alarms")
 
         for (alarm in storedAlarms) {
             try {
-                Log.d("BootReceiver", "Rescheduling alarm with ID: ${alarm.id}")
-                Log.d("BootReceiver", "Alarm details: $alarm")
+                Log.d(TAG, "Rescheduling alarm with ID: ${alarm.id}")
+                Log.d(TAG, "Alarm details: $alarm")
 
                 // Call the setAlarm method in AlarmPlugin with the custom context
                 val alarmApi = AlarmApiImpl(context)
                 alarmApi.setAlarm(alarm)
-                Log.d("BootReceiver", "Alarm rescheduled successfully for ID: ${alarm.id}")
+                Log.d(TAG, "Alarm rescheduled successfully for ID: ${alarm.id}")
             } catch (e: Exception) {
-                Log.e("BootReceiver", "Exception while rescheduling alarm: $alarm", e)
+                Log.e(TAG, "Exception while rescheduling alarm: $alarm", e)
             }
         }
     }

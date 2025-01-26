@@ -11,6 +11,10 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 class AudioService(private val context: Context) {
+    companion object {
+        private const val TAG = "AudioService"
+    }
+
     private val mediaPlayers = ConcurrentHashMap<Int, MediaPlayer>()
     private val timers = ConcurrentHashMap<Int, Timer>()
 
@@ -88,7 +92,7 @@ class AudioService(private val context: Context) {
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            Log.e("AudioService", "Error playing audio: $e")
+            Log.e(TAG, "Error playing audio: $e")
         }
     }
 

@@ -20,6 +20,8 @@ class AlarmPlugin : FlutterPlugin, ActivityAware {
     private var activity: Activity? = null
 
     companion object {
+        private const val TAG = "AlarmPlugin"
+
         private var mainEngine: DartExecutor? = null
         
         @JvmStatic
@@ -69,19 +71,19 @@ class AlarmPlugin : FlutterPlugin, ActivityAware {
 
     private val notificationObserver = Observer<Boolean> {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O_MR1) {
-            Log.w("AlarmPlugin", "Making app visible on lock screen is not supported on this version of Android.")
+            Log.w(TAG, "Making app visible on lock screen is not supported on this version of Android.")
             return@Observer
         }
         val activity = activity ?: return@Observer
         if (it) {
-            Log.d("AlarmPlugin", "Making app visible on lock screen...")
+            Log.d(TAG, "Making app visible on lock screen...")
             activity.setShowWhenLocked(true)
             activity.setTurnScreenOn(true)
             val keyguardManager =
                 activity.applicationContext.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
             keyguardManager.requestDismissKeyguard(activity, null)
         } else {
-            Log.d("AlarmPlugin", "Reverting making app visible on lock screen...")
+            Log.d(TAG, "Reverting making app visible on lock screen...")
             activity.setShowWhenLocked(false)
             activity.setTurnScreenOn(false)
         }
