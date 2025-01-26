@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'dart:async';
 
 import 'package:alarm/model/alarm_settings.dart';
@@ -40,7 +38,7 @@ class Alarm {
   /// Set [showDebugLogs] to `false` to hide all the logs from the plugin.
   static Future<void> init({bool showDebugLogs = true}) async {
     alarmPrint = (String? message, {int? wrapWidth}) {
-      if (showDebugLogs) print('[Alarm] $message');
+      if (showDebugLogs) debugPrint('[Alarm] $message');
     };
 
     AlarmTriggerApiImpl.ensureInitialized();
