@@ -136,7 +136,7 @@ Silenced: Means that the notification is not shown directly on the top of the sc
 
 ## 📋 Logging
 
-This plugin uses the [logging package](https://pub.dev/packages/logging) to log information. If you aren't already, you'll need to install and configre the logging package to see these logs.
+This plugin uses the [logging package](https://pub.dev/packages/logging) to log information. If you aren't already, (optional) you'll need to install and configre the logging package to see these logs.
 
 An example can be found in `example/lib/utils/logging.dart`. This file defines a `setupLogging` method which is called from `main.dart`.
 
