@@ -4,9 +4,12 @@ import 'package:alarm/alarm.dart';
 import 'package:alarm/src/generated/platform_bindings.g.dart';
 import 'package:alarm/utils/alarm_exception.dart';
 import 'package:alarm/utils/alarm_handler.dart';
+import 'package:logging/logging.dart';
 
 /// Uses method channel to interact with the native platform.
 class AndroidAlarm {
+  static final _log = Logger('AndroidAlarm');
+
   static final AlarmApi _api = AlarmApi();
 
   /// Whether there are other alarms set.
@@ -19,8 +22,8 @@ class AndroidAlarm {
         .setAlarm(alarmSettings: settings.toWire())
         .catchError(AlarmExceptionHandlers.catchError<void>);
 
-    alarmPrint(
-      '''Alarm with id ${settings.id} scheduled at ${settings.dateTime}''',
+    _log.info(
+      'Alarm with id ${settings.id} scheduled at ${settings.dateTime}.',
     );
 
     return true;
@@ -36,7 +39,7 @@ class AndroidAlarm {
       if (!(await hasOtherAlarms)) await disableWarningNotificationOnKill();
       return true;
     } on AlarmException catch (e) {
-      alarmPrint('Failed to stop alarm: $e');
+      _log.severe('Failed to stop alarm: $e');
       return false;
     }
   }
@@ -54,7 +57,7 @@ class AndroidAlarm {
           .catchError(AlarmExceptionHandlers.catchError<bool>);
       return res;
     } on AlarmException catch (e) {
-      alarmPrint('Failed to check if alarm is ringing: $e');
+      _log.severe('Failed to check if alarm is ringing: $e');
       return false;
     }
   }

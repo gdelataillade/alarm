@@ -9,12 +9,10 @@ import 'package:alarm/src/ios_alarm.dart';
 import 'package:alarm/utils/alarm_exception.dart';
 import 'package:alarm/utils/extensions.dart';
 import 'package:flutter/foundation.dart';
+import 'package:logging/logging.dart';
 
 export 'package:alarm/model/alarm_settings.dart';
 export 'package:alarm/model/notification_settings.dart';
-
-/// Custom print function designed for Alarm plugin.
-DebugPrintCallback alarmPrint = debugPrintThrottled;
 
 /// Class that handles the alarm.
 class Alarm {
@@ -23,6 +21,8 @@ class Alarm {
 
   /// Whether it's Android device.
   static bool get android => defaultTargetPlatform == TargetPlatform.android;
+
+  static final _log = Logger('Alarm');
 
   /// Stream of the alarm updates.
   static final updateStream = StreamController<int>();
@@ -34,13 +34,7 @@ class Alarm {
   ///
   /// Also calls [checkAlarm] that will reschedule alarms that were set before
   /// app termination.
-  ///
-  /// Set [showDebugLogs] to `false` to hide all the logs from the plugin.
-  static Future<void> init({bool showDebugLogs = true}) async {
-    alarmPrint = (String? message, {int? wrapWidth}) {
-      if (showDebugLogs) debugPrint('[Alarm] $message');
-    };
-
+  static Future<void> init() async {
     AlarmTriggerApiImpl.ensureInitialized();
 
     await AlarmStorage.init();
@@ -177,7 +171,7 @@ class Alarm {
     for (final alarm in alarms) {
       if (alarm.id == id) return alarm;
     }
-    alarmPrint('Alarm with id $id not found.');
+    _log.warning('Alarm with id $id not found.');
 
     return null;
   }
