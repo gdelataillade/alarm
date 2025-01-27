@@ -39,8 +39,12 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         }
     }
 
-    static func unsaveAlarm(id: Int) {
-        SwiftAlarmPlugin.api?.unsaveAlarm(id: id)
+    static func stopAlarm(id: Int) {
+        do {
+            try SwiftAlarmPlugin.api?.stopAlarm(alarmId: Int64(id))
+        } catch {
+            NSLog("[SwiftAlarmPlugin] Error stopping alarm with ID=\(id).")
+        }
     }
 
     /// Enables background fetch
