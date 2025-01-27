@@ -14,15 +14,15 @@ dependencies:
   flutter_fgbg: ^0.6.0
   json_annotation: ^4.9.0
   plugin_platform_interface: ^2.1.8
-  shared_preferences: ^2.3.4
+  shared_preferences: ^2.4.0
 
 dev_dependencies:
   build_runner: ^2.4.13
   flutter_test:
     sdk: flutter
   json_serializable: ^6.9.0
-  pigeon: ^22.7.0
-  very_good_analysis: ^6.0.0
+  pigeon: ^22.7.4
+  very_good_analysis: ^7.0.0
 
 flutter:
   assets:

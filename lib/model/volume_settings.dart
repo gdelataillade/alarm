@@ -60,15 +60,6 @@ class VolumeSettings extends Equatable {
   factory VolumeSettings.fromJson(Map<String, dynamic> json) =>
       _$VolumeSettingsFromJson(json);
 
-  /// Converts from wire datatype.
-  VolumeSettings.fromWire(VolumeSettingsWire wire)
-      : volume = wire.volume,
-        fadeDuration = wire.fadeDurationMillis != null
-            ? Duration(milliseconds: wire.fadeDurationMillis!)
-            : null,
-        fadeSteps = wire.fadeSteps.map(VolumeFadeStep.fromWire).toList(),
-        volumeEnforced = wire.volumeEnforced;
-
   /// Specifies the system volume level to be set when the alarm goes off.
   ///
   /// Accepts a value between 0 (mute) and 1 (maximum volume).
@@ -136,11 +127,6 @@ class VolumeFadeStep extends Equatable {
   /// Converts JSON object to [VolumeFadeStep].
   factory VolumeFadeStep.fromJson(Map<String, dynamic> json) =>
       _$VolumeFadeStepFromJson(json);
-
-  /// Converts from wire datatype.
-  VolumeFadeStep.fromWire(VolumeFadeStepWire wire)
-      : time = Duration(milliseconds: wire.timeMillis),
-        volume = wire.volume;
 
   /// The time at which the volume should be set to [volume].
   final Duration time;

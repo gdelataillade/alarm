@@ -21,13 +21,6 @@ class NotificationSettings extends Equatable {
   factory NotificationSettings.fromJson(Map<String, dynamic> json) =>
       _$NotificationSettingsFromJson(json);
 
-  /// Converts from wire datatype.
-  NotificationSettings.fromWire(NotificationSettingsWire wire)
-      : title = wire.title,
-        body = wire.body,
-        stopButton = wire.stopButton,
-        icon = wire.icon;
-
   /// Title of the notification to be shown when alarm is triggered.
   final String title;
 
