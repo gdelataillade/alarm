@@ -1,6 +1,7 @@
 import 'package:alarm/alarm.dart';
 import 'package:alarm/model/volume_settings.dart';
 import 'package:alarm/src/generated/platform_bindings.g.dart';
+import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'alarm_settings.g.dart';
@@ -8,7 +9,7 @@ part 'alarm_settings.g.dart';
 /// [AlarmSettings] is a model that contains all the settings to customize
 /// and set an alarm.
 @JsonSerializable()
-class AlarmSettings {
+class AlarmSettings extends Equatable {
   /// Constructs an instance of `AlarmSettings`.
   const AlarmSettings({
     required this.id,
@@ -22,6 +23,7 @@ class AlarmSettings {
     this.androidFullScreenIntent = true,
     this.allowAlarmOverlap = false,
     this.iOSBackgroundAudio = true,
+    this.payload,
   });
 
   /// Constructs an `AlarmSettings` instance from the given JSON data.
@@ -86,22 +88,6 @@ class AlarmSettings {
     alarmPrint('Running fromJson with data: $json');
     return _$AlarmSettingsFromJson(json);
   }
-
-  /// Converts from wire datatype.
-  AlarmSettings.fromWire(AlarmSettingsWire wire)
-      : id = wire.id,
-        dateTime =
-            DateTime.fromMillisecondsSinceEpoch(wire.millisecondsSinceEpoch),
-        assetAudioPath = wire.assetAudioPath,
-        volumeSettings = VolumeSettings.fromWire(wire.volumeSettings),
-        notificationSettings =
-            NotificationSettings.fromWire(wire.notificationSettings),
-        loopAudio = wire.loopAudio,
-        vibrate = wire.vibrate,
-        warningNotificationOnKill = wire.warningNotificationOnKill,
-        androidFullScreenIntent = wire.androidFullScreenIntent,
-        allowAlarmOverlap = wire.allowAlarmOverlap,
-        iOSBackgroundAudio = wire.iOSBackgroundAudio;
 
   /// Unique identifier associated with the alarm. Cannot be 0 or -1.
   final int id;
@@ -184,6 +170,12 @@ class AlarmSettings {
   /// Defaults to `true`. Has no effect on Android.
   final bool iOSBackgroundAudio;
 
+  /// Optional payload to be sent with the alarm. This can be used to pass
+  /// additional data to the alarm handler.
+  ///
+  /// Caller is responsible for serializing and parsing the payload.
+  final String? payload;
+
   /// Converts the `AlarmSettings` instance to a JSON object.
   Map<String, dynamic> toJson() => _$AlarmSettingsToJson(this);
 
@@ -223,6 +215,7 @@ class AlarmSettings {
     bool? androidFullScreenIntent,
     bool? allowAlarmOverlap,
     bool? iOSBackgroundAudio,
+    String? Function()? payload,
   }) {
     return AlarmSettings(
       id: id ?? this.id,
@@ -238,6 +231,23 @@ class AlarmSettings {
           androidFullScreenIntent ?? this.androidFullScreenIntent,
       allowAlarmOverlap: allowAlarmOverlap ?? this.allowAlarmOverlap,
       iOSBackgroundAudio: iOSBackgroundAudio ?? this.iOSBackgroundAudio,
+      payload: payload?.call() ?? this.payload,
     );
   }
+
+  @override
+  List<Object?> get props => [
+        id,
+        dateTime,
+        assetAudioPath,
+        volumeSettings,
+        notificationSettings,
+        loopAudio,
+        vibrate,
+        warningNotificationOnKill,
+        androidFullScreenIntent,
+        allowAlarmOverlap,
+        iOSBackgroundAudio,
+        payload,
+      ];
 }
