@@ -22,6 +22,7 @@ preferencesDataStore(SHARED_PREFERENCES_NAME)
 
 class AlarmStorage(context: Context) {
     companion object {
+        private const val TAG = "AlarmStorage"
         private const val PREFIX = "__alarm_id__"
     }
 
@@ -56,12 +57,12 @@ class AlarmStorage(context: Context) {
                         alarms.add(alarm)
                     } catch (e: Exception) {
                         Log.e(
-                            "AlarmStorage",
+                            TAG,
                             "Error parsing alarm settings for key ${key.name}: ${e.message}"
                         )
                     }
                 } else {
-                    Log.w("AlarmStorage", "Skipping non-alarm preference with key: ${key.name}")
+                    Log.w(TAG, "Skipping non-alarm preference with key: ${key.name}")
                 }
             }
             alarms

@@ -9,6 +9,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import com.gdelataillade.alarm.alarm.AlarmPlugin
 import com.gdelataillade.alarm.alarm.AlarmReceiver
 import com.gdelataillade.alarm.alarm.AlarmService
 import com.gdelataillade.alarm.models.AlarmSettings
@@ -19,6 +20,10 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class AlarmApiImpl(private val context: Context) : AlarmApi {
+    companion object {
+        private const val TAG = "AlarmApiImpl"
+    }
+
     private val alarmIds: MutableList<Int> = mutableListOf()
     private var notifyOnKillEnabled: Boolean = false
     private var notificationOnKillTitle: String = "Your alarms may not ring"
@@ -31,7 +36,9 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
 
     override fun stopAlarm(alarmId: Long) {
         val id = alarmId.toInt()
+        var alarmWasRinging = false
         if (AlarmService.ringingAlarmIds.contains(id)) {
+            alarmWasRinging = true
             val stopIntent = Intent(context, AlarmService::class.java)
             stopIntent.action = "STOP_ALARM"
             stopIntent.putExtra("id", id)
@@ -55,6 +62,22 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
         AlarmStorage(context).unsaveAlarm(id)
         if (alarmIds.isEmpty() && notifyOnKillEnabled) {
             disableWarningNotificationOnKill(context)
+        }
+
+        // If the alarm was ringing it is the responsibility of the AlarmService to send the stop
+        // signal to Flutter.
+        if (!alarmWasRinging) {
+            // Notify the plugin about the alarm being stopped.
+            AlarmPlugin.alarmTriggerApi?.alarmStopped(id.toLong()) {
+                if (it.isSuccess) {
+                    Log.d(
+                        TAG,
+                        "Alarm stopped notification for $id was processed successfully by Flutter."
+                    )
+                } else {
+                    Log.d(TAG, "Alarm stopped notification for $id encountered error in Flutter.")
+                }
+            }
         }
     }
 
@@ -155,11 +178,11 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
                 setWarningNotificationOnKill(context)
             }
         } catch (e: ClassCastException) {
-            Log.e("AlarmPlugin", "AlarmManager service type casting failed", e)
+            Log.e(TAG, "AlarmManager service type casting failed", e)
         } catch (e: IllegalStateException) {
-            Log.e("AlarmPlugin", "AlarmManager service not available", e)
+            Log.e(TAG, "AlarmManager service not available", e)
         } catch (e: Exception) {
-            Log.e("AlarmPlugin", "Error in handling delayed alarm", e)
+            Log.e(TAG, "Error in handling delayed alarm", e)
         }
     }
 

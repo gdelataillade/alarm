@@ -4,10 +4,12 @@ import 'package:alarm/alarm.dart';
 import 'package:alarm/src/generated/platform_bindings.g.dart';
 import 'package:alarm/utils/alarm_exception.dart';
 import 'package:alarm/utils/alarm_handler.dart';
-import 'package:flutter/foundation.dart';
+import 'package:logging/logging.dart';
 
 /// Uses method channel to interact with the native platform.
 class IOSAlarm {
+  static final _log = Logger('IOSAlarm');
+
   static final AlarmApi _api = AlarmApi();
 
   /// Calls the native function `setAlarm` and listens to alarm ring state.
@@ -20,7 +22,7 @@ class IOSAlarm {
       await _api
           .setAlarm(alarmSettings: settings.toWire())
           .catchError(AlarmExceptionHandlers.catchError<void>);
-      alarmPrint(
+      _log.info(
         'Alarm with id $id scheduled successfully at ${settings.dateTime}',
       );
     } on AlarmException catch (_) {
@@ -37,10 +39,10 @@ class IOSAlarm {
       await _api
           .stopAlarm(alarmId: id)
           .catchError(AlarmExceptionHandlers.catchError<void>);
-      alarmPrint('Alarm with id $id stopped');
+      _log.info('Alarm with id $id stopped.');
       return true;
     } on AlarmException catch (e) {
-      alarmPrint('Failed to stop alarm $id. $e');
+      _log.severe('Failed to stop alarm $id. $e');
       return false;
     }
   }
@@ -58,7 +60,7 @@ class IOSAlarm {
           .catchError(AlarmExceptionHandlers.catchError<bool>);
       return res;
     } on AlarmException catch (e) {
-      debugPrint('Error checking if alarm is ringing: $e');
+      _log.severe('Error checking if alarm is ringing: $e');
       return false;
     }
   }

@@ -11,6 +11,10 @@ import kotlin.math.round
 import io.flutter.Log
 
 class VolumeService(context: Context) {
+    companion object {
+        private const val TAG = "VolumeService"
+    }
+
     private var previousVolume: Int? = null
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private var focusRequest: AudioFocusRequest? = null
@@ -86,7 +90,7 @@ class VolumeService(context: Context) {
 
             val result = audioManager.requestAudioFocus(focusRequest!!)
             if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                Log.e("VolumeService", "Audio focus request failed")
+                Log.e(TAG, "Audio focus request failed")
             }
         } else {
             @Suppress("DEPRECATION")
@@ -96,7 +100,7 @@ class VolumeService(context: Context) {
                 AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK
             )
             if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                Log.e("VolumeService", "Audio focus request failed")
+                Log.e(TAG, "Audio focus request failed")
             }
         }
     }

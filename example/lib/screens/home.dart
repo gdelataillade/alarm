@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:alarm/alarm.dart';
+import 'package:alarm/utils/alarm_set.dart';
 import 'package:alarm_example/screens/edit_alarm.dart';
 import 'package:alarm_example/screens/ring.dart';
 import 'package:alarm_example/screens/shortcut_button.dart';
@@ -21,8 +22,8 @@ class ExampleAlarmHomeScreen extends StatefulWidget {
 class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
   List<AlarmSettings> alarms = [];
 
-  static StreamSubscription<AlarmSettings>? ringSubscription;
-  static StreamSubscription<int>? updateSubscription;
+  static StreamSubscription<AlarmSet>? ringSubscription;
+  static StreamSubscription<AlarmSet>? updateSubscription;
 
   @override
   void initState() {
@@ -32,8 +33,8 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
       AlarmPermissions.checkAndroidScheduleExactAlarmPermission();
     }
     unawaited(loadAlarms());
-    ringSubscription ??= Alarm.ringStream.stream.listen(navigateToRingScreen);
-    updateSubscription ??= Alarm.updateStream.stream.listen((_) {
+    ringSubscription ??= Alarm.ringing.listen(ringingAlarmsChanged);
+    updateSubscription ??= Alarm.scheduled.listen((_) {
       unawaited(loadAlarms());
     });
   }
@@ -46,12 +47,13 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
     });
   }
 
-  Future<void> navigateToRingScreen(AlarmSettings alarmSettings) async {
+  Future<void> ringingAlarmsChanged(AlarmSet alarms) async {
+    if (alarms.alarms.isEmpty) return;
     await Navigator.push(
       context,
       MaterialPageRoute<void>(
         builder: (context) =>
-            ExampleAlarmRingScreen(alarmSettings: alarmSettings),
+            ExampleAlarmRingScreen(alarmSettings: alarms.alarms.first),
       ),
     );
     unawaited(loadAlarms());

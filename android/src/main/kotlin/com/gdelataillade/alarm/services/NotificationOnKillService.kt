@@ -15,6 +15,7 @@ import io.flutter.Log
 
 class NotificationOnKillService : Service() {
     companion object {
+        private const val TAG = "NotificationOnKillService"
         private const val NOTIFICATION_ID = 88888
         private const val CHANNEL_ID = "com.gdelataillade.alarm.alarm_channel"
     }
@@ -64,7 +65,7 @@ class NotificationOnKillService : Service() {
             notificationManager.createNotificationChannel(channel)
             notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build())
         } catch (e: Exception) {
-            Log.e("NotificationOnKillService", "Error showing notification", e)
+            Log.e(TAG, "Error showing notification", e)
         }
         super.onTaskRemoved(rootIntent)
     }
