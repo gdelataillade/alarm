@@ -3,6 +3,7 @@ import 'package:alarm/model/volume_settings.dart';
 import 'package:alarm/src/generated/platform_bindings.g.dart';
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:logging/logging.dart';
 
 part 'alarm_settings.g.dart';
 
@@ -33,8 +34,9 @@ class AlarmSettings extends Equatable {
   factory AlarmSettings.fromJson(Map<String, dynamic> json) {
     // Check if 'volumeSettings' key is absent, indicating v4 data
     if (!json.containsKey('volumeSettings')) {
-      alarmPrint('Detected v4 JSON data, adjusting fields...');
-      alarmPrint('Data to adjust: $json');
+      _log
+        ..fine('Detected v4 JSON data, adjusting fields...')
+        ..fine('Data to adjust: $json');
 
       final volume = (json['volume'] as num?)?.toDouble();
       final fadeDurationSeconds = (json['fadeDuration'] as num?)?.toDouble();
@@ -57,7 +59,7 @@ class AlarmSettings extends Equatable {
       // Default `iOSBackgroundAudio` to true for v4
       json['iOSBackgroundAudio'] = json['iOSBackgroundAudio'] ?? true;
 
-      alarmPrint(
+      _log.fine(
         'dateTime: ${json['dateTime']} of type ${json['dateTime'].runtimeType}',
       );
 
@@ -79,15 +81,17 @@ class AlarmSettings extends Equatable {
         throw ArgumentError('Invalid dateTime value: $dateTimeValue');
       }
 
-      alarmPrint('Adjusted data: $json');
+      _log.fine('Adjusted data: $json');
     } else {
-      alarmPrint('Detected v5 JSON data, no adjustments needed.');
+      _log.fine('Detected v5 JSON data, no adjustments needed.');
       // If an old v5 user stored it as a string, it's already good to parse
     }
 
-    alarmPrint('Running fromJson with data: $json');
+    _log.fine('Running fromJson with data: $json');
     return _$AlarmSettingsFromJson(json);
   }
+
+  static final _log = Logger('AlarmSettings');
 
   /// Unique identifier associated with the alarm. Cannot be 0 or -1.
   final int id;

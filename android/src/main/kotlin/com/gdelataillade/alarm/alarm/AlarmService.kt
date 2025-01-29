@@ -22,15 +22,17 @@ import io.flutter.Log
 import kotlinx.serialization.json.Json
 
 class AlarmService : Service() {
+    companion object {
+        private const val TAG = "AlarmService"
+
+        @JvmStatic
+        var ringingAlarmIds: List<Int> = listOf()
+    }
+
     private var audioService: AudioService? = null
     private var vibrationService: VibrationService? = null
     private var volumeService: VolumeService? = null
     private var showSystemUI: Boolean = true
-
-    companion object {
-        @JvmStatic
-        var ringingAlarmIds: List<Int> = listOf()
-    }
 
     override fun onCreate() {
         super.onCreate()
@@ -67,7 +69,7 @@ class AlarmService : Service() {
 
         val alarmSettingsJson = intent.getStringExtra("alarmSettings")
         if (alarmSettingsJson == null) {
-            Log.e("AlarmService", "Intent is missing AlarmSettings.")
+            Log.e(TAG, "Intent is missing AlarmSettings.")
             return START_NOT_STICKY
         }
 
@@ -75,7 +77,7 @@ class AlarmService : Service() {
         try {
             alarmSettings = Json.decodeFromString<AlarmSettings>(alarmSettingsJson)
         } catch (e: Exception) {
-            Log.e("AlarmService", "Cannot parse AlarmSettings from Intent.")
+            Log.e(TAG, "Cannot parse AlarmSettings from Intent.")
             return START_NOT_STICKY
         }
 
@@ -92,19 +94,19 @@ class AlarmService : Service() {
                 try {
                     startAlarmService(id, notification)
                 } catch (e: ForegroundServiceStartNotAllowedException) {
-                    Log.e("AlarmService", "Foreground service start not allowed", e)
+                    Log.e(TAG, "Foreground service start not allowed", e)
                     return START_NOT_STICKY
                 }
             } else {
                 startAlarmService(id, notification)
             }
         } catch (e: SecurityException) {
-            Log.e("AlarmService", "Security exception in starting foreground service", e)
+            Log.e(TAG, "Security exception in starting foreground service", e)
             return START_NOT_STICKY
         } catch (e: Exception) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 if (e is ForegroundServiceStartNotAllowedException) {
-                    Log.e("AlarmService", "Foreground service start not allowed", e)
+                    Log.e(TAG, "Foreground service start not allowed", e)
                     return START_NOT_STICKY
                 }
             }
@@ -113,7 +115,7 @@ class AlarmService : Service() {
 
         // Check if an alarm is already ringing
         if (!alarmSettings.allowAlarmOverlap && ringingAlarmIds.isNotEmpty() && action != "STOP_ALARM") {
-            Log.d("AlarmService", "An alarm is already ringing. Ignoring new alarm with id: $id")
+            Log.d(TAG, "An alarm is already ringing. Ignoring new alarm with id: $id")
             unsaveAlarm(id)
             return START_NOT_STICKY
         }
@@ -124,7 +126,11 @@ class AlarmService : Service() {
 
         // Notify the plugin about the alarm ringing
         AlarmPlugin.alarmTriggerApi?.alarmRang(id.toLong()) {
-            Log.d("AlarmService", "Flutter was notified that alarm $id is ringing.")
+            if (it.isSuccess) {
+                Log.d(TAG, "Alarm rang notification for $id was processed successfully by Flutter.")
+            } else {
+                Log.d(TAG, "Alarm rang notification for $id encountered error in Flutter.")
+            }
         }
 
         // Set the volume if specified
@@ -187,8 +193,13 @@ class AlarmService : Service() {
 
     private fun unsaveAlarm(id: Int) {
         AlarmStorage(this).unsaveAlarm(id)
+        // Notify the plugin about the alarm being stopped.
         AlarmPlugin.alarmTriggerApi?.alarmStopped(id.toLong()) {
-            Log.d("AlarmService", "Flutter was notified that alarm $id was stopped.")
+            if (it.isSuccess) {
+                Log.d(TAG, "Alarm stopped notification for $id was processed successfully by Flutter.")
+            } else {
+                Log.d(TAG, "Alarm stopped notification for $id encountered error in Flutter.")
+            }
         }
         stopAlarm(id)
     }
@@ -213,9 +224,9 @@ class AlarmService : Service() {
 
             stopForeground(true)
         } catch (e: IllegalStateException) {
-            Log.e("AlarmService", "Illegal State: ${e.message}", e)
+            Log.e(TAG, "Illegal State: ${e.message}", e)
         } catch (e: Exception) {
-            Log.e("AlarmService", "Error in stopping alarm: ${e.message}", e)
+            Log.e(TAG, "Error in stopping alarm: ${e.message}", e)
         }
     }
 

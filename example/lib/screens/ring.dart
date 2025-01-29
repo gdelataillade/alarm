@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:alarm/alarm.dart';
+import 'package:alarm/utils/alarm_set.dart';
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 
 class ExampleAlarmRingScreen extends StatefulWidget {
   const ExampleAlarmRingScreen({required this.alarmSettings, super.key});
@@ -13,25 +15,25 @@ class ExampleAlarmRingScreen extends StatefulWidget {
 }
 
 class _ExampleAlarmRingScreenState extends State<ExampleAlarmRingScreen> {
+  static final _log = Logger('ExampleAlarmRingScreenState');
+
+  StreamSubscription<AlarmSet>? _ringingSubscription;
+
   @override
   void initState() {
     super.initState();
-    Timer.periodic(const Duration(seconds: 1), (timer) async {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
-
-      final isRinging = await Alarm.isRinging(widget.alarmSettings.id);
-      if (isRinging) {
-        alarmPrint('Alarm ${widget.alarmSettings.id} is still ringing...');
-        return;
-      }
-
-      alarmPrint('Alarm ${widget.alarmSettings.id} stopped ringing.');
-      timer.cancel();
+    _ringingSubscription = Alarm.ringing.listen((alarms) {
+      if (alarms.containsId(widget.alarmSettings.id)) return;
+      _log.info('Alarm ${widget.alarmSettings.id} stopped ringing.');
+      _ringingSubscription?.cancel();
       if (mounted) Navigator.pop(context);
     });
+  }
+
+  @override
+  void dispose() {
+    _ringingSubscription?.cancel();
+    super.dispose();
   }
 
   @override

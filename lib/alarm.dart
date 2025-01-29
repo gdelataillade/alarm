@@ -1,3 +1,6 @@
+// Ignoring deperecated member use for backwards compatibility.
+// ignore_for_file: deprecated_member_use_from_same_package
+
 import 'dart:async';
 
 import 'package:alarm/model/alarm_settings.dart';
@@ -7,14 +10,14 @@ import 'package:alarm/src/android_alarm.dart';
 import 'package:alarm/src/generated/platform_bindings.g.dart';
 import 'package:alarm/src/ios_alarm.dart';
 import 'package:alarm/utils/alarm_exception.dart';
+import 'package:alarm/utils/alarm_set.dart';
 import 'package:alarm/utils/extensions.dart';
 import 'package:flutter/foundation.dart';
+import 'package:logging/logging.dart';
+import 'package:rxdart/rxdart.dart';
 
 export 'package:alarm/model/alarm_settings.dart';
 export 'package:alarm/model/notification_settings.dart';
-
-/// Custom print function designed for Alarm plugin.
-DebugPrintCallback alarmPrint = debugPrintThrottled;
 
 /// Class that handles the alarm.
 class Alarm {
@@ -24,24 +27,35 @@ class Alarm {
   /// Whether it's Android device.
   static bool get android => defaultTargetPlatform == TargetPlatform.android;
 
+  static final _log = Logger('Alarm');
+
+  static final _scheduled = BehaviorSubject<AlarmSet>.seeded(AlarmSet.empty());
+
+  static final _ringing = BehaviorSubject<AlarmSet>.seeded(AlarmSet.empty());
+
+  /// Stream of the scheduled alarms.
+  static ValueStream<AlarmSet> get scheduled => _scheduled.stream;
+
+  /// Stream of the ringing alarms.
+  static ValueStream<AlarmSet> get ringing => _ringing.stream;
+
   /// Stream of the alarm updates.
+  @Deprecated('Use [scheduled] and [ringing] streams instead.')
   static final updateStream = StreamController<int>();
 
   /// Stream of the ringing status.
+  @Deprecated('Use [scheduled] and [ringing] streams instead.')
   static final ringStream = StreamController<AlarmSettings>();
 
   /// Initializes Alarm services.
   ///
   /// Also calls [checkAlarm] that will reschedule alarms that were set before
   /// app termination.
-  ///
-  /// Set [showDebugLogs] to `false` to hide all the logs from the plugin.
-  static Future<void> init({bool showDebugLogs = true}) async {
-    alarmPrint = (String? message, {int? wrapWidth}) {
-      if (showDebugLogs) debugPrint('[Alarm] $message');
-    };
-
-    AlarmTriggerApiImpl.ensureInitialized();
+  static Future<void> init() async {
+    AlarmTriggerApiImpl.ensureInitialized(
+      alarmRang: _alarmRang,
+      alarmStopped: _alarmStopped,
+    );
 
     await AlarmStorage.init();
 
@@ -60,8 +74,12 @@ class Alarm {
       if (alarm.dateTime.isAfter(now)) {
         await set(alarmSettings: alarm);
       } else {
-        final isRinging = await Alarm.isRinging(alarm.id);
-        isRinging ? ringStream.add(alarm) : await stop(alarm.id);
+        if (await Alarm.isRinging(alarm.id)) {
+          _ringing.add(_ringing.value.add(alarm));
+          ringStream.add(alarm);
+        } else {
+          await stop(alarm.id);
+        }
       }
     }
   }
@@ -89,6 +107,8 @@ class Alarm {
         : await AndroidAlarm.set(alarmSettings);
 
     if (success) {
+      _scheduled.add(_scheduled.value.add(alarmSettings));
+      _ringing.add(_ringing.value.remove(alarmSettings));
       updateStream.add(alarmSettings.id);
     }
 
@@ -143,7 +163,15 @@ class Alarm {
     await AlarmStorage.unsaveAlarm(id);
     updateStream.add(id);
 
-    return iOS ? await IOSAlarm.stopAlarm(id) : await AndroidAlarm.stop(id);
+    final success =
+        iOS ? await IOSAlarm.stopAlarm(id) : await AndroidAlarm.stop(id);
+
+    if (success) {
+      _scheduled.add(_scheduled.value.removeById(id));
+      _ringing.add(_ringing.value.removeById(id));
+    }
+
+    return success;
   }
 
   /// Stops all the alarms.
@@ -157,6 +185,9 @@ class Alarm {
     for (final alarm in alarms) {
       updateStream.add(alarm.id);
     }
+
+    _scheduled.add(AlarmSet.empty());
+    _ringing.add(AlarmSet.empty());
   }
 
   /// Whether the alarm is ringing.
@@ -164,8 +195,33 @@ class Alarm {
   /// If no `id` is provided, it checks if any alarm is ringing.
   /// If an `id` is provided, it checks if the specific alarm with that `id`
   /// is ringing.
-  static Future<bool> isRinging([int? id]) async =>
-      iOS ? await IOSAlarm.isRinging(id) : await AndroidAlarm.isRinging(id);
+  static Future<bool> isRinging([int? id]) async {
+    final isRinging =
+        iOS ? await IOSAlarm.isRinging(id) : await AndroidAlarm.isRinging(id);
+
+    // Defensive programming: check if the stream status matches the platform
+    // reported status.
+    if (id != null) {
+      final alarm = await getAlarm(id);
+      if (alarm == null) {
+        if (_scheduled.value.containsId(id)) {
+          _log.severe('Alarm with id $id was not found but was '
+              'ringing=$isRinging and marked as scheduled.');
+        }
+        if (_ringing.value.containsId(id)) {
+          _log.severe('Alarm with id $id was not found but was '
+              'ringing=$isRinging and marked as ringing.');
+        }
+      } else {
+        if (isRinging != _ringing.value.contains(alarm)) {
+          _log.severe('Alarm with id $id is ringing=$isRinging but was '
+              'not marked as such.');
+        }
+      }
+    }
+
+    return isRinging;
+  }
 
   /// Whether an alarm is set.
   static Future<bool> hasAlarm() => AlarmStorage.hasAlarm();
@@ -177,7 +233,7 @@ class Alarm {
     for (final alarm in alarms) {
       if (alarm.id == id) return alarm;
     }
-    alarmPrint('Alarm with id $id not found.');
+    _log.warning('Alarm with id $id not found.');
 
     return null;
   }
@@ -186,11 +242,20 @@ class Alarm {
   static Future<List<AlarmSettings>> getAlarms() =>
       AlarmStorage.getSavedAlarms();
 
-  /// Reloads the shared preferences instance in the case modifications
-  /// were made in the native code, after a notification action.
-  static Future<void> reload(int id) async {
-    // TODO(orkun1675): Remove this function and publish stream updates for
-    // alarm start/stop events.
-    updateStream.add(id);
+  static void _alarmRang(AlarmSettings alarm) {
+    _scheduled.add(_scheduled.value.remove(alarm));
+    _ringing.add(_ringing.value.add(alarm));
+    ringStream.add(alarm);
+  }
+
+  static Future<void> _alarmStopped(int alarmId) async {
+    // Incase the alarm was stopped via the platform (e.g. notification action),
+    // we need to make sure it is deleted from storage.
+    await AlarmStorage.unsaveAlarm(alarmId);
+
+    _scheduled.add(_scheduled.value.removeById(alarmId));
+    _ringing.add(_ringing.value.removeById(alarmId));
+
+    updateStream.add(alarmId);
   }
 }
