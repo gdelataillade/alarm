@@ -35,8 +35,8 @@ class AlarmSettings extends Equatable {
     // Check if 'volumeSettings' key is absent, indicating v4 data
     if (!json.containsKey('volumeSettings')) {
       _log
-        ..fine('Detected v4 JSON data, adjusting fields...')
-        ..fine('Data to adjust: $json');
+        ..fine('Detected v4 JSON data, applying backward compatibility.')
+        ..fine('Data before adjustment: $json');
 
       final volume = (json['volume'] as num?)?.toDouble();
       final fadeDurationSeconds = (json['fadeDuration'] as num?)?.toDouble();
@@ -59,10 +59,6 @@ class AlarmSettings extends Equatable {
       // Default `iOSBackgroundAudio` to true for v4
       json['iOSBackgroundAudio'] = json['iOSBackgroundAudio'] ?? true;
 
-      _log.fine(
-        'dateTime: ${json['dateTime']} of type ${json['dateTime'].runtimeType}',
-      );
-
       // Convert dateTime to string so the default JSON parser can handle it
       final dateTimeValue = json['dateTime'];
       if (dateTimeValue == null) {
@@ -82,12 +78,8 @@ class AlarmSettings extends Equatable {
       }
 
       _log.fine('Adjusted data: $json');
-    } else {
-      _log.fine('Detected v5 JSON data, no adjustments needed.');
-      // If an old v5 user stored it as a string, it's already good to parse
     }
 
-    _log.fine('Running fromJson with data: $json');
     return _$AlarmSettingsFromJson(json);
   }
 
