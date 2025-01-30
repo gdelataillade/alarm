@@ -1,3 +1,9 @@
+## 5.0.0-dev.11
+* Added payload parameter.
+* Updated dependencies.
+* Improved alarm events streams.
+* Fixed duplicated alarms issue.
+
 ## 5.0.0-dev.10
 * Fixed backward compatibility for v4 Dart JSON structures.
 
