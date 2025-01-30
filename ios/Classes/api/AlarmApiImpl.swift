@@ -37,6 +37,12 @@ public class AlarmApiImpl: NSObject, AlarmApi {
         NSLog("[SwiftAlarmPlugin] AlarmSettings: \(String(describing: alarmSettings))")
 
         let id = alarmSettings.id
+        
+        if (alarms.keys.contains(id)) {
+            NSLog("[SwiftAlarmPlugin] Stopping alarm with identical ID=\(id) before scheduling a new one.")
+            stopAlarmInternal(id: id, cancelNotif: true)
+        }
+        
         let delayInSeconds = alarmSettings.dateTime.timeIntervalSinceNow
 
         NSLog("[SwiftAlarmPlugin] Alarm scheduled in \(delayInSeconds) seconds")
@@ -83,6 +89,8 @@ public class AlarmApiImpl: NSObject, AlarmApi {
                 self.handleAlarmAfterDelay(id: id)
             })
 
+            self.alarms[id]?.timer?.invalidate()
+            self.alarms[id]?.timer = nil
             self.alarms[id]?.timer = Timer.scheduledTimer(timeInterval: delayInSeconds, target: self, selector: #selector(self.executeTask(_:)), userInfo: id, repeats: false)
             SwiftAlarmPlugin.scheduleAppRefresh()
         } else {
@@ -105,13 +113,17 @@ public class AlarmApiImpl: NSObject, AlarmApi {
             self.setVolume(volume: previousVolume, enable: false)
         }
         
-        let alarmIds = self.alarms.keys
+        let alarmIds = Array(self.alarms.keys)
         
         for (_, alarm) in self.alarms {
             alarm.timer?.invalidate()
+            alarm.timer = nil
             alarm.task?.cancel()
+            alarm.task = nil
             alarm.audioPlayer?.stop()
+            alarm.audioPlayer = nil
             alarm.volumeEnforcementTimer?.invalidate()
+            alarm.volumeEnforcementTimer = nil
         }
         self.alarms.removeAll()
 
@@ -148,11 +160,6 @@ public class AlarmApiImpl: NSObject, AlarmApi {
         throw PigeonError(code: String(AlarmErrorCode.pluginInternal.rawValue), message: "Method disableWarningNotificationOnKill not implemented", details: nil)
     }
 
-    public func unsaveAlarm(id: Int) {
-        AlarmStorage.shared.unsaveAlarm(id: id)
-        self.stopAlarmInternal(id: id, cancelNotif: true)
-    }
-
     public func backgroundFetch() {
         self.mixOtherAudios()
 
@@ -163,13 +170,12 @@ public class AlarmApiImpl: NSObject, AlarmApi {
 
         for id in ids {
             NSLog("[SwiftAlarmPlugin] Background check alarm with id \(id)")
-            if let audioPlayer = self.alarms[id]?.audioPlayer, let dateTime = self.alarms[id]?.triggerTime {
-                let currentTime = audioPlayer.deviceCurrentTime
-                let time = currentTime + dateTime.timeIntervalSinceNow
-                audioPlayer.play(atTime: time)
-            }
-
-            if let alarm = self.alarms[id], let delayInSeconds = alarm.triggerTime?.timeIntervalSinceNow {
+            if let alarm = self.alarms[id], let delayInSeconds = alarm.triggerTime?.timeIntervalSinceNow, !(alarm.timer?.isValid ?? false) {
+                NSLog("[SwiftAlarmPlugin] Rescheduling alarm with id \(id)")
+                
+                // We need to make sure the existing timer is invalidated to prevent duplicate task triggers.
+                alarm.timer?.invalidate()
+                alarm.timer = nil
                 alarm.timer = Timer.scheduledTimer(timeInterval: delayInSeconds, target: self, selector: #selector(self.executeTask(_:)), userInfo: id, repeats: false)
             }
         }
@@ -284,7 +290,7 @@ public class AlarmApiImpl: NSObject, AlarmApi {
 
         if !alarm.settings.allowAlarmOverlap && self.isAnyAlarmRingingExcept(id: id) {
             NSLog("[SwiftAlarmPlugin] Ignoring alarm with id \(id) because another alarm is already ringing.")
-            self.unsaveAlarm(id: id)
+            self.stopAlarmInternal(id: id, cancelNotif: true)
             return
         }
 
@@ -420,9 +426,13 @@ public class AlarmApiImpl: NSObject, AlarmApi {
 
         if let alarm = self.alarms[id] {
             alarm.timer?.invalidate()
+            alarm.timer = nil
             alarm.task?.cancel()
+            alarm.task = nil
             alarm.audioPlayer?.stop()
+            alarm.audioPlayer = nil
             alarm.volumeEnforcementTimer?.invalidate()
+            alarm.volumeEnforcementTimer = nil
             self.alarms.removeValue(forKey: id)
         }
 
@@ -458,7 +468,7 @@ public class AlarmApiImpl: NSObject, AlarmApi {
     }
 
     @objc func executeTask(_ timer: Timer) {
-        if let id = timer.userInfo as? Int, let task = alarms[id]?.task {
+        if let id = timer.userInfo as? Int, let task = alarms[id]?.task, !task.isCancelled {
             task.perform()
         }
     }

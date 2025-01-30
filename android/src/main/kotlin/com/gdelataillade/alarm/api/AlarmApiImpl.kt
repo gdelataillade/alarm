@@ -109,6 +109,11 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
     }
 
     fun setAlarm(alarm: AlarmSettings) {
+        if (alarmIds.contains(alarm.id)) {
+            Log.w("AlarmPlugin", "Stopping alarm with identical ID=${alarm.id} before scheduling a new one.")
+            stopAlarm(alarm.id.toLong())
+        }
+
         val alarmIntent = createAlarmIntent(alarm)
         val delayInSeconds = (alarm.dateTime.time - System.currentTimeMillis()) / 1000
 
