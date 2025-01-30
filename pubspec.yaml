@@ -8,7 +8,7 @@ environment:
   flutter: ">=2.5.0"
 
 dependencies:
-  collection: any
+  collection: ^1.19.0
   equatable: ^2.0.7
   flutter:
     sdk: flutter
