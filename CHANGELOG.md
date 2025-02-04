@@ -1,3 +1,9 @@
+## 5.0.0
+**💥 Breaking Changes**
+**🔧 Android installation steps were updated [here](https://github.com/gdelataillade/alarm/blob/main/help/INSTALL-ANDROID.md).**
+* Some API parameters have been renamed.
+* Fixed multiple minor bugs.
+
 ## 5.0.0-dev.11
 * Added payload parameter.
 * Updated dependencies.

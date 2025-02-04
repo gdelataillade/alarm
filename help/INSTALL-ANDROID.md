@@ -34,6 +34,13 @@ Then, add the following permissions to your `AndroidManifest.xml` within the `<m
 
 See more details on Android permissions [here](https://developer.android.com/reference/android/Manifest.permission).
 
+**Note:** If you are migrating from a version below `5.0.0`, you can remove the following block, which was previously necessary for displaying full-screen notifications:
+```xml
+<activity
+    android:showWhenLocked="true"
+    android:turnScreenOn="true">
+```
+
 ## Step 3
 Inside the <application> tag of your `AndroidManifest.xml`, add the following declarations (if you need notification-on-kill feature):
 ```xml
