@@ -11,6 +11,20 @@
 
 This plugin offers a straightforward interface to set and cancel alarms on both iOS and Android devices. Using native code, it handles audio playback, vibrations, system volume, and notifications seamlessly.
 
+## 📋 Table of contents
+- [🔧 Installation steps](#-installation-steps)
+- [📖 How to use](#-how-to-use)
+  - [AlarmSettings model](#alarmsettings-model)
+  - [NotificationSettings model](#notificationsettings-model)
+  - [VolumeSettings model](#volumesettings-model)
+- [📱 Example app](#-example-app)
+- [⏰ Alarm behaviour](#-alarm-behaviour)
+- [📋 Logging](#-logging)
+- [❓ FAQ](#-faq)
+- [⚙️ Under the hood](#️-under-the-hood)
+- [✉️ Feature request](#️-feature-request)
+- [💙 Contributing](#-contributing)
+
 ## 🔧 Installation steps
 
 Please carefully follow these installation steps. They have been updated for plugin version `5.0.0`.
