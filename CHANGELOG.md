@@ -1,3 +1,6 @@
+## 5.0.1
+* Updated README.
+
 ## 5.0.0
 **💥 Breaking Changes**
 **🔧 Android installation steps were updated [here](https://github.com/gdelataillade/alarm/blob/main/help/INSTALL-ANDROID.md).**
