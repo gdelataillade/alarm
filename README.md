@@ -191,18 +191,24 @@ Related issue [here](https://github.com/gdelataillade/alarm/issues/47#issuecomme
 ### Why does my app crash on iOS?
 
 Crashes such as `EXC_BAD_ACCESS KERN_INVALID_ADDRESS` occur if `Alarm.set` and `Alarm.stop` methods are called concurrently, as they both modify shared resources. To prevent this, ensure each method call is completed before starting the next by using the `await` keyword in Dart:
-```Dart
+```
 await Alarm.set
 await Alarm.stop
 ```
 This approach ensures safe and exclusive access to shared resources, preventing crashes.
 
 
-### Why was my app rejected by the App Store for guideline issues?
+### Why was my app rejected by the **App Store** ?
 
 The rejection may relate to plugin's background audio functionality, essential for alarm apps. Clarify in your submission that background activity is crucial for your alarm app to notify users effectively. Ensure compliance with Apple's guidelines on background processes.
 
 For more guidance, see: [App Store Rejection Issues](https://github.com/gdelataillade/alarm/discussions/87).
+
+### Why was my app rejected by the **Play Store** ?
+
+If your app was rejected by Google due to restrictions on the `USE_FULL_SCREEN_INTENT` permission, it is because Google has implemented strict policies regarding the use of this permission to ensure user safety and prevent misuse. What you can do is either remove the declaration of this permission from your app or provide a strong justification and request users to manually grant the permission through the app settings.
+
+See more here: [#222](https://github.com/gdelataillade/alarm/issues/222)
 
 ## ⚙️ Under the hood
 
@@ -225,8 +231,9 @@ We welcome contributions to this plugin! If you would like to make a change or a
 3.  Run `flutter format` to ensure that your code is correctly formatted.
 4.  Submit a pull request with a detailed description of your changes.
 
-These are some features that I have in mind that could be useful:
-- Add actions on notification tap or dismiss.
+These are some features that have been the most requested by the community:
+- Add actions on notification tap or dismiss. ([[#30](https://github.com/gdelataillade/alarm/issues/30)], [[#207](https://github.com/gdelataillade/alarm/issues/207)], [[#244](https://github.com/gdelataillade/alarm/issues/244)])
+- Add timezone change support. ([#164](https://github.com/gdelataillade/alarm/issues/164))
 - Use `ffigen` and `jnigen` binding generators to call native code more efficiently instead of using method channels.
 
 Thank you for considering contributing to this plugin. Your help is greatly appreciated!
@@ -239,4 +246,3 @@ Thank you for considering contributing to this plugin. Your help is greatly appr
 ❤️ Let me know if you like the plugin by liking it on [pub.dev](https://pub.dev/packages/alarm) and starring the repo on [Github](https://github.com/gdelataillade/alarm) 🙂
 
 [![](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/gdelataillade)
-
