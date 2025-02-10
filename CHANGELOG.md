@@ -1,3 +1,6 @@
+## 5.0.2
+* [Android] Improved stop alarm process.
+
 ## 5.0.1
 * Updated README.
 
