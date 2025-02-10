@@ -6,6 +6,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 
+import io.flutter.Log
+
 class AlarmReceiver : BroadcastReceiver() {
     companion object {
         const val ACTION_ALARM_STOP = "com.gdelataillade.alarm.ACTION_STOP"
@@ -14,8 +16,15 @@ class AlarmReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         val action = intent.action
+
+        /// Stop alarm from notification stop button.
         if (action == ACTION_ALARM_STOP) {
-            intent.putExtra(EXTRA_ALARM_ACTION, "STOP_ALARM")
+            val id = intent.getIntExtra("id", 0) 
+            Log.d("AlarmReceiver", "Received stop alarm command from notification, id: $id")
+            AlarmService.instance?.let {
+                it.handleStopAlarmCommand(id)
+                return
+            }
         }
 
         // Start Alarm Service

@@ -25,6 +25,8 @@ class AlarmService : Service() {
     companion object {
         private const val TAG = "AlarmService"
 
+        var instance: AlarmService? = null
+
         @JvmStatic
         var ringingAlarmIds: List<Int> = listOf()
     }
@@ -37,6 +39,7 @@ class AlarmService : Service() {
     override fun onCreate() {
         super.onCreate()
 
+        instance = this
         audioService = AudioService(this)
         vibrationService = VibrationService(this)
         volumeService = VolumeService(this)
@@ -70,6 +73,7 @@ class AlarmService : Service() {
         val alarmSettingsJson = intent.getStringExtra("alarmSettings")
         if (alarmSettingsJson == null) {
             Log.e(TAG, "Intent is missing AlarmSettings.")
+            stopSelf()
             return START_NOT_STICKY
         }
 
@@ -78,6 +82,7 @@ class AlarmService : Service() {
             alarmSettings = Json.decodeFromString<AlarmSettings>(alarmSettingsJson)
         } catch (e: Exception) {
             Log.e(TAG, "Cannot parse AlarmSettings from Intent.")
+            stopSelf()
             return START_NOT_STICKY
         }
 
@@ -100,17 +105,9 @@ class AlarmService : Service() {
             } else {
                 startAlarmService(id, notification)
             }
-        } catch (e: SecurityException) {
-            Log.e(TAG, "Security exception in starting foreground service", e)
-            return START_NOT_STICKY
         } catch (e: Exception) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                if (e is ForegroundServiceStartNotAllowedException) {
-                    Log.e(TAG, "Foreground service start not allowed", e)
-                    return START_NOT_STICKY
-                }
-            }
-            throw e
+            Log.e(TAG, "Exception while starting foreground service: ${e.message}", e)
+            return START_NOT_STICKY
         }
 
         // Check if an alarm is already ringing
@@ -191,6 +188,11 @@ class AlarmService : Service() {
         }
     }
 
+    fun handleStopAlarmCommand(alarmId: Int) {
+        if (alarmId == 0) return
+        unsaveAlarm(alarmId)
+    }
+
     private fun unsaveAlarm(id: Int) {
         AlarmStorage(this).unsaveAlarm(id)
         // Notify the plugin about the alarm being stopped.
@@ -241,12 +243,10 @@ class AlarmService : Service() {
         AlarmRingingLiveData.instance.update(false)
 
         stopForeground(true)
+        instance = null
 
-        // Call the superclass method
         super.onDestroy()
     }
 
-    override fun onBind(intent: Intent?): IBinder? {
-        return null
-    }
+    override fun onBind(intent: Intent?): IBinder? = null
 }

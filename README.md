@@ -232,7 +232,7 @@ We welcome contributions to this plugin! If you would like to make a change or a
 4.  Submit a pull request with a detailed description of your changes.
 
 These are some features that have been the most requested by the community:
-- Add actions on notification tap or dismiss. ([[#30](https://github.com/gdelataillade/alarm/issues/30)], [[#207](https://github.com/gdelataillade/alarm/issues/207)], [[#244](https://github.com/gdelataillade/alarm/issues/244)])
+- Add actions on notification tap or dismiss. ([#30](https://github.com/gdelataillade/alarm/issues/30), [#207](https://github.com/gdelataillade/alarm/issues/207), [#244](https://github.com/gdelataillade/alarm/issues/244))
 - Add timezone change support. ([#164](https://github.com/gdelataillade/alarm/issues/164))
 - Use `ffigen` and `jnigen` binding generators to call native code more efficiently instead of using method channels.
 
