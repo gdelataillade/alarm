@@ -47,7 +47,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         if #available(iOS 13.0, *) {
             let request = BGAppRefreshTaskRequest(identifier: backgroundTaskIdentifier)
 
-            request.earliestBeginDate = Date(timeIntervalSinceNow: 15 * 60)
+            request.earliestBeginDate = Date(timeIntervalSinceNow: TimeInterval(15 * 60))
             do {
                 try BGTaskScheduler.shared.submit(request)
             } catch {
