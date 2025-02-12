@@ -37,12 +37,12 @@ public class AlarmApiImpl: NSObject, AlarmApi {
         NSLog("[SwiftAlarmPlugin] AlarmSettings: \(String(describing: alarmSettings))")
 
         let id = alarmSettings.id
-        
-        if (alarms.keys.contains(id)) {
+
+        if self.alarms.keys.contains(id) {
             NSLog("[SwiftAlarmPlugin] Stopping alarm with identical ID=\(id) before scheduling a new one.")
-            stopAlarmInternal(id: id, cancelNotif: true)
+            self.stopAlarmInternal(id: id, cancelNotif: true)
         }
-        
+
         let delayInSeconds = alarmSettings.dateTime.timeIntervalSinceNow
 
         NSLog("[SwiftAlarmPlugin] Alarm scheduled in \(delayInSeconds) seconds")
@@ -101,7 +101,7 @@ public class AlarmApiImpl: NSObject, AlarmApi {
     func stopAlarm(alarmId: Int64) throws {
         self.stopAlarmInternal(id: Int(truncatingIfNeeded: alarmId), cancelNotif: true)
     }
-    
+
     func stopAll() throws {
         NotificationManager.shared.removeAllNotifications()
 
@@ -112,9 +112,9 @@ public class AlarmApiImpl: NSObject, AlarmApi {
         if let previousVolume = self.previousVolume {
             self.setVolume(volume: previousVolume, enable: false)
         }
-        
+
         let alarmIds = Array(self.alarms.keys)
-        
+
         for (_, alarm) in self.alarms {
             alarm.timer?.invalidate()
             alarm.timer = nil
@@ -129,8 +129,8 @@ public class AlarmApiImpl: NSObject, AlarmApi {
 
         self.stopSilentSound()
         self.stopNotificationOnKillService()
-        
-        for (id) in alarmIds {
+
+        for id in alarmIds {
             // Inform the Flutter plugin that the alarm was stopped
             SwiftAlarmPlugin.alarmTriggerApi?.alarmStopped(alarmId: Int64(id), completion: { result in
                 if case .success = result {
@@ -172,7 +172,7 @@ public class AlarmApiImpl: NSObject, AlarmApi {
             NSLog("[SwiftAlarmPlugin] Background check alarm with id \(id)")
             if let alarm = self.alarms[id], let delayInSeconds = alarm.triggerTime?.timeIntervalSinceNow, !(alarm.timer?.isValid ?? false) {
                 NSLog("[SwiftAlarmPlugin] Rescheduling alarm with id \(id)")
-                
+
                 // We need to make sure the existing timer is invalidated to prevent duplicate task triggers.
                 alarm.timer?.invalidate()
                 alarm.timer = nil
@@ -273,7 +273,7 @@ public class AlarmApiImpl: NSObject, AlarmApi {
         }
         return false
     }
-    
+
     private func isAnyAlarmRingingExcept(id: Int) -> Bool {
         for (alarmId, alarmConfig) in self.alarms {
             if alarmId != id && alarmConfig.triggerTime?.timeIntervalSinceNow ?? 1.0 <= 0.0 {
@@ -299,15 +299,19 @@ public class AlarmApiImpl: NSObject, AlarmApi {
         if !audioPlayer.isPlaying || audioPlayer.currentTime == 0.0 {
             audioPlayer.play()
         }
-        
-        // Inform the Flutter plugin that the alarm rang
-        SwiftAlarmPlugin.alarmTriggerApi?.alarmRang(alarmId: Int64(id), completion: { result in
-            if case .success = result {
-                NSLog("[SwiftAlarmPlugin] Alarm rang notification for \(id) was processed successfully by Flutter.")
-            } else {
-                NSLog("[SwiftAlarmPlugin] Alarm rang notification for \(id) encountered error in Flutter.")
-            }
-        })
+
+        if let triggerApi = SwiftAlarmPlugin.alarmTriggerApi {
+            // Inform the Flutter plugin that the alarm rang
+            triggerApi.alarmRang(alarmId: Int64(id), completion: { result in
+                if case .success = result {
+                    NSLog("[SwiftAlarmPlugin] Alarm rang notification for \(id) was processed successfully by Flutter.")
+                } else {
+                    NSLog("[SwiftAlarmPlugin] Alarm rang notification for \(id) encountered error in Flutter.")
+                }
+            })
+        } else {
+            NSLog("[SwiftAlarmPlugin] ERROR: AlarmTriggerApi was not setup!")
+        }
 
         if alarm.settings.vibrate {
             self.vibratingAlarms.insert(id)
@@ -438,7 +442,7 @@ public class AlarmApiImpl: NSObject, AlarmApi {
 
         self.stopSilentSound()
         self.stopNotificationOnKillService()
-        
+
         // Inform the Flutter plugin that the alarm was stopped
         SwiftAlarmPlugin.alarmTriggerApi?.alarmStopped(alarmId: Int64(id), completion: { result in
             if case .success = result {
