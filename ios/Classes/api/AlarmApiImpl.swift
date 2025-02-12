@@ -130,15 +130,19 @@ public class AlarmApiImpl: NSObject, AlarmApi {
         self.stopSilentSound()
         self.stopNotificationOnKillService()
 
-        for id in alarmIds {
-            // Inform the Flutter plugin that the alarm was stopped
-            SwiftAlarmPlugin.alarmTriggerApi?.alarmStopped(alarmId: Int64(id), completion: { result in
-                if case .success = result {
-                    NSLog("[SwiftAlarmPlugin] Alarm stopped notification for \(id) was processed successfully by Flutter.")
-                } else {
-                    NSLog("[SwiftAlarmPlugin] Alarm stopped notification for \(id) encountered error in Flutter.")
-                }
-            })
+        if let triggerApi = SwiftAlarmPlugin.alarmTriggerApi {
+            for id in alarmIds {
+                // Inform the Flutter plugin that the alarm was stopped
+                triggerApi.alarmStopped(alarmId: Int64(id), completion: { result in
+                    if case .success = result {
+                        NSLog("[SwiftAlarmPlugin] Alarm stopped notification for \(id) was processed successfully by Flutter.")
+                    } else {
+                        NSLog("[SwiftAlarmPlugin] Alarm stopped notification for \(id) encountered error in Flutter.")
+                    }
+                })
+            }
+        } else {
+            NSLog("[SwiftAlarmPlugin] ERROR: AlarmTriggerApi.alarmStopped was not setup!")
         }
     }
 
@@ -294,6 +298,8 @@ public class AlarmApiImpl: NSObject, AlarmApi {
             return
         }
 
+        NSLog("[SwiftAlarmPlugin] Alarm \(id) is ringing.")
+
         self.duckOtherAudios()
 
         if !audioPlayer.isPlaying || audioPlayer.currentTime == 0.0 {
@@ -358,6 +364,7 @@ public class AlarmApiImpl: NSObject, AlarmApi {
 
     private func triggerVibrations() {
         if !self.vibratingAlarms.isEmpty && self.isDevice {
+            NSLog("[SwiftAlarmPlugin] Vibrating.")
             AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
             DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) {
                 self.triggerVibrations()
@@ -443,14 +450,18 @@ public class AlarmApiImpl: NSObject, AlarmApi {
         self.stopSilentSound()
         self.stopNotificationOnKillService()
 
-        // Inform the Flutter plugin that the alarm was stopped
-        SwiftAlarmPlugin.alarmTriggerApi?.alarmStopped(alarmId: Int64(id), completion: { result in
-            if case .success = result {
-                NSLog("[SwiftAlarmPlugin] Alarm stopped notification for \(id) was processed successfully by Flutter.")
-            } else {
-                NSLog("[SwiftAlarmPlugin] Alarm stopped notification for \(id) encountered error in Flutter.")
-            }
-        })
+        if let triggerApi = SwiftAlarmPlugin.alarmTriggerApi {
+            // Inform the Flutter plugin that the alarm was stopped
+            triggerApi.alarmStopped(alarmId: Int64(id), completion: { result in
+                if case .success = result {
+                    NSLog("[SwiftAlarmPlugin] Alarm stopped notification for \(id) was processed successfully by Flutter.")
+                } else {
+                    NSLog("[SwiftAlarmPlugin] Alarm stopped notification for \(id) encountered error in Flutter.")
+                }
+            })
+        } else {
+            NSLog("[SwiftAlarmPlugin] ERROR: AlarmTriggerApi.alarmStopped was not setup!")
+        }
     }
 
     private func stopSilentSound() {

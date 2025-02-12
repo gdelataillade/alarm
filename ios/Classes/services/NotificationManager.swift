@@ -39,7 +39,7 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     func scheduleNotification(id: Int, delayInSeconds: Int, notificationSettings: NotificationSettings, completion: @escaping (Error?) -> Void) {
         UNUserNotificationCenter.current().getNotificationSettings { settings in
             guard settings.authorizationStatus == .authorized else {
-                NSLog("[NotificationManager] Notification permission not granted. Cannot schedule alarm notification. Please request permission first.")
+                NSLog("[SwiftAlarmPlugin] Notification permission not granted. Cannot schedule alarm notification. Please request permission first.")
                 let error = NSError(domain: "NotificationManager", code: 1, userInfo: [NSLocalizedDescriptionKey: "Notification permission not granted"])
                 completion(error)
                 return
@@ -74,7 +74,7 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         let notificationIdentifier = "alarm-\(id)"
         UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [notificationIdentifier])
     }
-    
+
     func removeAllNotifications() {
         UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
         UNUserNotificationCenter.current().removeAllDeliveredNotifications()
@@ -86,7 +86,7 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
 
         switch identifier {
         case "STOP_ACTION":
-            NSLog("[NotificationManager] Stop action triggered for notification: \(notification.request.identifier)")
+            NSLog("[SwiftAlarmPlugin] Stop action triggered for notification: \(notification.request.identifier)")
             SwiftAlarmPlugin.stopAlarm(id: id)
         default:
             break
