@@ -37,4 +37,28 @@ class AlarmPermissions {
       );
     }
   }
+
+  static Future<void> checkLocationPermission() async {
+    final status = await Permission.location.status;
+    _log.info('Location permission: $status.');
+    if (status.isDenied) {
+      _log.info('Requesting location permission...');
+      final res = await Permission.location.request();
+      _log.info(
+        'Location permission ${res.isGranted ? '' : 'not'} granted',
+      );
+    }
+  }
+
+  static Future<void> checkBackgroundLocationPermission() async {
+    final status = await Permission.locationAlways.status;
+    _log.info('Background location permission: $status.');
+    if (status.isDenied) {
+      _log.info('Requesting background location permission...');
+      final res = await Permission.locationAlways.request();
+      _log.info(
+        'Background location permission ${res.isGranted ? '' : 'not'} granted',
+      );
+    }
+  }
 }
