@@ -130,9 +130,9 @@ public class AlarmApiImpl: NSObject, AlarmApi {
         self.stopSilentSound()
         self.stopNotificationOnKillService()
 
-        if let triggerApi = SwiftAlarmPlugin.alarmTriggerApi {
+        if let triggerApi = SwiftAlarmPlugin.getTriggerApi() {
             for id in alarmIds {
-                // Inform the Flutter plugin that the alarm was stopped
+                NSLog("[SwiftAlarmPlugin] Informing the Flutter plugin that alarm \(id) has stopped...")
                 triggerApi.alarmStopped(alarmId: Int64(id), completion: { result in
                     if case .success = result {
                         NSLog("[SwiftAlarmPlugin] Alarm stopped notification for \(id) was processed successfully by Flutter.")
@@ -306,8 +306,8 @@ public class AlarmApiImpl: NSObject, AlarmApi {
             audioPlayer.play()
         }
 
-        if let triggerApi = SwiftAlarmPlugin.alarmTriggerApi {
-            // Inform the Flutter plugin that the alarm rang
+        if let triggerApi = SwiftAlarmPlugin.getTriggerApi() {
+            NSLog("[SwiftAlarmPlugin] Informing the Flutter plugin that alarm \(id) rang...")
             triggerApi.alarmRang(alarmId: Int64(id), completion: { result in
                 if case .success = result {
                     NSLog("[SwiftAlarmPlugin] Alarm rang notification for \(id) was processed successfully by Flutter.")
@@ -450,8 +450,8 @@ public class AlarmApiImpl: NSObject, AlarmApi {
         self.stopSilentSound()
         self.stopNotificationOnKillService()
 
-        if let triggerApi = SwiftAlarmPlugin.alarmTriggerApi {
-            // Inform the Flutter plugin that the alarm was stopped
+        if let triggerApi = SwiftAlarmPlugin.getTriggerApi() {
+            NSLog("[SwiftAlarmPlugin] Informing the Flutter plugin that alarm \(id) has stopped...")
             triggerApi.alarmStopped(alarmId: Int64(id), completion: { result in
                 if case .success = result {
                     NSLog("[SwiftAlarmPlugin] Alarm stopped notification for \(id) was processed successfully by Flutter.")
