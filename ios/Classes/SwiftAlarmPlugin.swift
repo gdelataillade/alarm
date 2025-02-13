@@ -4,19 +4,44 @@ import Flutter
 public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
     static let backgroundTaskIdentifier: String = "com.gdelataillade.fetch"
 
-    private static var api: AlarmApiImpl? = nil
-    static var alarmTriggerApi: AlarmTriggerApi? = nil
+    private static var instance: SwiftAlarmPlugin? = nil
 
-    public static func register(with registrar: any FlutterPluginRegistrar) {
+    private var api: AlarmApiImpl? = nil
+    private var alarmTriggerApi: AlarmTriggerApi? = nil
+
+    init(registrar: FlutterPluginRegistrar) {
         self.api = AlarmApiImpl(registrar: registrar)
-        AlarmApiSetup.setUp(binaryMessenger: registrar.messenger(), api: self.api)
+        AlarmApiSetup.setUp(binaryMessenger: registrar.messenger(), api: api)
         NSLog("[SwiftAlarmPlugin] AlarmApi initialized.")
         self.alarmTriggerApi = AlarmTriggerApi(binaryMessenger: registrar.messenger())
-        NSLog("[SwiftAlarmPlugin] AlarmTriggerApi initialized.")
+        NSLog("[SwiftAlarmPlugin] AlarmTriggerApi connected.")
+    }
+
+    public static func register(with registrar: any FlutterPluginRegistrar) {
+        objc_sync_enter(self)
+        defer { objc_sync_exit(self) }
+
+        if instance != nil {
+            NSLog("[SwiftAlarmPlugin] Plugin already registered.")
+            return
+        }
+
+        let plugin = SwiftAlarmPlugin(registrar: registrar)
+        registrar.addApplicationDelegate(plugin)
+        instance = plugin
+
+        NSLog("[SwiftAlarmPlugin] Plugin registered.")
+    }
+
+    public func detachFromEngine(for registrar: any FlutterPluginRegistrar) {
+        api = nil
+        alarmTriggerApi = nil
+        SwiftAlarmPlugin.instance = nil
+        NSLog("[SwiftAlarmPlugin] Flutter engine detached.")
     }
 
     public func applicationWillTerminate(_ application: UIApplication) {
-        SwiftAlarmPlugin.api?.sendWarningNotification()
+        SwiftAlarmPlugin.instance?.api?.sendWarningNotification()
     }
 
     /// Runs from AppDelegate when the app is launched
@@ -25,7 +50,7 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
             BGTaskScheduler.shared.register(forTaskWithIdentifier: backgroundTaskIdentifier, using: nil) { task in
                 self.scheduleAppRefresh()
                 DispatchQueue.main.async {
-                    SwiftAlarmPlugin.api?.backgroundFetch()
+                    SwiftAlarmPlugin.instance?.api?.backgroundFetch()
                 }
                 task.setTaskCompleted(success: true)
             }
@@ -36,10 +61,14 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
 
     static func stopAlarm(id: Int) {
         do {
-            try SwiftAlarmPlugin.api?.stopAlarm(alarmId: Int64(id))
+            try SwiftAlarmPlugin.instance?.api?.stopAlarm(alarmId: Int64(id))
         } catch {
             NSLog("[SwiftAlarmPlugin] Error stopping alarm with ID=\(id).")
         }
+    }
+
+    static func getTriggerApi() -> AlarmTriggerApi? {
+        return SwiftAlarmPlugin.instance?.alarmTriggerApi
     }
 
     /// Enables background fetch
