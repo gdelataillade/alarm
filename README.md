@@ -118,9 +118,13 @@ This is how to stop/cancel your alarm:
 await Alarm.stop(id)
 ```
 
-This is how to run some code when alarm starts ringing. I implemented it as a stream so even if your app was previously killed, your custom callback can still be triggered.
+This is how to run some code when alarm starts ringing.
 ```Dart
-Alarm.ringStream.stream.listen((_) => yourOnRingCallback());
+Alarm.ringing.listen((AlarmSet alarmSet) {
+  for (final alarm in alarmSet.alarms) {
+    // yourOnRingCallback
+  }
+});
 ```
 You can also listen to the `Alarm.updateStream` to know when an alarm is added, updated, or stopped.
 
