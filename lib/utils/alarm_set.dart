@@ -7,18 +7,17 @@ import 'package:equatable/equatable.dart';
 /// A set of alarms where uniqueness is determined by the [AlarmSettings.id].
 class AlarmSet extends Equatable {
   /// Constructs an instance of [AlarmSet] using the given [alarms].
-  AlarmSet(Iterable<AlarmSettings> alarms)
-      : _alarms = UnmodifiableSetView(
-          HashSet<AlarmSettings>(
-            equals: (a, b) => a.id == b.id,
-            hashCode: (a) => a.id.hashCode,
-          )..addAll(alarms),
-        );
+  AlarmSet(Iterable<AlarmSettings> alarms) : _alarms = _idSet()..addAll(alarms);
 
   /// Empty [AlarmSet].
-  AlarmSet.empty() : _alarms = UnmodifiableSetView(const {});
+  AlarmSet.empty() : _alarms = _idSet();
 
-  final UnmodifiableSetView<AlarmSettings> _alarms;
+  static HashSet<AlarmSettings> _idSet() => HashSet<AlarmSettings>(
+        equals: (a, b) => a.id == b.id,
+        hashCode: (a) => a.id.hashCode,
+      );
+
+  final HashSet<AlarmSettings> _alarms;
 
   /// Returns the set of alarms.
   Set<AlarmSettings> get alarms => _alarms;
