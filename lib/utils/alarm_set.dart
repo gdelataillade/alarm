@@ -34,7 +34,7 @@ class AlarmSet extends Equatable {
     if (_alarms.contains(alarm)) {
       return this;
     }
-    return AlarmSet(Set.from(_alarms)..add(alarm));
+    return AlarmSet([..._alarms, alarm]);
   }
 
   /// Returns a new [AlarmSet] with the given [alarm] removed.
@@ -42,14 +42,13 @@ class AlarmSet extends Equatable {
     if (!_alarms.contains(alarm)) {
       return this;
     }
-    return AlarmSet(Set.from(_alarms)..remove(alarm));
+    return AlarmSet(_alarms.where((a) => a.id != alarm.id));
   }
 
   /// Returns a new [AlarmSet] with the given [alarmId] removed.
   AlarmSet removeById(int alarmId) {
-    final alarm = _alarms.firstWhereOrNull((a) => a.id == alarmId);
-    if (alarm == null) return this;
-    return remove(alarm);
+    if (_alarms.none((alarm) => alarm.id == alarmId)) return this;
+    return AlarmSet(_alarms.where((a) => a.id != alarmId));
   }
 
   @override
