@@ -414,7 +414,7 @@ public class AlarmApiImpl: NSObject, AlarmApi {
         if cancelNotif {
             NotificationManager.shared.cancelNotification(id: id)
         }
-        NotificationManager.shared.dismissNotification(id: id)
+        // NotificationManager.shared.dismissNotification(id: id)
 
         self.mixOtherAudios()
 
