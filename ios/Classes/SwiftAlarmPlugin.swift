@@ -33,17 +33,6 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         NSLog("[SwiftAlarmPlugin] Plugin registered.")
     }
 
-    public func detachFromEngine(for registrar: any FlutterPluginRegistrar) {
-        api = nil
-        alarmTriggerApi = nil
-        SwiftAlarmPlugin.instance = nil
-        NSLog("[SwiftAlarmPlugin] Flutter engine detached.")
-    }
-
-    public func applicationWillTerminate(_ application: UIApplication) {
-        SwiftAlarmPlugin.instance?.api?.sendWarningNotification()
-    }
-
     /// Runs from AppDelegate when the app is launched
     public static func registerBackgroundTasks() {
         if #available(iOS 13.0, *) {
@@ -94,5 +83,15 @@ public class SwiftAlarmPlugin: NSObject, FlutterPlugin {
         } else {
             NSLog("[SwiftAlarmPlugin] BGTaskScheduler not available for your version of iOS lower than 13.0")
         }
+    }
+
+    public func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        // Redirect UNUserNotificationCenter delegate calls to NotificationManager.
+        NotificationManager.shared.userNotificationCenter(center, willPresent: notification, withCompletionHandler: completionHandler)
+    }
+
+    public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        // Redirect UNUserNotificationCenter delegate calls to NotificationManager.
+        NotificationManager.shared.userNotificationCenter(center, didReceive: response, withCompletionHandler: completionHandler)
     }
 }

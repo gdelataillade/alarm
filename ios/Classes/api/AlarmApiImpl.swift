@@ -186,20 +186,9 @@ public class AlarmApiImpl: NSObject, AlarmApi {
     }
 
     public func sendWarningNotification() {
-        let content = UNMutableNotificationContent()
-        content.title = self.notificationTitleOnKill ?? "Your alarms may not ring"
-        content.body = self.notificationBodyOnKill ?? "You killed the app. Please reopen so your alarms can be rescheduled."
-
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 2, repeats: false)
-        let request = UNNotificationRequest(identifier: "notification on app kill immediate", content: content, trigger: trigger)
-
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                NSLog("[SwiftAlarmPlugin] Failed to show immediate notification on app kill => error: \(error.localizedDescription)")
-            } else {
-                NSLog("[SwiftAlarmPlugin] Triggered immediate notification on app kill")
-            }
-        }
+        let title = self.notificationTitleOnKill ?? "Your alarms may not ring"
+        let body = self.notificationBodyOnKill ?? "You killed the app. Please reopen so your alarms can be rescheduled."
+        NotificationManager.shared.sendWarningNotification(title: title, body: body)
     }
 
     @objc private func appWillTerminate(notification: Notification) {

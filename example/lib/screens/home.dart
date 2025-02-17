@@ -5,6 +5,7 @@ import 'package:alarm/utils/alarm_set.dart';
 import 'package:alarm_example/screens/edit_alarm.dart';
 import 'package:alarm_example/screens/ring.dart';
 import 'package:alarm_example/screens/shortcut_button.dart';
+import 'package:alarm_example/services/notifications.dart';
 import 'package:alarm_example/services/permission.dart';
 import 'package:alarm_example/widgets/tile.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ class ExampleAlarmHomeScreen extends StatefulWidget {
 
 class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
   List<AlarmSettings> alarms = [];
+  Notifications? notifications;
 
   static StreamSubscription<AlarmSet>? ringSubscription;
   static StreamSubscription<AlarmSet>? updateSubscription;
@@ -41,6 +43,7 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
     updateSubscription ??= Alarm.scheduled.listen((_) {
       unawaited(loadAlarms());
     });
+    notifications = Notifications();
   }
 
   Future<void> loadAlarms() async {
@@ -103,11 +106,32 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
             icon: const Icon(Icons.menu_book_rounded),
             onPressed: launchReadmeUrl,
           ),
+          PopupMenuButton<String>(
+            onSelected: notifications == null
+                ? null
+                : (value) async {
+                    if (value == 'Show notification') {
+                      await notifications?.showNotification();
+                    } else if (value == 'Schedule notification') {
+                      await notifications?.scheduleNotification();
+                    }
+                  },
+            itemBuilder: (BuildContext context) =>
+                {'Show notification', 'Schedule notification'}
+                    .map(
+                      (String choice) => PopupMenuItem<String>(
+                        value: choice,
+                        child: Text(choice),
+                      ),
+                    )
+                    .toList(),
+          ),
         ],
       ),
       body: SafeArea(
         child: Column(
           children: [
+            const SizedBox(height: 10),
             const _LocationTracker(),
             if (alarms.isNotEmpty)
               Expanded(
@@ -184,8 +208,8 @@ class _LocationTrackerState extends State<_LocationTracker> {
   @override
   void initState() {
     super.initState();
-    // AlarmPermissions.checkLocationPermission()
-    //     .then((_) => AlarmPermissions.checkBackgroundLocationPermission());
+    AlarmPermissions.checkLocationPermission()
+        .then((_) => AlarmPermissions.checkBackgroundLocationPermission());
   }
 
   @override
@@ -208,7 +232,9 @@ class _LocationTrackerState extends State<_LocationTracker> {
                       setState(() {
                         _position = position;
                         _log.info(
-                            'Location update received: (${position.latitude}, ${position.longitude})');
+                          'Location update received: (${position.latitude}, '
+                          '${position.longitude})',
+                        );
                       });
                     },
                     onError: (Object error, StackTrace stackTrace) {
