@@ -349,6 +349,9 @@ public class AlarmApiImpl: NSObject, AlarmApi {
                 }
             }
         }
+
+        // If there are no other alarms scheduled, turn off the warning notification.
+        self.stopNotificationOnKillService(ignoreAlarmId: id)
     }
 
     private func triggerVibrations() {
@@ -464,8 +467,8 @@ public class AlarmApiImpl: NSObject, AlarmApi {
         }
     }
 
-    private func stopNotificationOnKillService() {
-        if self.alarms.isEmpty && self.observerAdded {
+    private func stopNotificationOnKillService(ignoreAlarmId: Int? = nil) {
+        if (self.alarms.isEmpty || self.alarms.keys.allSatisfy { $0 == ignoreAlarmId }) && self.observerAdded {
             NotificationCenter.default.removeObserver(self, name: UIApplication.willTerminateNotification, object: nil)
             self.observerAdded = false
         }

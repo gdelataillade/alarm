@@ -61,7 +61,7 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
         alarmIds.remove(id)
         AlarmStorage(context).unsaveAlarm(id)
         if (alarmIds.isEmpty() && notifyOnKillEnabled) {
-            disableWarningNotificationOnKill(context)
+            turnOffWarningNotificationOnKill(context)
         }
 
         // If the alarm was ringing it is the responsibility of the AlarmService to send the stop
@@ -89,6 +89,12 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
         for (alarmId in alarmIdsCopy) {
             stopAlarm(alarmId.toLong())
         }
+
+        // This should not be necessary since [stopAlarm] should handle it.
+        // It is included here as defensive programming.
+        if (notifyOnKillEnabled) {
+            turnOnWarningNotificationOnKill(context)
+        }
     }
 
     override fun isRinging(alarmId: Long?): Boolean {
@@ -105,7 +111,7 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
     }
 
     override fun disableWarningNotificationOnKill() {
-        disableWarningNotificationOnKill(context)
+        turnOffWarningNotificationOnKill(context)
     }
 
     fun setAlarm(alarm: AlarmSettings) {
@@ -133,13 +139,9 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
 
     private fun createAlarmIntent(alarm: AlarmSettings): Intent {
         val alarmIntent = Intent(context, AlarmReceiver::class.java)
-        setIntentExtras(alarmIntent, alarm)
+        alarmIntent.putExtra("id", alarm.id)
+        alarmIntent.putExtra("alarmSettings", Json.encodeToString(alarm))
         return alarmIntent
-    }
-
-    private fun setIntentExtras(intent: Intent, alarm: AlarmSettings) {
-        intent.putExtra("id", alarm.id)
-        intent.putExtra("alarmSettings", Json.encodeToString(alarm))
     }
 
     private fun handleImmediateAlarm(intent: Intent, delayInSeconds: Int) {
@@ -180,7 +182,7 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
             }
 
             if (warningNotificationOnKill && !notifyOnKillEnabled) {
-                setWarningNotificationOnKill(context)
+                turnOnWarningNotificationOnKill(context)
             }
         } catch (e: ClassCastException) {
             Log.e(TAG, "AlarmManager service type casting failed", e)
@@ -191,7 +193,7 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
         }
     }
 
-    private fun setWarningNotificationOnKill(context: Context) {
+    private fun turnOnWarningNotificationOnKill(context: Context) {
         val serviceIntent = Intent(context, NotificationOnKillService::class.java)
         serviceIntent.putExtra("title", notificationOnKillTitle)
         serviceIntent.putExtra("body", notificationOnKillBody)
@@ -200,7 +202,7 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
         notifyOnKillEnabled = true
     }
 
-    private fun disableWarningNotificationOnKill(context: Context) {
+    private fun turnOffWarningNotificationOnKill(context: Context) {
         val serviceIntent = Intent(context, NotificationOnKillService::class.java)
         context.stopService(serviceIntent)
         notifyOnKillEnabled = false
