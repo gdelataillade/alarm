@@ -25,7 +25,6 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
     }
 
     private val alarmIds: MutableList<Int> = mutableListOf()
-    private var notifyOnKillEnabled: Boolean = false
     private var notificationOnKillTitle: String = "Your alarms may not ring"
     private var notificationOnKillBody: String =
         "You killed the app. Please reopen so your alarms can be rescheduled."
@@ -60,9 +59,7 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
 
         alarmIds.remove(id)
         AlarmStorage(context).unsaveAlarm(id)
-        if (alarmIds.isEmpty() && notifyOnKillEnabled) {
-            turnOffWarningNotificationOnKill(context)
-        }
+        updateWarningNotificationState()
 
         // If the alarm was ringing it is the responsibility of the AlarmService to send the stop
         // signal to Flutter.
@@ -89,12 +86,6 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
         for (alarmId in alarmIdsCopy) {
             stopAlarm(alarmId.toLong())
         }
-
-        // This should not be necessary since [stopAlarm] should handle it.
-        // It is included here as defensive programming.
-        if (notifyOnKillEnabled) {
-            turnOnWarningNotificationOnKill(context)
-        }
     }
 
     override fun isRinging(alarmId: Long?): Boolean {
@@ -108,6 +99,10 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
     override fun setWarningNotificationOnKill(title: String, body: String) {
         notificationOnKillTitle = title
         notificationOnKillBody = body
+
+        // Re-create if needed.
+        turnOffWarningNotificationOnKill(context)
+        updateWarningNotificationState()
     }
 
     override fun disableWarningNotificationOnKill() {
@@ -123,6 +118,9 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
         val alarmIntent = createAlarmIntent(alarm)
         val delayInSeconds = (alarm.dateTime.time - System.currentTimeMillis()) / 1000
 
+        alarmIds.add(alarm.id)
+        AlarmStorage(context).saveAlarm(alarm)
+
         if (delayInSeconds <= 5) {
             handleImmediateAlarm(alarmIntent, delayInSeconds.toInt())
         } else {
@@ -130,11 +128,8 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
                 alarmIntent,
                 delayInSeconds.toInt(),
                 alarm.id,
-                alarm.warningNotificationOnKill
             )
         }
-        alarmIds.add(alarm.id)
-        AlarmStorage(context).saveAlarm(alarm)
     }
 
     private fun createAlarmIntent(alarm: AlarmSettings): Intent {
@@ -155,7 +150,6 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
         intent: Intent,
         delayInSeconds: Int,
         id: Int,
-        warningNotificationOnKill: Boolean
     ) {
         try {
             val triggerTime = System.currentTimeMillis() + delayInSeconds * 1000L
@@ -181,9 +175,7 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
                 alarmManager.set(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
             }
 
-            if (warningNotificationOnKill && !notifyOnKillEnabled) {
-                turnOnWarningNotificationOnKill(context)
-            }
+            updateWarningNotificationState()
         } catch (e: ClassCastException) {
             Log.e(TAG, "AlarmManager service type casting failed", e)
         } catch (e: IllegalStateException) {
@@ -193,18 +185,36 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
         }
     }
 
+    private fun updateWarningNotificationState() {
+        if (AlarmStorage(context).getSavedAlarms().any { it.warningNotificationOnKill } ) {
+            turnOnWarningNotificationOnKill(context)
+        } else {
+            turnOffWarningNotificationOnKill(context)
+        }
+    }
+
     private fun turnOnWarningNotificationOnKill(context: Context) {
+        if (NotificationOnKillService.isRunning) {
+            Log.d(TAG, "Warning notification is already turned on.")
+            return
+        }
+
         val serviceIntent = Intent(context, NotificationOnKillService::class.java)
         serviceIntent.putExtra("title", notificationOnKillTitle)
         serviceIntent.putExtra("body", notificationOnKillBody)
 
         context.startService(serviceIntent)
-        notifyOnKillEnabled = true
+        Log.d(TAG, "Warning notification turned on.")
     }
 
     private fun turnOffWarningNotificationOnKill(context: Context) {
+        if (!NotificationOnKillService.isRunning) {
+            Log.d(TAG, "Warning notification is already turned off.")
+            return
+        }
+
         val serviceIntent = Intent(context, NotificationOnKillService::class.java)
         context.stopService(serviceIntent)
-        notifyOnKillEnabled = false
+        Log.d(TAG, "Warning notification turned off.")
     }
 }

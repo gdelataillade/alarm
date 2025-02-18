@@ -32,6 +32,7 @@ class AlarmService : Service() {
         var ringingAlarmIds: List<Int> = listOf()
     }
 
+    private var alarmId: Int = 0
     private var audioService: AudioService? = null
     private var vibrationService: VibrationService? = null
     private var volumeService: VolumeService? = null
@@ -55,6 +56,7 @@ class AlarmService : Service() {
         }
 
         val id = intent.getIntExtra("id", 0)
+        alarmId = id
         val action = intent.getStringExtra(AlarmReceiver.EXTRA_ALARM_ACTION)
 
         if (action == "STOP_ALARM" && id != 0) {
@@ -184,10 +186,20 @@ class AlarmService : Service() {
                 val serviceIntent = Intent(this, NotificationOnKillService::class.java)
                 // If the service isn't running this call will be ignored.
                 this.stopService(serviceIntent)
+                Log.d(TAG, "Turning off the warning notification.")
+            } else {
+                Log.d(TAG, "Keeping the warning notification on because there are other pending alarms.")
             }
         }
 
         return START_STICKY
+    }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        Log.d(TAG, "App closed, stopping alarm.")
+        unsaveAlarm(alarmId)
+        stopSelf()
+        super.onTaskRemoved(rootIntent)
     }
 
     private fun startAlarmService(id: Int, notification: Notification) {

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:alarm/alarm.dart';
 import 'package:alarm/model/volume_settings.dart';
 import 'package:flutter/material.dart';
@@ -121,7 +119,6 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       loopAudio: loopAudio,
       vibrate: vibrate,
       assetAudioPath: assetAudio,
-      warningNotificationOnKill: Platform.isIOS,
       volumeSettings: volumeSettings,
       allowAlarmOverlap: true,
       notificationSettings: NotificationSettings(

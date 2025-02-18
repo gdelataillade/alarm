@@ -18,10 +18,22 @@ class NotificationOnKillService : Service() {
         private const val TAG = "NotificationOnKillService"
         private const val NOTIFICATION_ID = 88888
         private const val CHANNEL_ID = "com.gdelataillade.alarm.alarm_channel"
+
+        var isRunning = false
     }
 
     private lateinit var title: String
     private lateinit var body: String
+
+    override fun onCreate() {
+        super.onCreate()
+        isRunning = true
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        isRunning = false
+    }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         title = intent?.getStringExtra("title") ?: "Your alarms may not ring"
