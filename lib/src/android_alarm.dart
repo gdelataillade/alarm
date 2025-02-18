@@ -12,10 +12,6 @@ class AndroidAlarm {
 
   static final AlarmApi _api = AlarmApi();
 
-  /// Whether there are other alarms set.
-  static Future<bool> get hasOtherAlarms =>
-      Alarm.getAlarms().then((alarms) => alarms.length > 1);
-
   /// Schedules a native alarm with given [settings] with its notification.
   static Future<bool> set(AlarmSettings settings) async {
     await _api
@@ -36,7 +32,6 @@ class AndroidAlarm {
       await _api
           .stopAlarm(alarmId: id)
           .catchError(AlarmExceptionHandlers.catchError<void>);
-      if (!(await hasOtherAlarms)) await disableWarningNotificationOnKill();
       return true;
     } on AlarmException catch (e) {
       _log.severe('Failed to stop alarm: $e');

@@ -41,6 +41,7 @@ class Notifications {
             ),
           ],
         ),
+        android: const AndroidInitializationSettings('@mipmap/ic_launcher'),
       ),
       onDidReceiveNotificationResponse: notificationTapForeground,
       onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
@@ -67,6 +68,7 @@ class Notifications {
           categoryIdentifier: _iosCategoryId,
           interruptionLevel: InterruptionLevel.timeSensitive,
         ),
+        android: AndroidNotificationDetails('sample_channel', 'Sample Channel'),
       ),
       payload: 'payload',
     );
@@ -87,6 +89,7 @@ class Notifications {
           categoryIdentifier: _iosCategoryId,
           interruptionLevel: InterruptionLevel.timeSensitive,
         ),
+        android: AndroidNotificationDetails('sample_channel', 'Sample Channel'),
       ),
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.wallClockTime,
