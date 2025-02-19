@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:alarm/alarm.dart';
 import 'package:alarm/src/generated/platform_bindings.g.dart';
+import 'package:alarm/src/ios_timers.dart';
 import 'package:alarm/utils/alarm_exception.dart';
 import 'package:alarm/utils/alarm_handler.dart';
 import 'package:logging/logging.dart';
@@ -30,11 +31,15 @@ class IOSAlarm {
       rethrow;
     }
 
+    IOSTimers.setAlarm(settings);
+
     return true;
   }
 
   /// and calls the native `stopAlarm` function.
   static Future<bool> stopAlarm(int id) async {
+    IOSTimers.stopAlarm(id);
+
     try {
       await _api
           .stopAlarm(alarmId: id)
