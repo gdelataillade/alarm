@@ -29,11 +29,12 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
     private var notificationOnKillBody: String =
         "You killed the app. Please reopen so your alarms can be rescheduled."
 
-    override fun setAlarm(alarmSettings: AlarmSettingsWire) {
+    override fun setAlarm(alarmSettings: AlarmSettingsWire, callback: (Result<Unit>) -> Unit) {
         setAlarm(AlarmSettings.fromWire(alarmSettings))
+        callback(Result.success(Unit))
     }
 
-    override fun stopAlarm(alarmId: Long) {
+    override fun stopAlarm(alarmId: Long, callback: (Result<Unit>) -> Unit) {
         val id = alarmId.toInt()
         var alarmWasRinging = false
         if (AlarmService.ringingAlarmIds.contains(id)) {
@@ -76,16 +77,18 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
                 }
             }
         }
+        callback(Result.success(Unit))
     }
 
-    override fun stopAll() {
+    override fun stopAll(callback: (Result<Unit>) -> Unit) {
         for (alarm in AlarmStorage(context).getSavedAlarms()) {
-            stopAlarm(alarm.id.toLong())
+            stopAlarm(alarm.id.toLong()) {}
         }
         val alarmIdsCopy = alarmIds.toList()
         for (alarmId in alarmIdsCopy) {
-            stopAlarm(alarmId.toLong())
+            stopAlarm(alarmId.toLong()) {}
         }
+        callback(Result.success(Unit))
     }
 
     override fun isRinging(alarmId: Long?): Boolean {
@@ -112,7 +115,7 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
     fun setAlarm(alarm: AlarmSettings) {
         if (alarmIds.contains(alarm.id)) {
             Log.w("AlarmPlugin", "Stopping alarm with identical ID=${alarm.id} before scheduling a new one.")
-            stopAlarm(alarm.id.toLong())
+            stopAlarm(alarm.id.toLong()) {}
         }
 
         val alarmIntent = createAlarmIntent(alarm)
