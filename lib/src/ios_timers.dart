@@ -61,6 +61,12 @@ class IOSTimers {
     _disposeAlarm(id);
   }
 
+  static void stopAll() {
+    for (final id in _timers.keys) {
+      stopAlarm(id);
+    }
+  }
+
   /// Listens when app goes foreground so we can check if alarm is ringing.
   /// When app goes background, periodical timer will be disposed.
   static void _listenAppStateChange({
