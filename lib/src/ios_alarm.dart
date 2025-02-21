@@ -54,6 +54,7 @@ class IOSAlarm {
 
   /// Calls the native `stopAll` function.
   static Future<void> stopAll() async {
+    IOSTimers.stopAll();
     return _api.stopAll().catchError(AlarmExceptionHandlers.catchError<void>);
   }
 
