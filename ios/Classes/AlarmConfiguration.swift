@@ -1,13 +1,15 @@
 import AVFoundation
 
+enum AlarmState {
+    case scheduled
+    case ringing
+}
+
 class AlarmConfiguration {
     let settings: AlarmSettings
 
-    var triggerTime: Date?
-    var audioPlayer: AVAudioPlayer?
+    var state: AlarmState = .scheduled
     var timer: Timer?
-    var volumeEnforcementTimer: Timer?
-    var task: DispatchWorkItem?
 
     init(settings: AlarmSettings) {
         self.settings = settings
