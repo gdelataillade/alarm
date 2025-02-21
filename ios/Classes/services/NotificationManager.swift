@@ -1,4 +1,5 @@
 import Foundation
+import os.log
 import UserNotifications
 
 class NotificationManager: NSObject {
@@ -8,115 +9,133 @@ class NotificationManager: NSObject {
     private static let categoryWithActionIdentifierPrefix = "ALARM_CATEGORY_WITH_ACTION_"
     private static let notificationIdentifierPrefix = "ALARM_NOTIFICATION_"
     private static let stopActionIdentifier = "ALARM_STOP_ACTION"
-    private static let userInfoAlarmId = "ALARM_ID"
+    private static let userInfoAlarmIdKey = "ALARM_ID"
 
-    private var registeredActionCategories: Set<String> = []
+    private static let logger = OSLog(subsystem: ALARM_BUNDLE, category: "NotificationManager")
 
     override private init() {
         super.init()
-        setupNotificationCategories()
-    }
-
-    private func setupNotificationCategories() {
-        let categoryWithoutAction = UNNotificationCategory(identifier: NotificationManager.categoryWithoutActionIdentifier, actions: [], intentIdentifiers: [], options: [])
-        UNUserNotificationCenter.current().getNotificationCategories { existingCategories in
-            var categories = existingCategories
-            categories.insert(categoryWithoutAction)
-            UNUserNotificationCenter.current().setNotificationCategories(categories)
+        Task {
+            await self.setupDefaultNotificationCategory()
         }
     }
 
-    private func registerCategoryIfNeeded(forActionTitle actionTitle: String) {
+    private func setupDefaultNotificationCategory() async {
+        let categoryWithoutAction = UNNotificationCategory(identifier: NotificationManager.categoryWithoutActionIdentifier, actions: [], intentIdentifiers: [], options: [])
+        let existingCategories = await UNUserNotificationCenter.current().notificationCategories()
+        var categories = existingCategories
+        categories.insert(categoryWithoutAction)
+        UNUserNotificationCenter.current().setNotificationCategories(categories)
+
+        let categoryIdentifiers = categories.map { $0.identifier }.joined(separator: ", ")
+        os_log(.debug, log: NotificationManager.logger, "Setup notification categories: %@", categoryIdentifiers)
+    }
+
+    private func registerCategoryIfNeeded(forActionTitle actionTitle: String) async {
         let categoryIdentifier = "\(NotificationManager.categoryWithActionIdentifierPrefix)\(actionTitle)"
 
-        if registeredActionCategories.contains(categoryIdentifier) {
+        let existingCategories = await UNUserNotificationCenter.current().notificationCategories()
+        if existingCategories.contains(where: { $0.identifier == categoryIdentifier }) {
             return
         }
 
         let action = UNNotificationAction(identifier: NotificationManager.stopActionIdentifier, title: actionTitle, options: [.foreground, .destructive])
         let category = UNNotificationCategory(identifier: categoryIdentifier, actions: [action], intentIdentifiers: [], options: [.hiddenPreviewsShowTitle, .hiddenPreviewsShowSubtitle])
 
-        UNUserNotificationCenter.current().getNotificationCategories { existingCategories in
-            var categories = existingCategories
-            categories.insert(category)
-            UNUserNotificationCenter.current().setNotificationCategories(categories)
-            self.registeredActionCategories.insert(categoryIdentifier)
-        }
+        var categories = existingCategories
+        categories.insert(category)
+        UNUserNotificationCenter.current().setNotificationCategories(categories)
+
+        let categoryIdentifiers = categories.map { $0.identifier }.joined(separator: ", ")
+        os_log(.debug, log: NotificationManager.logger, "Added new category %@. Notification categories are now: %@", categoryIdentifier, categoryIdentifiers)
     }
 
-    func scheduleNotification(id: Int, delayInSeconds: Int, notificationSettings: NotificationSettings, completion: @escaping (Error?) -> Void) {
-        UNUserNotificationCenter.current().getNotificationSettings { settings in
-            guard settings.authorizationStatus == .authorized else {
-                NSLog("[SwiftAlarmPlugin] Notification permission not granted. Cannot schedule alarm notification. Please request permission first.")
-                let error = NSError(domain: "NotificationManager", code: 1, userInfo: [NSLocalizedDescriptionKey: "Notification permission not granted"])
-                completion(error)
-                return
-            }
+    func showNotification(id: Int, notificationSettings: NotificationSettings) async {
+        let notifSettings = await UNUserNotificationCenter.current().notificationSettings()
+        guard notifSettings.authorizationStatus == .authorized else {
+            os_log(.error, log: NotificationManager.logger, "Notification permission not granted. Cannot schedule alarm notification. Please request permission first.")
+            return
+        }
 
-            let content = UNMutableNotificationContent()
-            content.title = notificationSettings.title
-            content.body = notificationSettings.body
-            content.sound = nil
-            content.userInfo = [NotificationManager.userInfoAlarmId: id]
+        let content = UNMutableNotificationContent()
+        content.title = notificationSettings.title
+        content.body = notificationSettings.body
+        content.sound = nil
+        if #available(iOS 15.0, *) {
+            content.interruptionLevel = .timeSensitive
+        }
+        content.userInfo = [NotificationManager.userInfoAlarmIdKey: id]
 
-            if let stopButtonTitle = notificationSettings.stopButton {
-                let categoryIdentifier = "\(NotificationManager.categoryWithActionIdentifierPrefix)\(stopButtonTitle)"
-                self.registerCategoryIfNeeded(forActionTitle: stopButtonTitle)
-                content.categoryIdentifier = categoryIdentifier
-            } else {
-                content.categoryIdentifier = NotificationManager.categoryWithoutActionIdentifier
-            }
+        if let stopButtonTitle = notificationSettings.stopButton {
+            let categoryIdentifier = "\(NotificationManager.categoryWithActionIdentifierPrefix)\(stopButtonTitle)"
+            await registerCategoryIfNeeded(forActionTitle: stopButtonTitle)
+            content.categoryIdentifier = categoryIdentifier
+        } else {
+            content.categoryIdentifier = NotificationManager.categoryWithoutActionIdentifier
+        }
 
-            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: TimeInterval(delayInSeconds), repeats: false)
-            let request = UNNotificationRequest(identifier: "\(NotificationManager.notificationIdentifierPrefix)\(id)", content: content, trigger: trigger)
-
-            UNUserNotificationCenter.current().add(request, withCompletionHandler: completion)
+        let request = UNNotificationRequest(identifier: "\(NotificationManager.notificationIdentifierPrefix)\(id)", content: content, trigger: nil)
+        do {
+            try await UNUserNotificationCenter.current().add(request)
+            os_log(.debug, log: NotificationManager.logger, "Notification shown for alarm ID=%d", id)
+        } catch {
+            os_log(.error, log: NotificationManager.logger, "Error when showing alarm ID=%d notification: %@", id, error.localizedDescription)
         }
     }
 
     func cancelNotification(id: Int) {
         let notificationIdentifier = "\(NotificationManager.notificationIdentifierPrefix)\(id)"
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [notificationIdentifier])
+        os_log(.debug, log: NotificationManager.logger, "Cancelled notification: %@", notificationIdentifier)
     }
 
     func dismissNotification(id: Int) {
         let notificationIdentifier = "\(NotificationManager.notificationIdentifierPrefix)\(id)"
         UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [notificationIdentifier])
+        os_log(.debug, log: NotificationManager.logger, "Dismissed notification: %@", notificationIdentifier)
     }
 
-    func removeAllNotifications() {
+    /// Remove all notifications scheduled by this plugin.
+    func removeAllNotifications() async {
         let center = UNUserNotificationCenter.current()
-        center.getPendingNotificationRequests(completionHandler: { requests in
-            for request in requests {
-                if request.identifier.starts(with: NotificationManager.notificationIdentifierPrefix) {
-                    center.removePendingNotificationRequests(withIdentifiers: [request.identifier])
-                }
-            }
-        })
-        center.getDeliveredNotifications(completionHandler: { notifs in
-            for notif in notifs {
-                if notif.request.identifier.starts(with: NotificationManager.notificationIdentifierPrefix) {
-                    center.removeDeliveredNotifications(withIdentifiers: [notif.request.identifier])
-                }
-            }
-        })
+
+        let pendingNotifs = await center.pendingNotificationRequests()
+        let toCancel = pendingNotifs.filter { isAlarmNotificationContent($0.content) }.map { $0.identifier }
+        center.removePendingNotificationRequests(withIdentifiers: toCancel)
+        os_log(.debug, log: NotificationManager.logger, "Cancelled %d notifications.", toCancel.count)
+
+        let deliveredNotifs = await center.deliveredNotifications()
+        let toDismiss = deliveredNotifs.filter { isAlarmNotification($0) }.map { $0.request.identifier }
+        center.removeDeliveredNotifications(withIdentifiers: toDismiss)
+        os_log(.debug, log: NotificationManager.logger, "Dismissed %d notifications.", toDismiss.count)
     }
 
-    func handleAction(withIdentifier identifier: String?, for notification: UNNotification) {
-        guard let identifier = identifier else { return }
-        guard let id = notification.request.content.userInfo[NotificationManager.userInfoAlarmId] as? Int else { return }
+    private func handleAction(withIdentifier identifier: String, for notification: UNNotification) {
+        guard let id = notification.request.content.userInfo[NotificationManager.userInfoAlarmIdKey] as? Int else { return }
 
         switch identifier {
         case NotificationManager.stopActionIdentifier:
-            NSLog("[SwiftAlarmPlugin] Stop action triggered for notification: \(notification.request.identifier)")
-            SwiftAlarmPlugin.stopAlarm(id: id)
+            os_log(.info, log: NotificationManager.logger, "Stop action triggered for notification: %@", notification.request.identifier)
+            guard let alarmApi = SwiftAlarmPlugin.getApi() else {
+                os_log(.error, log: NotificationManager.logger, "Alarm API not available.")
+                return
+            }
+            do {
+                try alarmApi.stopAlarm(alarmId: Int64(id))
+            } catch {
+                os_log(.error, log: NotificationManager.logger, "Failed to stop alarm %d: %@", id, error.localizedDescription)
+            }
         default:
             break
         }
     }
 
-    func isAlarmNotification(_ notification: UNNotification) -> Bool {
-        return notification.request.content.userInfo[NotificationManager.userInfoAlarmId] != nil
+    private func isAlarmNotification(_ notification: UNNotification) -> Bool {
+        return isAlarmNotificationContent(notification.request.content)
+    }
+
+    private func isAlarmNotificationContent(_ content: UNNotificationContent) -> Bool {
+        return content.userInfo[NotificationManager.userInfoAlarmIdKey] != nil
     }
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
@@ -134,21 +153,20 @@ class NotificationManager: NSObject {
         completionHandler([.badge, .sound, .alert])
     }
 
-    public func sendWarningNotification(title: String, body: String) {
+    func sendWarningNotification(title: String, body: String) async {
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = body
-        content.userInfo = [NotificationManager.userInfoAlarmId: 0]
+        content.userInfo = [NotificationManager.userInfoAlarmIdKey: 0]
 
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 2, repeats: false)
         let request = UNNotificationRequest(identifier: "notification on app kill immediate", content: content, trigger: trigger)
 
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                NSLog("[SwiftAlarmPlugin] Failed to show immediate notification on app kill => error: \(error.localizedDescription)")
-            } else {
-                NSLog("[SwiftAlarmPlugin] Triggered immediate notification on app kill")
-            }
+        do {
+            try await UNUserNotificationCenter.current().add(request)
+            os_log(.debug, log: NotificationManager.logger, "Warning notification scheduled.")
+        } catch {
+            os_log(.error, log: NotificationManager.logger, "Error when scheduling warning notification: %@", error.localizedDescription)
         }
     }
 }
