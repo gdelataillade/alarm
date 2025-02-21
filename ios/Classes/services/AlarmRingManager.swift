@@ -56,7 +56,8 @@ class AlarmRingManager: NSObject {
         }
 
         if !loopAudio {
-            DispatchQueue.main.asyncAfter(deadline: .now() + audioPlayer.duration.toDispatchInterval()) {
+            Task {
+                try? await Task.sleep(nanoseconds: UInt64(audioPlayer.duration * 1_000_000_000))
                 onComplete?()
             }
         }
@@ -72,6 +73,9 @@ class AlarmRingManager: NSObject {
             await self.setSystemVolume(volume: previousVolume)
             self.previousVolume = nil
         }
+
+        self.audioPlayer?.stop()
+        self.audioPlayer = nil
     }
 
     // Stop other audio sources.
@@ -102,25 +106,21 @@ class AlarmRingManager: NSObject {
     }
 
     @discardableResult
+    @MainActor
     private func setSystemVolume(volume: Float) async -> Float? {
-        return await withCheckedContinuation { continuation in
-            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + .milliseconds(100)) {
-                let volumeView = MPVolumeView()
+        let volumeView = MPVolumeView()
 
-                guard let slider = volumeView.subviews.first(where: { $0 is UISlider }) as? UISlider else {
-                    os_log(.error, log: AlarmRingManager.logger, "Volume slider could not be found.")
-                    continuation.resume(returning: nil)
-                    return
-                }
-
-                let previousVolume = slider.value
-                os_log(.info, log: AlarmRingManager.logger, "Setting system volume to %f.", volume)
-                slider.value = volume
-                volumeView.removeFromSuperview()
-
-                continuation.resume(returning: previousVolume)
-            }
+        guard let slider = volumeView.subviews.first(where: { $0 is UISlider }) as? UISlider else {
+            os_log(.error, log: AlarmRingManager.logger, "Volume slider could not be found.")
+            return nil
         }
+
+        let previousVolume = slider.value
+        os_log(.info, log: AlarmRingManager.logger, "Setting system volume to %f.", volume)
+        slider.value = volume
+        volumeView.removeFromSuperview()
+
+        return previousVolume
     }
 
     @objc private func enforcementTimerTriggered(targetSystemVolume: Float) {
@@ -170,8 +170,6 @@ class AlarmRingManager: NSObject {
 
         audioPlayer.volume = Float(steps[0].volume)
 
-        let now = DispatchTime.now()
-
         for i in 0 ..< steps.count - 1 {
             let startTime = steps[i].time
             let nextStep = steps[i + 1]
@@ -180,7 +178,8 @@ class AlarmRingManager: NSObject {
             let targetVolume = Float(nextStep.volume)
 
             // Schedule the fade using setVolume for a smooth transition
-            DispatchQueue.main.asyncAfter(deadline: now + startTime.toDispatchInterval()) {
+            Task {
+                try? await Task.sleep(nanoseconds: UInt64(startTime * 1_000_000_000))
                 if !audioPlayer.isPlaying {
                     return
                 }
@@ -188,11 +187,5 @@ class AlarmRingManager: NSObject {
                 audioPlayer.setVolume(targetVolume, fadeDuration: fadeDuration)
             }
         }
-    }
-}
-
-extension TimeInterval {
-    func toDispatchInterval() -> DispatchTimeInterval {
-        return DispatchTimeInterval.milliseconds(Int(self * 1_000))
     }
 }

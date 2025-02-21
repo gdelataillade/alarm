@@ -120,11 +120,14 @@ class NotificationManager: NSObject {
                 os_log(.error, log: NotificationManager.logger, "Alarm API not available.")
                 return
             }
-            do {
-                try alarmApi.stopAlarm(alarmId: Int64(id))
-            } catch {
-                os_log(.error, log: NotificationManager.logger, "Failed to stop alarm %d: %@", id, error.localizedDescription)
-            }
+            alarmApi.stopAlarm(alarmId: Int64(id), completion: { result in
+                switch result {
+                case .success:
+                    break
+                case .failure(let error):
+                    os_log(.error, log: NotificationManager.logger, "Failed to stop alarm %d: %@", id, error.localizedDescription)
+                }
+            })
         default:
             break
         }

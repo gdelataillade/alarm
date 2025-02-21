@@ -28,15 +28,11 @@ class VibrationManager: NSObject {
             return
         }
 
-        DispatchQueue.main.async {
-            // Avoid race conditions
-            self.vibrationTimer?.invalidate()
-            self.vibrationTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-                os_log(.info, log: VibrationManager.logger, "Vibrating.")
-                AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
-            }
-            os_log(.debug, log: VibrationManager.logger, "Vibration started.")
+        vibrationTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            os_log(.info, log: VibrationManager.logger, "Vibrating.")
+            AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
         }
+        os_log(.debug, log: VibrationManager.logger, "Vibration started.")
     }
 
     func stop() {
