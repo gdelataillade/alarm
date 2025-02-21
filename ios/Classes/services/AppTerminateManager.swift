@@ -41,9 +41,12 @@ class AppTerminateManager: NSObject {
 
     @objc private func appWillTerminate(notification: Notification) {
         os_log(.info, log: AppTerminateManager.logger, "App is going to terminate.")
+        let semaphore = DispatchSemaphore(value: 0)
         Task {
             await self.sendWarningNotification()
+            semaphore.signal()
         }
+        semaphore.wait()
     }
 
     private func sendWarningNotification() async {
