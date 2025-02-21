@@ -46,6 +46,9 @@ class NotificationManager: NSObject {
         categories.insert(category)
         UNUserNotificationCenter.current().setNotificationCategories(categories)
 
+        // Without this delay the action does not register/appear.
+        try? await Task.sleep(nanoseconds: UInt64(0.1 * 1_000_000_000))
+
         let categoryIdentifiers = categories.map { $0.identifier }.joined(separator: ", ")
         os_log(.debug, log: NotificationManager.logger, "Added new category %@. Notification categories are now: %@", categoryIdentifier, categoryIdentifiers)
     }
@@ -160,6 +163,9 @@ class NotificationManager: NSObject {
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = body
+        if #available(iOS 15.0, *) {
+            content.interruptionLevel = .timeSensitive
+        }
         content.userInfo = [NotificationManager.userInfoAlarmIdKey: 0]
 
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 2, repeats: false)
