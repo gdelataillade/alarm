@@ -292,11 +292,12 @@ class FlutterBindingsPigeonCodec: FlutterStandardMessageCodec, @unchecked Sendab
   static let shared = FlutterBindingsPigeonCodec(readerWriter: FlutterBindingsPigeonCodecReaderWriter())
 }
 
+
 /// Generated protocol from Pigeon that represents a handler of messages from Flutter.
 protocol AlarmApi {
-  func setAlarm(alarmSettings: AlarmSettingsWire) throws
-  func stopAlarm(alarmId: Int64) throws
-  func stopAll() throws
+  func setAlarm(alarmSettings: AlarmSettingsWire, completion: @escaping (Result<Void, Error>) -> Void)
+  func stopAlarm(alarmId: Int64, completion: @escaping (Result<Void, Error>) -> Void)
+  func stopAll(completion: @escaping (Result<Void, Error>) -> Void)
   func isRinging(alarmId: Int64?) throws -> Bool
   func setWarningNotificationOnKill(title: String, body: String) throws
   func disableWarningNotificationOnKill() throws
@@ -313,11 +314,13 @@ class AlarmApiSetup {
       setAlarmChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
         let alarmSettingsArg = args[0] as! AlarmSettingsWire
-        do {
-          try api.setAlarm(alarmSettings: alarmSettingsArg)
-          reply(wrapResult(nil))
-        } catch {
-          reply(wrapError(error))
+        api.setAlarm(alarmSettings: alarmSettingsArg) { result in
+          switch result {
+          case .success:
+            reply(wrapResult(nil))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
         }
       }
     } else {
@@ -328,11 +331,13 @@ class AlarmApiSetup {
       stopAlarmChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
         let alarmIdArg = args[0] as! Int64
-        do {
-          try api.stopAlarm(alarmId: alarmIdArg)
-          reply(wrapResult(nil))
-        } catch {
-          reply(wrapError(error))
+        api.stopAlarm(alarmId: alarmIdArg) { result in
+          switch result {
+          case .success:
+            reply(wrapResult(nil))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
         }
       }
     } else {
@@ -341,11 +346,13 @@ class AlarmApiSetup {
     let stopAllChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.alarm.AlarmApi.stopAll\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
       stopAllChannel.setMessageHandler { _, reply in
-        do {
-          try api.stopAll()
-          reply(wrapResult(nil))
-        } catch {
-          reply(wrapError(error))
+        api.stopAll { result in
+          switch result {
+          case .success:
+            reply(wrapResult(nil))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
         }
       }
     } else {

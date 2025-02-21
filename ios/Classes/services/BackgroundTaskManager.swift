@@ -13,12 +13,11 @@ class BackgroundTaskManager: NSObject {
             self.enable()
 
             // Run the task:
-            DispatchQueue.main.async {
-                SwiftAlarmPlugin.getApi()?.appRefresh()
+            Task {
+                await SwiftAlarmPlugin.getApi()?.appRefresh()
+                task.setTaskCompleted(success: true)
+                os_log(.debug, log: BackgroundTaskManager.logger, "App refresh task executed.")
             }
-            task.setTaskCompleted(success: true)
-
-            os_log(.debug, log: BackgroundTaskManager.logger, "App refresh task executed.")
         }
         os_log(.debug, log: BackgroundTaskManager.logger, "App refresh task listener registered.")
     }

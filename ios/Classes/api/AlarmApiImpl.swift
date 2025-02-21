@@ -12,34 +12,28 @@ public class AlarmApiImpl: NSObject, AlarmApi {
         self.manager = AlarmManager(registrar: registrar)
     }
 
-    func setAlarm(alarmSettings: AlarmSettingsWire) throws {
+    func setAlarm(alarmSettings: AlarmSettingsWire, completion: @escaping (Result<Void, Error>) -> Void) {
         let alarmSettings = AlarmSettings.from(wire: alarmSettings)
-        os_log(.info, log: AlarmApiImpl.logger, "AlarmSettings: %@", String(describing: alarmSettings))
+        os_log(.info, log: AlarmApiImpl.logger, "Set alarm called with: %@", String(describing: alarmSettings))
 
-        let semaphore = DispatchSemaphore(value: 0)
         Task {
             await self.manager.setAlarm(alarmSettings: alarmSettings)
-            semaphore.signal()
+            completion(.success(()))
         }
-        semaphore.wait()
     }
 
-    func stopAlarm(alarmId: Int64) throws {
-        let semaphore = DispatchSemaphore(value: 0)
+    func stopAlarm(alarmId: Int64, completion: @escaping (Result<Void, Error>) -> Void) {
         Task {
             await self.manager.stopAlarm(id: Int(truncatingIfNeeded: alarmId), cancelNotif: true)
-            semaphore.signal()
+            completion(.success(()))
         }
-        semaphore.wait()
     }
 
-    func stopAll() {
-        let semaphore = DispatchSemaphore(value: 0)
+    func stopAll(completion: @escaping (Result<Void, Error>) -> Void) {
         Task {
             await self.manager.stopAll()
-            semaphore.signal()
+            completion(.success(()))
         }
-        semaphore.wait()
     }
 
     func isRinging(alarmId: Int64?) throws -> Bool {
@@ -57,13 +51,8 @@ public class AlarmApiImpl: NSObject, AlarmApi {
             details: nil)
     }
 
-    func appRefresh() {
+    func appRefresh() async {
         BackgroundAudioManager.shared.refresh(registrar: self.registrar)
-        let semaphore = DispatchSemaphore(value: 0)
-        Task {
-            await self.manager.checkAlarms()
-            semaphore.signal()
-        }
-        semaphore.wait()
+        await self.manager.checkAlarms()
     }
 }

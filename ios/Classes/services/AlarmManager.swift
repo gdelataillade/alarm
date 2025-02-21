@@ -41,6 +41,8 @@ class AlarmManager: NSObject {
         }
 
         self.updateState()
+
+        os_log(.info, log: AlarmManager.logger, "Set alarm for ID=%d complete.", alarmSettings.id)
     }
 
     func stopAlarm(id: Int, cancelNotif: Bool) async {
@@ -60,6 +62,8 @@ class AlarmManager: NSObject {
         self.updateState()
 
         await self.notifyAlarmStopped(id: id)
+
+        os_log(.info, log: AlarmManager.logger, "Stop alarm for ID=%d complete.", id)
     }
 
     func stopAll() async {
@@ -76,6 +80,8 @@ class AlarmManager: NSObject {
         for alarmId in alarmIds {
             await self.notifyAlarmStopped(id: alarmId)
         }
+
+        os_log(.info, log: AlarmManager.logger, "Stop all complete.")
     }
 
     func isRinging(id: Int? = nil) -> Bool {
@@ -87,10 +93,13 @@ class AlarmManager: NSObject {
 
     /// Ensures all alarm timers are valid and reschedules them if not.
     func checkAlarms() async {
+        var rescheduled = 0
         for (id, config) in self.alarms {
             if config.state == .ringing || config.timer?.isValid ?? false {
                 continue
             }
+
+            rescheduled += 1
 
             config.timer?.invalidate()
             config.timer = nil
@@ -114,6 +123,8 @@ class AlarmManager: NSObject {
             RunLoop.main.add(timer, forMode: .common)
             config.timer = timer
         }
+
+        os_log(.info, log: AlarmManager.logger, "Check alarms complete. Rescheduled %d timers.", rescheduled)
     }
 
     @objc private func alarmTimerTrigerred(_ timer: Timer) {
@@ -163,16 +174,21 @@ class AlarmManager: NSObject {
         self.updateState()
 
         await self.notifyAlarmRang(id: id)
+
+        os_log(.info, log: AlarmManager.logger, "Ring alarm for ID=%d complete.", id)
     }
 
+    @MainActor
     private func notifyAlarmRang(id: Int) async {
-        guard let triggerApi = SwiftAlarmPlugin.getTriggerApi() else {
-            os_log(.error, log: AlarmManager.logger, "AlarmTriggerApi.alarmRang was not setup!")
-            return
-        }
-
-        os_log(.info, log: AlarmManager.logger, "Informing the Flutter plugin that alarm %d has rang...", id)
         await withCheckedContinuation { continuation in
+            guard let triggerApi = SwiftAlarmPlugin.getTriggerApi() else {
+                os_log(.error, log: AlarmManager.logger, "AlarmTriggerApi.alarmRang was not setup!")
+                continuation.resume()
+                return
+            }
+
+            os_log(.info, log: AlarmManager.logger, "Informing the Flutter plugin that alarm %d has rang...", id)
+
             triggerApi.alarmRang(alarmId: Int64(id), completion: { result in
                 if case .success = result {
                     os_log(.info, log: AlarmManager.logger, "Alarm rang notification for %d was processed successfully by Flutter.", id)
@@ -184,14 +200,17 @@ class AlarmManager: NSObject {
         }
     }
 
+    @MainActor
     private func notifyAlarmStopped(id: Int) async {
-        guard let triggerApi = SwiftAlarmPlugin.getTriggerApi() else {
-            os_log(.error, log: AlarmManager.logger, "AlarmTriggerApi.alarmStopped was not setup!")
-            return
-        }
-
-        os_log(.info, log: AlarmManager.logger, "Informing the Flutter plugin that alarm %d has stopped...", id)
         await withCheckedContinuation { continuation in
+            guard let triggerApi = SwiftAlarmPlugin.getTriggerApi() else {
+                os_log(.error, log: AlarmManager.logger, "AlarmTriggerApi.alarmStopped was not setup!")
+                continuation.resume()
+                return
+            }
+
+            os_log(.info, log: AlarmManager.logger, "Informing the Flutter plugin that alarm %d has stopped...", id)
+
             triggerApi.alarmStopped(alarmId: Int64(id), completion: { result in
                 if case .success = result {
                     os_log(.info, log: AlarmManager.logger, "Alarm stopped notification for %d was processed successfully by Flutter.", id)
