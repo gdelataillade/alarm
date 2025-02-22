@@ -61,6 +61,7 @@ class IOSTimers {
     _disposeAlarm(id);
   }
 
+  /// Stops listening for all alarm triggers.
   static void stopAll() {
     for (final id in _timers.keys) {
       stopAlarm(id);

@@ -34,10 +34,10 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
     super.initState();
     AlarmPermissions.checkNotificationPermission()
         .then((_) => AlarmPermissions.checkLocationPermission())
-        .then((_) => AlarmPermissions.checkBackgroundLocationPermission());
-    if (Alarm.android) {
-      AlarmPermissions.checkAndroidScheduleExactAlarmPermission();
-    }
+        .then((_) => AlarmPermissions.checkBackgroundLocationPermission())
+        .then(
+          (_) => AlarmPermissions.checkAndroidScheduleExactAlarmPermission(),
+        );
     unawaited(loadAlarms());
     ringSubscription ??= Alarm.ringing.listen(ringingAlarmsChanged);
     updateSubscription ??= Alarm.scheduled.listen((_) {
@@ -204,13 +204,6 @@ class _LocationTrackerState extends State<_LocationTracker> {
 
   StreamSubscription<Position>? _tracker;
   Position? _position;
-
-  @override
-  void initState() {
-    super.initState();
-    AlarmPermissions.checkLocationPermission()
-        .then((_) => AlarmPermissions.checkBackgroundLocationPermission());
-  }
 
   @override
   Widget build(BuildContext context) {
