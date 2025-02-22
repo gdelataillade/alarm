@@ -24,6 +24,7 @@ class BackgroundTaskManager: NSObject {
 
     static func enable() {
         if enabled {
+            os_log(.debug, log: BackgroundTaskManager.logger, "App refresh task already active.")
             return
         }
 
@@ -43,6 +44,7 @@ class BackgroundTaskManager: NSObject {
 
     static func disable() {
         if !enabled {
+            os_log(.debug, log: BackgroundTaskManager.logger, "App refresh task already inactive.")
             return
         }
 
