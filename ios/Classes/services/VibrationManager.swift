@@ -20,6 +20,7 @@ class VibrationManager: NSObject {
 
     func start() {
         if isSimulator {
+            os_log(.debug, log: VibrationManager.logger, "Simulator does not support vibrations.")
             return
         }
 
@@ -28,15 +29,21 @@ class VibrationManager: NSObject {
             return
         }
 
-        vibrationTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-            os_log(.info, log: VibrationManager.logger, "Vibrating.")
-            AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
-        }
+        let timer = Timer(timeInterval: 1.0,
+                          target: self,
+                          selector: #selector(vibrationTimerFired(_:)),
+                          userInfo: nil,
+                          repeats: true)
+        RunLoop.main.add(timer, forMode: .common)
+        vibrationTimer = timer
+        timer.fire()
+
         os_log(.debug, log: VibrationManager.logger, "Vibration started.")
     }
 
     func stop() {
         if isSimulator {
+            os_log(.debug, log: VibrationManager.logger, "Simulator does not support vibrations.")
             return
         }
 
@@ -48,5 +55,9 @@ class VibrationManager: NSObject {
         timer.invalidate()
         vibrationTimer = nil
         os_log(.debug, log: VibrationManager.logger, "Vibration stopped.")
+    }
+
+    @objc private func vibrationTimerFired(_ timer: Timer) {
+        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
     }
 }

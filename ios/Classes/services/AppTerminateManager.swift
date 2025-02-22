@@ -21,6 +21,7 @@ class AppTerminateManager: NSObject {
 
     func startMonitoring() {
         if self.observerAdded {
+            os_log(.debug, log: AppTerminateManager.logger, "App terminate monitoring already active.")
             return
         }
 
@@ -31,6 +32,7 @@ class AppTerminateManager: NSObject {
 
     func stopMonitoring() {
         if !self.observerAdded {
+            os_log(.debug, log: AppTerminateManager.logger, "App terminate monitoring already inactive.")
             return
         }
 

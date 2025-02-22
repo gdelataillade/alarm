@@ -64,19 +64,18 @@ class BackgroundAudioManager: NSObject {
             return
         }
 
-        self.mixOtherAudios()
         NotificationCenter.default.removeObserver(self, name: AVAudioSession.interruptionNotification, object: nil)
         player.stop()
         self.silentAudioPlayer = nil
         os_log(.debug, log: BackgroundAudioManager.logger, "Stopped silent player.")
     }
 
-    // Play concurrently with other audio sources.
     private func mixOtherAudios() {
         let audioSession = AVAudioSession.sharedInstance()
         do {
             try audioSession.setCategory(.playback, mode: .default, options: [.mixWithOthers])
             try audioSession.setActive(true)
+            os_log(.debug, log: BackgroundAudioManager.logger, "Play concurrently with other audio sources.")
         } catch {
             os_log(.error, log: BackgroundAudioManager.logger, "Error setting up audio session with option mixWithOthers: %@", error.localizedDescription)
         }

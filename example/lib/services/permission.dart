@@ -1,3 +1,4 @@
+import 'package:alarm/alarm.dart';
 import 'package:logging/logging.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -27,6 +28,7 @@ class AlarmPermissions {
   }
 
   static Future<void> checkAndroidScheduleExactAlarmPermission() async {
+    if (!Alarm.android) return;
     final status = await Permission.scheduleExactAlarm.status;
     _log.info('Schedule exact alarm permission: $status.');
     if (status.isDenied) {

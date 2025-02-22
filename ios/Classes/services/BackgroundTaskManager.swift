@@ -3,7 +3,7 @@ import os.log
 
 class BackgroundTaskManager: NSObject {
     private static let logger = OSLog(subsystem: ALARM_BUNDLE, category: "BackgroundTaskManager")
-    private static let backgroundTaskIdentifier: String = "com.gdelataillade.alarm.app_refresh"
+    private static let backgroundTaskIdentifier: String = "com.gdelataillade.fetch"
 
     private static var enabled: Bool = false
 

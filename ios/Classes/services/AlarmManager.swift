@@ -23,14 +23,8 @@ class AlarmManager: NSObject {
         self.alarms[alarmSettings.id] = config
 
         let delayInSeconds = alarmSettings.dateTime.timeIntervalSinceNow
-        if delayInSeconds < 1 {
-            Task {
-                if delayInSeconds > 0 {
-                    try? await Task.sleep(nanoseconds: UInt64(delayInSeconds * 1_000_000_000))
-                }
-                await self.ringAlarm(id: alarmSettings.id)
-            }
-        } else {
+        let ringImmediately = delayInSeconds < 1
+        if !ringImmediately {
             let timer = Timer(timeInterval: delayInSeconds,
                               target: self,
                               selector: #selector(self.alarmTimerTrigerred(_:)),
@@ -41,6 +35,14 @@ class AlarmManager: NSObject {
         }
 
         self.updateState()
+
+        if ringImmediately {
+            os_log(.info, log: AlarmManager.logger, "Ringing alarm ID=%d immediately.", alarmSettings.id)
+            Task {
+                try? await Task.sleep(nanoseconds: UInt64(max(delayInSeconds, 0.1) * 1_000_000_000))
+                await self.ringAlarm(id: alarmSettings.id)
+            }
+        }
 
         os_log(.info, log: AlarmManager.logger, "Set alarm for ID=%d complete.", alarmSettings.id)
     }
@@ -154,11 +156,16 @@ class AlarmManager: NSObject {
             return
         }
 
+        os_log(.debug, log: AlarmManager.logger, "Ringing alarm %d...", id)
+
         config.state = .ringing
         config.timer?.invalidate()
         config.timer = nil
 
         await NotificationManager.shared.showNotification(id: config.settings.id, notificationSettings: config.settings.notificationSettings)
+
+        // Ensure background audio is stopped before ringing alarm.
+        BackgroundAudioManager.shared.stop()
 
         await AlarmRingManager.shared.start(
             registrar: self.registrar,

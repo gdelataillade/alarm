@@ -17,6 +17,8 @@ class AlarmRingManager: NSObject {
     }
 
     func start(registrar: FlutterPluginRegistrar, assetAudioPath: String, loopAudio: Bool, volumeSettings: VolumeSettings, onComplete: (() -> Void)?) async {
+        let start = Date()
+
         self.duckOtherAudios()
 
         let targetSystemVolume: Float
@@ -61,9 +63,19 @@ class AlarmRingManager: NSObject {
                 onComplete?()
             }
         }
+
+        let runDuration = Date().timeIntervalSince(start)
+        os_log(.debug, log: AlarmRingManager.logger, "Alarm ring started in %.2fs.", runDuration)
     }
 
     func stop() async {
+        if self.volumeEnforcementTimer == nil && self.previousVolume == nil && self.audioPlayer == nil {
+            os_log(.debug, log: AlarmRingManager.logger, "Alarm ringer already stopped.")
+            return
+        }
+
+        let start = Date()
+
         self.mixOtherAudios()
 
         self.volumeEnforcementTimer?.invalidate()
@@ -76,25 +88,28 @@ class AlarmRingManager: NSObject {
 
         self.audioPlayer?.stop()
         self.audioPlayer = nil
+
+        let runDuration = Date().timeIntervalSince(start)
+        os_log(.debug, log: AlarmRingManager.logger, "Alarm ring stopped in %.2fs.", runDuration)
     }
 
-    // Stop other audio sources.
     private func duckOtherAudios() {
         let audioSession = AVAudioSession.sharedInstance()
         do {
             try audioSession.setCategory(.playback, mode: .default, options: [.duckOthers])
             try audioSession.setActive(true)
+            os_log(.debug, log: AlarmRingManager.logger, "Stopped other audio sources.")
         } catch {
             os_log(.error, log: AlarmRingManager.logger, "Error setting up audio session with option duckOthers: %@", error.localizedDescription)
         }
     }
 
-    // Play concurrently with other audio sources.
     private func mixOtherAudios() {
         let audioSession = AVAudioSession.sharedInstance()
         do {
             try audioSession.setCategory(.playback, mode: .default, options: [.mixWithOthers])
             try audioSession.setActive(true)
+            os_log(.debug, log: AlarmRingManager.logger, "Play concurrently with other audio sources.")
         } catch {
             os_log(.error, log: AlarmRingManager.logger, "Error setting up audio session with option mixWithOthers: %@", error.localizedDescription)
         }
@@ -109,6 +124,9 @@ class AlarmRingManager: NSObject {
     @MainActor
     private func setSystemVolume(volume: Float) async -> Float? {
         let volumeView = MPVolumeView()
+
+        // We need to pause for 100ms to ensure the slider loads.
+        try? await Task.sleep(nanoseconds: UInt64(0.1 * 1_000_000_000))
 
         guard let slider = volumeView.subviews.first(where: { $0 is UISlider }) as? UISlider else {
             os_log(.error, log: AlarmRingManager.logger, "Volume slider could not be found.")
@@ -127,6 +145,7 @@ class AlarmRingManager: NSObject {
         Task {
             let currentSystemVolume = self.getSystemVolume()
             if abs(currentSystemVolume - targetSystemVolume) > 0.01 {
+                os_log(.debug, log: AlarmRingManager.logger, "System volume changed. Restoring to %f.", targetSystemVolume)
                 await self.setSystemVolume(volume: targetSystemVolume)
             }
         }
@@ -150,7 +169,9 @@ class AlarmRingManager: NSObject {
         }
 
         do {
-            return try AVAudioPlayer(contentsOf: audioURL)
+            let audioPlayer = try AVAudioPlayer(contentsOf: audioURL)
+            os_log(.debug, log: AlarmRingManager.logger, "Audio player loaded from: %@", assetAudioPath)
+            return audioPlayer
         } catch {
             os_log(.error, log: AlarmRingManager.logger, "Error loading audio player: %@", error.localizedDescription)
             return nil
