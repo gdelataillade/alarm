@@ -63,9 +63,10 @@ class IOSTimers {
 
   /// Stops listening for all alarm triggers.
   static void stopAll() {
-    for (final id in _timers.keys) {
-      stopAlarm(id);
-    }
+    _timers.forEach((_, timer) => timer?.cancel());
+    _fgbgSubscriptions.forEach((_, sub) => sub?.cancel());
+    _timers.clear();
+    _fgbgSubscriptions.clear();
   }
 
   /// Listens when app goes foreground so we can check if alarm is ringing.
