@@ -53,7 +53,7 @@ class Alarm {
   /// app termination.
   static Future<void> init() async {
     AlarmTriggerApiImpl.ensureInitialized(
-      alarmRang: _alarmRang,
+      alarmRang: alarmRang,
       alarmStopped: _alarmStopped,
     );
 
@@ -242,7 +242,8 @@ class Alarm {
   static Future<List<AlarmSettings>> getAlarms() =>
       AlarmStorage.getSavedAlarms();
 
-  static void _alarmRang(AlarmSettings alarm) {
+  /// PRIVATE: Called by the native platform when the alarm rings.
+  static void alarmRang(AlarmSettings alarm) {
     _scheduled.add(_scheduled.value.remove(alarm));
     _ringing.add(_ringing.value.add(alarm));
     ringStream.add(alarm);

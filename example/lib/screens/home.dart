@@ -5,9 +5,12 @@ import 'package:alarm/utils/alarm_set.dart';
 import 'package:alarm_example/screens/edit_alarm.dart';
 import 'package:alarm_example/screens/ring.dart';
 import 'package:alarm_example/screens/shortcut_button.dart';
+import 'package:alarm_example/services/notifications.dart';
 import 'package:alarm_example/services/permission.dart';
 import 'package:alarm_example/widgets/tile.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:logging/logging.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 const version = '5.0.2';
@@ -21,6 +24,7 @@ class ExampleAlarmHomeScreen extends StatefulWidget {
 
 class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
   List<AlarmSettings> alarms = [];
+  Notifications? notifications;
 
   static StreamSubscription<AlarmSet>? ringSubscription;
   static StreamSubscription<AlarmSet>? updateSubscription;
@@ -28,15 +32,18 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
   @override
   void initState() {
     super.initState();
-    AlarmPermissions.checkNotificationPermission();
-    if (Alarm.android) {
-      AlarmPermissions.checkAndroidScheduleExactAlarmPermission();
-    }
+    AlarmPermissions.checkNotificationPermission()
+        .then((_) => AlarmPermissions.checkLocationPermission())
+        .then((_) => AlarmPermissions.checkBackgroundLocationPermission())
+        .then(
+          (_) => AlarmPermissions.checkAndroidScheduleExactAlarmPermission(),
+        );
     unawaited(loadAlarms());
     ringSubscription ??= Alarm.ringing.listen(ringingAlarmsChanged);
     updateSubscription ??= Alarm.scheduled.listen((_) {
       unawaited(loadAlarms());
     });
+    notifications = Notifications();
   }
 
   Future<void> loadAlarms() async {
@@ -99,33 +106,63 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
             icon: const Icon(Icons.menu_book_rounded),
             onPressed: launchReadmeUrl,
           ),
+          PopupMenuButton<String>(
+            onSelected: notifications == null
+                ? null
+                : (value) async {
+                    if (value == 'Show notification') {
+                      await notifications?.showNotification();
+                    } else if (value == 'Schedule notification') {
+                      await notifications?.scheduleNotification();
+                    }
+                  },
+            itemBuilder: (BuildContext context) =>
+                {'Show notification', 'Schedule notification'}
+                    .map(
+                      (String choice) => PopupMenuItem<String>(
+                        value: choice,
+                        child: Text(choice),
+                      ),
+                    )
+                    .toList(),
+          ),
         ],
       ),
       body: SafeArea(
-        child: alarms.isNotEmpty
-            ? ListView.separated(
-                itemCount: alarms.length,
-                separatorBuilder: (context, index) => const Divider(height: 1),
-                itemBuilder: (context, index) {
-                  return ExampleAlarmTile(
-                    key: Key(alarms[index].id.toString()),
-                    title: TimeOfDay(
-                      hour: alarms[index].dateTime.hour,
-                      minute: alarms[index].dateTime.minute,
-                    ).format(context),
-                    onPressed: () => navigateToAlarmScreen(alarms[index]),
-                    onDismissed: () {
-                      Alarm.stop(alarms[index].id).then((_) => loadAlarms());
-                    },
-                  );
-                },
+        child: Column(
+          children: [
+            const SizedBox(height: 10),
+            const _LocationTracker(),
+            if (alarms.isNotEmpty)
+              Expanded(
+                child: ListView.separated(
+                  itemCount: alarms.length,
+                  separatorBuilder: (context, index) =>
+                      const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    return ExampleAlarmTile(
+                      key: Key(alarms[index].id.toString()),
+                      title: TimeOfDay(
+                        hour: alarms[index].dateTime.hour,
+                        minute: alarms[index].dateTime.minute,
+                      ).format(context),
+                      onPressed: () => navigateToAlarmScreen(alarms[index]),
+                      onDismissed: () {
+                        Alarm.stop(alarms[index].id).then((_) => loadAlarms());
+                      },
+                    );
+                  },
+                ),
               )
-            : Center(
+            else
+              Center(
                 child: Text(
                   'No alarms set',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
+          ],
+        ),
       ),
       floatingActionButton: Padding(
         padding: const EdgeInsets.all(10),
@@ -152,5 +189,77 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
+  }
+}
+
+class _LocationTracker extends StatefulWidget {
+  const _LocationTracker();
+
+  @override
+  State<_LocationTracker> createState() => _LocationTrackerState();
+}
+
+class _LocationTrackerState extends State<_LocationTracker> {
+  static final _log = Logger('_LocationTracker');
+
+  StreamSubscription<Position>? _tracker;
+  Position? _position;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('Location: ${_position?.latitude}, ${_position?.longitude}'),
+        ElevatedButton(
+          onPressed: _tracker == null
+              ? () {
+                  _tracker = Geolocator.getPositionStream(
+                    locationSettings: AppleSettings(
+                      activityType: ActivityType.otherNavigation,
+                      accuracy: LocationAccuracy.bestForNavigation,
+                      showBackgroundLocationIndicator: true,
+                    ),
+                  ).listen(
+                    (position) {
+                      setState(() {
+                        _position = position;
+                        _log.info(
+                          'Location update received: (${position.latitude}, '
+                          '${position.longitude})',
+                        );
+                      });
+                    },
+                    onError: (Object error, StackTrace stackTrace) {
+                      _log.severe(
+                        'Error tracking location.',
+                        error,
+                        stackTrace,
+                      );
+                    },
+                    onDone: () {
+                      _log.warning('Location tracking ended unexpectedly.');
+                      _stopTracking();
+                    },
+                  );
+                }
+              : null,
+          child: const Text('Start tracking'),
+        ),
+        ElevatedButton(
+          onPressed: _tracker != null ? _stopTracking : null,
+          child: const Text('Stop tracking'),
+        ),
+      ],
+    );
+  }
+
+  void _stopTracking() {
+    _tracker?.cancel();
+    _tracker = null;
+    setState(() {
+      _position = null;
+    });
+    _log.info('Location tracking stopped.');
   }
 }

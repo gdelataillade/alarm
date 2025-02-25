@@ -7,18 +7,17 @@ import 'package:equatable/equatable.dart';
 /// A set of alarms where uniqueness is determined by the [AlarmSettings.id].
 class AlarmSet extends Equatable {
   /// Constructs an instance of [AlarmSet] using the given [alarms].
-  AlarmSet(Iterable<AlarmSettings> alarms)
-      : _alarms = UnmodifiableSetView(
-          HashSet<AlarmSettings>(
-            equals: (a, b) => a.id == b.id,
-            hashCode: (a) => a.id.hashCode,
-          )..addAll(alarms),
-        );
+  AlarmSet(Iterable<AlarmSettings> alarms) : _alarms = _idSet()..addAll(alarms);
 
   /// Empty [AlarmSet].
-  AlarmSet.empty() : _alarms = UnmodifiableSetView(const {});
+  AlarmSet.empty() : _alarms = _idSet();
 
-  final UnmodifiableSetView<AlarmSettings> _alarms;
+  static HashSet<AlarmSettings> _idSet() => HashSet<AlarmSettings>(
+        equals: (a, b) => a.id == b.id,
+        hashCode: (a) => a.id.hashCode,
+      );
+
+  final HashSet<AlarmSettings> _alarms;
 
   /// Returns the set of alarms.
   Set<AlarmSettings> get alarms => _alarms;
@@ -34,7 +33,7 @@ class AlarmSet extends Equatable {
     if (_alarms.contains(alarm)) {
       return this;
     }
-    return AlarmSet(Set.from(_alarms)..add(alarm));
+    return AlarmSet([..._alarms, alarm]);
   }
 
   /// Returns a new [AlarmSet] with the given [alarm] removed.
@@ -42,14 +41,13 @@ class AlarmSet extends Equatable {
     if (!_alarms.contains(alarm)) {
       return this;
     }
-    return AlarmSet(Set.from(_alarms)..remove(alarm));
+    return AlarmSet(_alarms.where((a) => a.id != alarm.id));
   }
 
   /// Returns a new [AlarmSet] with the given [alarmId] removed.
   AlarmSet removeById(int alarmId) {
-    final alarm = _alarms.firstWhereOrNull((a) => a.id == alarmId);
-    if (alarm == null) return this;
-    return remove(alarm);
+    if (_alarms.none((alarm) => alarm.id == alarmId)) return this;
+    return AlarmSet(_alarms.where((a) => a.id != alarmId));
   }
 
   @override

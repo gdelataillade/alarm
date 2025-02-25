@@ -18,13 +18,25 @@ class NotificationOnKillService : Service() {
         private const val TAG = "NotificationOnKillService"
         private const val NOTIFICATION_ID = 88888
         private const val CHANNEL_ID = "com.gdelataillade.alarm.alarm_channel"
+
+        var isRunning = false
     }
 
     private lateinit var title: String
     private lateinit var body: String
 
+    override fun onCreate() {
+        super.onCreate()
+        isRunning = true
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        isRunning = false
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        title = intent?.getStringExtra("title") ?: "Your alarms could not ring"
+        title = intent?.getStringExtra("title") ?: "Your alarms may not ring"
         body = intent?.getStringExtra("body")
             ?: "You killed the app. Please reopen so your alarms can be rescheduled."
 
@@ -52,9 +64,9 @@ class NotificationOnKillService : Service() {
                 .setContentIntent(pendingIntent)
                 .setSound(Settings.System.DEFAULT_ALARM_ALERT_URI)
 
-            val name = "Alarm notification service on application kill"
+            val name = "Alarm reliability warning"
             val descriptionText =
-                "If an alarm was set and the app is killed, a notification will show to warn the user the alarm could not ring as long as the app is killed"
+                "If an alarm was set and the app is killed, a notification will warn you that the alarm might not ring on schedule."
             val importance = NotificationManager.IMPORTANCE_HIGH
             val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
                 description = descriptionText
