@@ -62,7 +62,7 @@ class NotificationSettings extends Equatable {
   /// **iOS only feature - has no effect on Android.**
   ///
   /// If set to `true`, the notification will remain visible in the notification
-  /// center even after the alarm has been stopped or dismissed.
+  /// center even after the alarm sound ends.
   /// If `false`, the notification will be automatically removed when
   /// the alarm sound ends.
   ///
