@@ -104,6 +104,11 @@ class NotificationSettings extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [title, body, stopButton, icon, keepNotificationAfterAlarmEnds];
+  List<Object?> get props => [
+        title,
+        body,
+        stopButton,
+        icon,
+        keepNotificationAfterAlarmEnds,
+      ];
 }
