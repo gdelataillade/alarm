@@ -206,6 +206,7 @@ struct NotificationSettingsWire {
   var body: String
   var stopButton: String? = nil
   var icon: String? = nil
+  var keepNotificationAfterAlarmEnds: Bool
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -214,12 +215,14 @@ struct NotificationSettingsWire {
     let body = pigeonVar_list[1] as! String
     let stopButton: String? = nilOrValue(pigeonVar_list[2])
     let icon: String? = nilOrValue(pigeonVar_list[3])
+    let keepNotificationAfterAlarmEnds = pigeonVar_list[4] as! Bool
 
     return NotificationSettingsWire(
       title: title,
       body: body,
       stopButton: stopButton,
-      icon: icon
+      icon: icon,
+      keepNotificationAfterAlarmEnds: keepNotificationAfterAlarmEnds
     )
   }
   func toList() -> [Any?] {
@@ -228,6 +231,7 @@ struct NotificationSettingsWire {
       body,
       stopButton,
       icon,
+      keepNotificationAfterAlarmEnds,
     ]
   }
 }

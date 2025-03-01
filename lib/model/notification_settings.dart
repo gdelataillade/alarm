@@ -15,6 +15,7 @@ class NotificationSettings extends Equatable {
     required this.body,
     this.stopButton,
     this.icon,
+    this.keepNotificationAfterAlarmEnds = false,
   });
 
   /// Converts the JSON object to a `NotificationSettings` instance.
@@ -56,6 +57,18 @@ class NotificationSettings extends Equatable {
   /// Defaults to `null`.
   final String? icon;
 
+  /// Whether to keep the notification visible after the alarm sound ends.
+  ///
+  /// **iOS only feature - has no effect on Android.**
+  ///
+  /// If set to `true`, the notification will remain visible in the notification
+  /// center even after the alarm has been stopped or dismissed.
+  /// If `false`, the notification will be automatically removed when
+  /// the alarm sound ends.
+  ///
+  /// Defaults to `false`.
+  final bool keepNotificationAfterAlarmEnds;
+
   /// Converts the `NotificationSettings` instance to a JSON object.
   Map<String, dynamic> toJson() => _$NotificationSettingsToJson(this);
 
@@ -65,6 +78,7 @@ class NotificationSettings extends Equatable {
         body: body,
         stopButton: stopButton,
         icon: icon,
+        keepNotificationAfterAlarmEnds: keepNotificationAfterAlarmEnds,
       );
 
   /// Creates a copy of this notification settings but with the given fields
@@ -74,6 +88,7 @@ class NotificationSettings extends Equatable {
     String? body,
     String? stopButton,
     String? icon,
+    bool? keepNotificationAfterAlarmEnds,
   }) {
     assert(title != null, 'NotificationSettings.title cannot be null');
     assert(body != null, 'NotificationSettings.body cannot be null');
@@ -83,9 +98,12 @@ class NotificationSettings extends Equatable {
       body: body ?? this.body,
       stopButton: stopButton ?? this.stopButton,
       icon: icon ?? this.icon,
+      keepNotificationAfterAlarmEnds:
+          keepNotificationAfterAlarmEnds ?? this.keepNotificationAfterAlarmEnds,
     );
   }
 
   @override
-  List<Object?> get props => [title, body, stopButton, icon];
+  List<Object?> get props =>
+      [title, body, stopButton, icon, keepNotificationAfterAlarmEnds];
 }
