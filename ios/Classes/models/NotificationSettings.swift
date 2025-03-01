@@ -4,6 +4,7 @@ struct NotificationSettings: Codable {
     var title: String
     var body: String
     var stopButton: String?
+    var keepNotificationAfterAlarmEnds: Bool = false
 
     static func from(wire: NotificationSettingsWire) -> NotificationSettings {
         // NotificationSettingsWire.icon is ignored since we can't modify the
@@ -11,7 +12,8 @@ struct NotificationSettings: Codable {
         return NotificationSettings(
             title: wire.title,
             body: wire.body,
-            stopButton: wire.stopButton
+            stopButton: wire.stopButton,
+            keepNotificationAfterAlarmEnds: wire.keepNotificationAfterAlarmEnds ?? false
         )
     }
 
@@ -19,7 +21,8 @@ struct NotificationSettings: Codable {
         return NotificationSettings(
             title: json["title"] as! String,
             body: json["body"] as! String,
-            stopButton: json["stopButton"] as? String
+            stopButton: json["stopButton"] as? String,
+            keepNotificationAfterAlarmEnds: json["keepNotificationAfterAlarmEnds"] as? Bool ?? false
         )
     }
 
@@ -27,7 +30,8 @@ struct NotificationSettings: Codable {
         return [
             "title": notificationSettings.title,
             "body": notificationSettings.body,
-            "stopButton": notificationSettings.stopButton as Any
+            "stopButton": notificationSettings.stopButton as Any,
+            "keepNotificationAfterAlarmEnds": notificationSettings.keepNotificationAfterAlarmEnds
         ]
     }
 }
