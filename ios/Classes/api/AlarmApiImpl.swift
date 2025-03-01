@@ -411,10 +411,14 @@ public class AlarmApiImpl: NSObject, AlarmApi {
     }
 
     private func stopAlarmInternal(id: Int, cancelNotif: Bool) {
+        guard let alarm = self.alarms[id] else { return }
+        
         if cancelNotif {
             NotificationManager.shared.cancelNotification(id: id)
         }
-        // NotificationManager.shared.dismissNotification(id: id)
+        if !alarm.settings.notificationSettings.keepNotificationAfterAlarmEnds {
+            NotificationManager.shared.dismissNotification(id: id)
+        }
 
         self.mixOtherAudios()
 
@@ -424,17 +428,15 @@ public class AlarmApiImpl: NSObject, AlarmApi {
             self.setVolume(volume: previousVolume, enable: false)
         }
 
-        if let alarm = self.alarms[id] {
-            alarm.timer?.invalidate()
-            alarm.timer = nil
-            alarm.task?.cancel()
-            alarm.task = nil
-            alarm.audioPlayer?.stop()
-            alarm.audioPlayer = nil
-            alarm.volumeEnforcementTimer?.invalidate()
-            alarm.volumeEnforcementTimer = nil
-            self.alarms.removeValue(forKey: id)
-        }
+        alarm.timer?.invalidate()
+        alarm.timer = nil
+        alarm.task?.cancel()
+        alarm.task = nil
+        alarm.audioPlayer?.stop()
+        alarm.audioPlayer = nil
+        alarm.volumeEnforcementTimer?.invalidate()
+        alarm.volumeEnforcementTimer = nil
+        self.alarms.removeValue(forKey: id)
 
         self.stopSilentSound()
         self.stopNotificationOnKillService()
