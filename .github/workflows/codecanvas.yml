@@ -10,6 +10,7 @@ on:
 permissions:
   checks: write
   contents: read
+  pull-requests: read
   
 jobs:
   check_files:
