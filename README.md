@@ -231,6 +231,9 @@ See more here: [#222](https://github.com/gdelataillade/alarm/issues/222)
 
 Check out this interactive walkthrough of the `alarm` codebase on CodeCanvas [here](https://www.code-canvas.com/?session=unauthenticatedGithub&repo=alarm&owner=gdelataillade&branch=main).
 
+<img width="1916" alt="image" src="https://github.com/user-attachments/assets/3f85c1c0-5348-4eed-bfa8-de8852925826" />
+
+
 ### Android
 
 Leverages a foreground service with AlarmManager scheduling to ensure alarm reliability, even if the app is terminated. Utilizes AudioManager for robust alarm sound management.
