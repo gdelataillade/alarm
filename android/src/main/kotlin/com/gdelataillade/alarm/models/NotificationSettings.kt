@@ -16,7 +16,7 @@ data class NotificationSettings(
                 e.title,
                 e.body,
                 e.stopButton,
-                e.icon,
+                e.icon
             )
         }
     }
