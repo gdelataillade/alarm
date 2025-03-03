@@ -13,7 +13,7 @@ struct NotificationSettings: Codable {
             title: wire.title,
             body: wire.body,
             stopButton: wire.stopButton,
-            keepNotificationAfterAlarmEnds: wire.keepNotificationAfterAlarmEnds ?? false
+            keepNotificationAfterAlarmEnds: wire.keepNotificationAfterAlarmEnds
         )
     }
 
@@ -22,7 +22,7 @@ struct NotificationSettings: Codable {
             title: json["title"] as! String,
             body: json["body"] as! String,
             stopButton: json["stopButton"] as? String,
-            keepNotificationAfterAlarmEnds: json["keepNotificationAfterAlarmEnds"] as? Bool ?? false
+            keepNotificationAfterAlarmEnds: json["keepNotificationAfterAlarmEnds"] as! Bool 
         )
     }
 
