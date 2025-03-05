@@ -1,3 +1,7 @@
+## 5.0.3
+* Added CodeCanvas diagram to documentation (see [here](https://www.code-canvas.com/?session=unauthenticatedGithub&repo=alarm&owner=gdelataillade&branch=main)).
+* [Android] Added alarm stop on notification dismiss.
+
 ## 5.0.2
 * [Android] Improved stop alarm process.
 
