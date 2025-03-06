@@ -185,6 +185,7 @@ class NotificationSettingsWire {
     required this.body,
     this.stopButton,
     this.icon,
+    required this.keepNotificationAfterAlarmEnds,
   });
 
   String title;
@@ -195,12 +196,15 @@ class NotificationSettingsWire {
 
   String? icon;
 
+  bool keepNotificationAfterAlarmEnds;
+
   Object encode() {
     return <Object?>[
       title,
       body,
       stopButton,
       icon,
+      keepNotificationAfterAlarmEnds,
     ];
   }
 
@@ -211,6 +215,7 @@ class NotificationSettingsWire {
       body: result[1]! as String,
       stopButton: result[2] as String?,
       icon: result[3] as String?,
+      keepNotificationAfterAlarmEnds: result[4]! as bool,
     );
   }
 }

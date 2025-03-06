@@ -73,12 +73,14 @@ class NotificationSettingsWire {
     required this.body,
     required this.stopButton,
     required this.icon,
+    required this.keepNotificationAfterAlarmEnds,
   });
 
   final String title;
   final String body;
   final String? stopButton;
   final String? icon;
+  final bool keepNotificationAfterAlarmEnds;
 }
 
 /// Errors that can occur when interacting with the Alarm API.

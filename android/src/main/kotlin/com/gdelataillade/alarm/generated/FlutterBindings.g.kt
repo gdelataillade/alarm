@@ -174,7 +174,8 @@ data class NotificationSettingsWire (
   val title: String,
   val body: String,
   val stopButton: String? = null,
-  val icon: String? = null
+  val icon: String? = null,
+  val keepNotificationAfterAlarmEnds: Boolean
 )
  {
   companion object {
@@ -183,7 +184,8 @@ data class NotificationSettingsWire (
       val body = pigeonVar_list[1] as String
       val stopButton = pigeonVar_list[2] as String?
       val icon = pigeonVar_list[3] as String?
-      return NotificationSettingsWire(title, body, stopButton, icon)
+      val keepNotificationAfterAlarmEnds = pigeonVar_list[4] as Boolean
+      return NotificationSettingsWire(title, body, stopButton, icon, keepNotificationAfterAlarmEnds)
     }
   }
   fun toList(): List<Any?> {
@@ -192,6 +194,7 @@ data class NotificationSettingsWire (
       body,
       stopButton,
       icon,
+      keepNotificationAfterAlarmEnds,
     )
   }
 }
