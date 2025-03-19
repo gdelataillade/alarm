@@ -9,8 +9,6 @@ import 'package:alarm_example/services/notifications.dart';
 import 'package:alarm_example/services/permission.dart';
 import 'package:alarm_example/widgets/tile.dart';
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:logging/logging.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 const version = '5.0.3';
@@ -131,8 +129,6 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            const SizedBox(height: 10),
-            const _LocationTracker(),
             if (alarms.isNotEmpty)
               Expanded(
                 child: ListView.separated(
@@ -189,77 +185,5 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
-  }
-}
-
-class _LocationTracker extends StatefulWidget {
-  const _LocationTracker();
-
-  @override
-  State<_LocationTracker> createState() => _LocationTrackerState();
-}
-
-class _LocationTrackerState extends State<_LocationTracker> {
-  static final _log = Logger('_LocationTracker');
-
-  StreamSubscription<Position>? _tracker;
-  Position? _position;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text('Location: ${_position?.latitude}, ${_position?.longitude}'),
-        ElevatedButton(
-          onPressed: _tracker == null
-              ? () {
-                  _tracker = Geolocator.getPositionStream(
-                    locationSettings: AppleSettings(
-                      activityType: ActivityType.otherNavigation,
-                      accuracy: LocationAccuracy.bestForNavigation,
-                      showBackgroundLocationIndicator: true,
-                    ),
-                  ).listen(
-                    (position) {
-                      setState(() {
-                        _position = position;
-                        _log.info(
-                          'Location update received: (${position.latitude}, '
-                          '${position.longitude})',
-                        );
-                      });
-                    },
-                    onError: (Object error, StackTrace stackTrace) {
-                      _log.severe(
-                        'Error tracking location.',
-                        error,
-                        stackTrace,
-                      );
-                    },
-                    onDone: () {
-                      _log.warning('Location tracking ended unexpectedly.');
-                      _stopTracking();
-                    },
-                  );
-                }
-              : null,
-          child: const Text('Start tracking'),
-        ),
-        ElevatedButton(
-          onPressed: _tracker != null ? _stopTracking : null,
-          child: const Text('Stop tracking'),
-        ),
-      ],
-    );
-  }
-
-  void _stopTracking() {
-    _tracker?.cancel();
-    _tracker = null;
-    setState(() {
-      _position = null;
-    });
-    _log.info('Location tracking stopped.');
   }
 }

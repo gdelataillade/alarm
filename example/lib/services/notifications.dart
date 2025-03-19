@@ -91,8 +91,6 @@ class Notifications {
         ),
         android: AndroidNotificationDetails('sample_channel', 'Sample Channel'),
       ),
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.wallClockTime,
       androidScheduleMode: AndroidScheduleMode.exact,
       payload: 'payload',
     );
