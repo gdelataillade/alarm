@@ -103,10 +103,13 @@ enum AlarmErrorCode {
 
 @HostApi()
 abstract class AlarmApi {
+  @async
   void setAlarm({required AlarmSettingsWire alarmSettings});
 
+  @async
   void stopAlarm({required int alarmId});
 
+  @async
   void stopAll();
 
   bool isRinging({required int? alarmId});

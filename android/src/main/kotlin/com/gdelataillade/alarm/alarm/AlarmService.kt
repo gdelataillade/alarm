@@ -18,6 +18,7 @@ import android.os.Build
 import com.gdelataillade.alarm.models.AlarmSettings
 import com.gdelataillade.alarm.services.AlarmRingingLiveData
 import com.gdelataillade.alarm.services.NotificationHandler
+import com.gdelataillade.alarm.services.NotificationOnKillService
 import io.flutter.Log
 import kotlinx.serialization.json.Json
 
@@ -31,9 +32,11 @@ class AlarmService : Service() {
         var ringingAlarmIds: List<Int> = listOf()
     }
 
+    private var alarmId: Int = 0
     private var audioService: AudioService? = null
     private var vibrationService: VibrationService? = null
     private var volumeService: VolumeService? = null
+    private var alarmStorage: AlarmStorage? = null
     private var showSystemUI: Boolean = true
 
     override fun onCreate() {
@@ -43,6 +46,7 @@ class AlarmService : Service() {
         audioService = AudioService(this)
         vibrationService = VibrationService(this)
         volumeService = VolumeService(this)
+        alarmStorage = AlarmStorage(this)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -52,6 +56,7 @@ class AlarmService : Service() {
         }
 
         val id = intent.getIntExtra("id", 0)
+        alarmId = id
         val action = intent.getStringExtra(AlarmReceiver.EXTRA_ALARM_ACTION)
 
         if (action == "STOP_ALARM" && id != 0) {
@@ -173,7 +178,28 @@ class AlarmService : Service() {
             .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "app:AlarmWakelockTag")
         wakeLock.acquire(5 * 60 * 1000L) // Acquire for 5 minutes
 
+        // If there are no other alarms scheduled, turn off the warning notification.
+        val storage = alarmStorage
+        if (storage != null) {
+            val storedAlarms = storage.getSavedAlarms()
+            if (storedAlarms.isEmpty() || storedAlarms.all { it.id == id }) {
+                val serviceIntent = Intent(this, NotificationOnKillService::class.java)
+                // If the service isn't running this call will be ignored.
+                this.stopService(serviceIntent)
+                Log.d(TAG, "Turning off the warning notification.")
+            } else {
+                Log.d(TAG, "Keeping the warning notification on because there are other pending alarms.")
+            }
+        }
+
         return START_STICKY
+    }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        Log.d(TAG, "App closed, stopping alarm.")
+        unsaveAlarm(alarmId)
+        stopSelf()
+        super.onTaskRemoved(rootIntent)
     }
 
     private fun startAlarmService(id: Int, notification: Notification) {
@@ -194,7 +220,7 @@ class AlarmService : Service() {
     }
 
     private fun unsaveAlarm(id: Int) {
-        AlarmStorage(this).unsaveAlarm(id)
+        alarmStorage?.unsaveAlarm(id)
         // Notify the plugin about the alarm being stopped.
         AlarmPlugin.alarmTriggerApi?.alarmStopped(id.toLong()) {
             if (it.isSuccess) {
