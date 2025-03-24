@@ -30,12 +30,9 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
   @override
   void initState() {
     super.initState();
-    AlarmPermissions.checkNotificationPermission()
-        .then((_) => AlarmPermissions.checkLocationPermission())
-        .then((_) => AlarmPermissions.checkBackgroundLocationPermission())
-        .then(
-          (_) => AlarmPermissions.checkAndroidScheduleExactAlarmPermission(),
-        );
+    AlarmPermissions.checkNotificationPermission().then(
+      (_) => AlarmPermissions.checkAndroidScheduleExactAlarmPermission(),
+    );
     unawaited(loadAlarms());
     ringSubscription ??= Alarm.ringing.listen(ringingAlarmsChanged);
     updateSubscription ??= Alarm.scheduled.listen((_) {
@@ -129,34 +126,34 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            if (alarms.isNotEmpty)
-              Expanded(
-                child: ListView.separated(
-                  itemCount: alarms.length,
-                  separatorBuilder: (context, index) =>
-                      const Divider(height: 1),
-                  itemBuilder: (context, index) {
-                    return ExampleAlarmTile(
-                      key: Key(alarms[index].id.toString()),
-                      title: TimeOfDay(
-                        hour: alarms[index].dateTime.hour,
-                        minute: alarms[index].dateTime.minute,
-                      ).format(context),
-                      onPressed: () => navigateToAlarmScreen(alarms[index]),
-                      onDismissed: () {
-                        Alarm.stop(alarms[index].id).then((_) => loadAlarms());
+            Expanded(
+              child: alarms.isNotEmpty
+                  ? ListView.separated(
+                      itemCount: alarms.length,
+                      separatorBuilder: (context, index) =>
+                          const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        return ExampleAlarmTile(
+                          key: Key(alarms[index].id.toString()),
+                          title: TimeOfDay(
+                            hour: alarms[index].dateTime.hour,
+                            minute: alarms[index].dateTime.minute,
+                          ).format(context),
+                          onPressed: () => navigateToAlarmScreen(alarms[index]),
+                          onDismissed: () {
+                            Alarm.stop(alarms[index].id)
+                                .then((_) => loadAlarms());
+                          },
+                        );
                       },
-                    );
-                  },
-                ),
-              )
-            else
-              Center(
-                child: Text(
-                  'No alarms set',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ),
+                    )
+                  : Center(
+                      child: Text(
+                        'No alarms set',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+            ),
           ],
         ),
       ),

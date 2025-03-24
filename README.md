@@ -55,7 +55,7 @@ final alarmSettings = AlarmSettings(
   vibrate: true,
   warningNotificationOnKill: Platform.isIOS,
   androidFullScreenIntent: true,
-  volumeSettings: VolumeSettings.fixed(
+  volumeSettings: VolumeSettings.fade(
     volume: 0.8,
     fadeDuration: Duration(seconds: 5),
     volumeEnforced: true,

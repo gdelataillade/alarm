@@ -12,9 +12,9 @@
   <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
   <application>
-    <receiver android:name=".AlarmReceiver" android:exported="true" />
+    <receiver android:name="com.gdelataillade.alarm.alarm.AlarmReceiver" android:exported="true" />
     <receiver
-      android:name=".BootReceiver"
+      android:name="com.gdelataillade.alarm.alarm.BootReceiver"
       android:enabled="true"
       android:exported="true">
       <intent-filter>
@@ -22,7 +22,7 @@
       </intent-filter>
     </receiver>
     <service
-      android:name=".AlarmService"
+      android:name="com.gdelataillade.alarm.alarm.AlarmService"
       android:exported="false"
       android:foregroundServiceType="mediaPlayback">
     </service>
