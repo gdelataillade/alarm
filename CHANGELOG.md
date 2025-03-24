@@ -1,3 +1,7 @@
+## 5.1.0
+* [iOS] Added native refactoring to fix alarm that didn't ring.
+* [Android] Fixed imports.
+
 ## 5.0.3
 * Added CodeCanvas diagram to documentation (see [here](https://www.code-canvas.com/?session=unauthenticatedGithub&repo=alarm&owner=gdelataillade&branch=main)).
 * [Android] Added alarm stop on notification dismiss.
