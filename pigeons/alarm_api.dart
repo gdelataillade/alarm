@@ -73,12 +73,20 @@ class NotificationSettingsWire {
     required this.body,
     required this.stopButton,
     required this.icon,
+    required this.iconColorAlpha,
+    required this.iconColorRed,
+    required this.iconColorGreen,
+    required this.iconColorBlue,
   });
 
   final String title;
   final String body;
   final String? stopButton;
   final String? icon;
+  final String? iconColorAlpha;
+  final String? iconColorRed;
+  final String? iconColorGreen;
+  final String? iconColorBlue;
 }
 
 /// Errors that can occur when interacting with the Alarm API.

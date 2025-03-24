@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:alarm/src/generated/platform_bindings.g.dart';
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -15,6 +17,7 @@ class NotificationSettings extends Equatable {
     required this.body,
     this.stopButton,
     this.icon,
+    this.iconColor,
   });
 
   /// Converts the JSON object to a `NotificationSettings` instance.
@@ -56,6 +59,17 @@ class NotificationSettings extends Equatable {
   /// Defaults to `null`.
   final String? icon;
 
+  /// The color of the notification icon.
+  ///
+  /// **Only customizable for Android. On iOS, app default icon will be shown.**
+  ///
+  /// The icon is monochrome (light or dark) in the status bar but in expanded
+  /// view it gets a background color that can be set with this parameter.
+  ///
+  /// If `null`, the icon will have a default color.
+  /// Defaults to `null`.
+  final Color? iconColor;
+
   /// Converts the `NotificationSettings` instance to a JSON object.
   Map<String, dynamic> toJson() => _$NotificationSettingsToJson(this);
 
@@ -65,6 +79,10 @@ class NotificationSettings extends Equatable {
         body: body,
         stopButton: stopButton,
         icon: icon,
+        iconColorAlpha: iconColor?.alpha?.toString(),
+        iconColorRed: iconColor?.red?.toString(),
+        iconColorGreen: iconColor?.green?.toString(),
+        iconColorBlue: iconColor?.blue?.toString(),
       );
 
   /// Creates a copy of this notification settings but with the given fields
@@ -74,6 +92,7 @@ class NotificationSettings extends Equatable {
     String? body,
     String? stopButton,
     String? icon,
+    Color? iconColor,
   }) {
     assert(title != null, 'NotificationSettings.title cannot be null');
     assert(body != null, 'NotificationSettings.body cannot be null');
@@ -83,9 +102,10 @@ class NotificationSettings extends Equatable {
       body: body ?? this.body,
       stopButton: stopButton ?? this.stopButton,
       icon: icon ?? this.icon,
+      iconColor: iconColor ?? this.iconColor,
     );
   }
 
   @override
-  List<Object?> get props => [title, body, stopButton, icon];
+  List<Object?> get props => [title, body, stopButton, icon, iconColor];
 }

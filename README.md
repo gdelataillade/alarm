@@ -65,6 +65,7 @@ final alarmSettings = AlarmSettings(
     body: 'This is the body',
     stopButton: 'Stop the alarm',
     icon: 'notification_icon',
+    iconColor: Color(0xff862778),
   ),
 );
 ```
@@ -86,7 +87,7 @@ warningNotificationOnKill |   `bool`     | Whether to show a notification when a
 androidFullScreenIntent |   `bool`     | Whether to turn screen on when android alarm notification is triggered. Enabled by default.
 allowAlarmOverlap | `bool` | Whether the alarm should ring if another alarm is already ringing. Disabled by default.
 payload | `String?` | Optional data sent with the alarm. Caller handles serialization and parsing.
-[notificationSettings](#notificationsettings-model) | `NotificationSettings` | Settings for notification title, body, icon and action buttons (only stop at the moment).
+[notificationSettings](#notificationsettings-model) | `NotificationSettings` | Settings for notification title, body, icon, icon color and action buttons (only stop at the moment).
 [volumeSettings](#volumesettings-model) | `VolumeSettings` | Settings for alarm volume and fade durations.
 
 
@@ -103,6 +104,7 @@ title |   `String`     | Title of the alarm notification.
 body |   `String`     | Body of the alarm notification.
 stopButton | `String?` | Text shown in the stop button of the alarm notification. Button not shown if null.
 icon | `String?` | Icon to display on the notification. Only customizable on Android.
+iconColor | `Color?` | Color of the notification icon. Only customizable on Android.
 
 ### VolumeSettings model
 
