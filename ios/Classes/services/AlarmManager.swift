@@ -174,7 +174,7 @@ class AlarmManager: NSObject {
             volumeSettings: config.settings.volumeSettings,
             onComplete: config.settings.loopAudio ? { [weak self] in
                 Task {
-                    await self?.stopAlarm(id: id, cancelNotif: false)
+                    [self] in await self?.stopAlarm(id: id, cancelNotif: false)
                 }
             } : nil)
 
