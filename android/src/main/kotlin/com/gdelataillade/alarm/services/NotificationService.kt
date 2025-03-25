@@ -92,6 +92,10 @@ class NotificationHandler(private val context: Context) {
             if (it.stopButton != null) {
                 notificationBuilder.addAction(0, it.stopButton, stopPendingIntent)
             }
+
+            if (it.iconColor != null) {
+                notificationBuilder.setColor(it.iconColor)
+            }
         }
 
         return notificationBuilder.build()

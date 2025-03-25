@@ -6,8 +6,8 @@ struct NotificationSettings: Codable {
     var stopButton: String?
 
     static func from(wire: NotificationSettingsWire) -> NotificationSettings {
-        // NotificationSettingsWire.icon is ignored since we can't modify the
-        // notification icon on iOS.
+        // NotificationSettingsWire.icon and iconColor values are ignored
+        // since we can't modify the notification icon on iOS.
         return NotificationSettings(
             title: wire.title,
             body: wire.body,
