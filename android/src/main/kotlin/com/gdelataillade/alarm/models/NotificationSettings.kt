@@ -14,10 +14,10 @@ data class NotificationSettings(
 ) {
     companion object {
         fun fromWire(e: NotificationSettingsWire): NotificationSettings {
-            val a = (e.iconColorAlpha as? String)?.toIntOrNull()
-            val r = (e.iconColorRed as? String)?.toIntOrNull()
-            val g = (e.iconColorGreen as? String)?.toIntOrNull()
-            val b = (e.iconColorBlue as? String)?.toIntOrNull()
+            val a = (e.iconColorAlpha as? String)?.toFloatOrNull()
+            val r = (e.iconColorRed as? String)?.toFloatOrNull()
+            val g = (e.iconColorGreen as? String)?.toFloatOrNull()
+            val b = (e.iconColorBlue as? String)?.toFloatOrNull()
 
             var iconColor: Int? = null
             if (a != null && r != null && g != null && b != null) {
