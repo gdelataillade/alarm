@@ -83,10 +83,10 @@ class NotificationSettingsWire {
   final String body;
   final String? stopButton;
   final String? icon;
-  final String? iconColorAlpha;
-  final String? iconColorRed;
-  final String? iconColorGreen;
-  final String? iconColorBlue;
+  final double? iconColorAlpha;
+  final double? iconColorRed;
+  final double? iconColorGreen;
+  final double? iconColorBlue;
 }
 
 /// Errors that can occur when interacting with the Alarm API.
