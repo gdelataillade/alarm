@@ -288,13 +288,13 @@ class NotificationSettingsWire {
 
   String? icon;
 
-  String? iconColorAlpha;
+  double? iconColorAlpha;
 
-  String? iconColorRed;
+  double? iconColorRed;
 
-  String? iconColorGreen;
+  double? iconColorGreen;
 
-  String? iconColorBlue;
+  double? iconColorBlue;
 
   List<Object?> _toList() {
     return <Object?>[
@@ -320,10 +320,10 @@ class NotificationSettingsWire {
       body: result[1]! as String,
       stopButton: result[2] as String?,
       icon: result[3] as String?,
-      iconColorAlpha: result[4] as String?,
-      iconColorRed: result[5] as String?,
-      iconColorGreen: result[6] as String?,
-      iconColorBlue: result[7] as String?,
+      iconColorAlpha: result[4] as double?,
+      iconColorRed: result[5] as double?,
+      iconColorGreen: result[6] as double?,
+      iconColorBlue: result[7] as double?,
     );
   }
 

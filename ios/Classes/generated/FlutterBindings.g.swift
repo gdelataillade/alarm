@@ -206,10 +206,10 @@ struct NotificationSettingsWire {
   var body: String
   var stopButton: String? = nil
   var icon: String? = nil
-  var iconColorAlpha: String? = nil
-  var iconColorRed: String? = nil
-  var iconColorGreen: String? = nil
-  var iconColorBlue: String? = nil
+  var iconColorAlpha: Double? = nil
+  var iconColorRed: Double? = nil
+  var iconColorGreen: Double? = nil
+  var iconColorBlue: Double? = nil
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -218,10 +218,10 @@ struct NotificationSettingsWire {
     let body = pigeonVar_list[1] as! String
     let stopButton: String? = nilOrValue(pigeonVar_list[2])
     let icon: String? = nilOrValue(pigeonVar_list[3])
-    let iconColorAlpha: String? = nilOrValue(pigeonVar_list[4])
-    let iconColorRed: String? = nilOrValue(pigeonVar_list[5])
-    let iconColorGreen: String? = nilOrValue(pigeonVar_list[6])
-    let iconColorBlue: String? = nilOrValue(pigeonVar_list[7])
+    let iconColorAlpha: Double? = nilOrValue(pigeonVar_list[4])
+    let iconColorRed: Double? = nilOrValue(pigeonVar_list[5])
+    let iconColorGreen: Double? = nilOrValue(pigeonVar_list[6])
+    let iconColorBlue: Double? = nilOrValue(pigeonVar_list[7])
 
     return NotificationSettingsWire(
       title: title,

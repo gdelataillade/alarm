@@ -79,10 +79,10 @@ class NotificationSettings extends Equatable {
         body: body,
         stopButton: stopButton,
         icon: icon,
-        iconColorAlpha: iconColor?.a.toString(),
-        iconColorRed: iconColor?.r.toString(),
-        iconColorGreen: iconColor?.g.toString(),
-        iconColorBlue: iconColor?.b.toString(),
+        iconColorAlpha: iconColor?.a,
+        iconColorRed: iconColor?.r,
+        iconColorGreen: iconColor?.g,
+        iconColorBlue: iconColor?.b,
       );
 
   /// Creates a copy of this notification settings but with the given fields

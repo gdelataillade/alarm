@@ -175,10 +175,10 @@ data class NotificationSettingsWire (
   val body: String,
   val stopButton: String? = null,
   val icon: String? = null,
-  val iconColorAlpha: String? = null,
-  val iconColorRed: String? = null,
-  val iconColorGreen: String? = null,
-  val iconColorBlue: String? = null
+  val iconColorAlpha: Double? = null,
+  val iconColorRed: Double? = null,
+  val iconColorGreen: Double? = null,
+  val iconColorBlue: Double? = null
 )
  {
   companion object {
@@ -187,10 +187,10 @@ data class NotificationSettingsWire (
       val body = pigeonVar_list[1] as String
       val stopButton = pigeonVar_list[2] as String?
       val icon = pigeonVar_list[3] as String?
-      val iconColorAlpha = pigeonVar_list[4] as String?
-      val iconColorRed = pigeonVar_list[5] as String?
-      val iconColorGreen = pigeonVar_list[6] as String?
-      val iconColorBlue = pigeonVar_list[7] as String?
+      val iconColorAlpha = pigeonVar_list[4] as Double?
+      val iconColorRed = pigeonVar_list[5] as Double?
+      val iconColorGreen = pigeonVar_list[6] as Double?
+      val iconColorBlue = pigeonVar_list[7] as Double?
       return NotificationSettingsWire(title, body, stopButton, icon, iconColorAlpha, iconColorRed, iconColorGreen, iconColorBlue)
     }
   }
