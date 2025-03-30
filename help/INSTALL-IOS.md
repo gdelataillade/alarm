@@ -63,6 +63,10 @@ Update your iOS minimum deployment target in your Podfile:
 platform :ios, '13.0'
 ```
 
-And also on Xcode.
+and also on Xcode:
 
-Don't forget to run `pod install --repo-update` to update your pods.
+![CleanShot 2025-03-30 at 18 59 41](https://github.com/user-attachments/assets/92dfd652-eaa8-4a62-8c0c-a5573a98134d)
+
+This should update your `IPHONEOS_DEPLOYMENT_TARGET` in your `project.pbxproj`.
+
+⚠️ Don't forget to run `flutter pub get` and `pod install --repo-update` to update your pods.
