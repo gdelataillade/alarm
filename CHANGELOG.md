@@ -1,3 +1,6 @@
+## 5.1.1
+* [Android] Add icon color parameter for notification.
+
 ## 5.1.0
 * [iOS] Added native refactoring to fix alarm that didn't ring.
 * [Android] Fixed imports.
