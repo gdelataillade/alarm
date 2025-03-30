@@ -7,6 +7,15 @@ First, open your project in Xcode, select your Runner and then Signing & Capabil
 
 ![bg-mode](https://github.com/gdelataillade/alarm/assets/32983806/13716845-5fb0-4fef-a762-292c374840bb)
 
+It should add this in your Info.plist code:
+```XML
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>audio</string>
+	</array>
+```
+
 This allows the app to check alarms in the background.
 
 ## Step 2
@@ -45,5 +54,15 @@ SwiftAlarmPlugin.registerBackgroundTasks()
 ![app-delegate](https://github.com/gdelataillade/alarm/assets/32983806/fcc00495-ecf0-4db3-9964-89bbedf577a7)
 
 This configures the app to manage foreground notifications and setup background tasks.
+
+## Step 4
+
+Update your iOS minimum deployment target in your Podfile:
+
+```Ruby
+platform :ios, '13.0'
+```
+
+And also on Xcode.
 
 Don't forget to run `pod install --repo-update` to update your pods.
