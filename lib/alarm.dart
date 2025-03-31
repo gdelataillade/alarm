@@ -18,6 +18,7 @@ import 'package:rxdart/rxdart.dart';
 
 export 'package:alarm/model/alarm_settings.dart';
 export 'package:alarm/model/notification_settings.dart';
+export 'package:alarm/model/volume_settings.dart';
 
 /// Class that handles the alarm.
 class Alarm {
