@@ -92,25 +92,27 @@ class AlarmSettings extends Equatable {
 
   /// Path to audio asset to be used as the alarm ringtone. Accepted formats:
   ///
-  /// * **Project asset**: Specifies an asset bundled with your Flutter project.
-  ///  Use this format for assets that are included in your project's
-  /// `pubspec.yaml` file.
-  ///  Example: `assets/audio.mp3`.
-  /// * **Absolute file path**: Specifies a direct file system path to the
-  /// audio file. This format is used for audio files stored outside the
-  /// Flutter project, such as files saved in the device's internal
-  /// or external storage.
-  ///  Example: `/path/to/your/audio.mp3`.
-  /// * **Relative file path**: Specifies a file path relative to a predefined
-  /// base directory in the app's internal storage. This format is convenient
-  /// for referring to files that are stored within a specific directory of
-  /// your app's internal storage without needing to specify the full path.
-  ///  Example: `Audios/audio.mp3`.
+  /// * **Project asset**:
+  ///   Specifies an asset bundled with your Flutter project.
+  ///   Use this format for assets that are included in your project's
+  ///   `pubspec.yaml` file.
+  ///   Example: `assets/audio.mp3`
   ///
-  /// If you want to use aboslute or relative file path, you must request
-  /// android storage permission and add the following permission to your
-  /// `AndroidManifest.xml`:
-  /// `android.permission.READ_EXTERNAL_STORAGE`
+  /// * **App Documents directory path**:
+  ///   Specifies a path relative to your app's Documents directory.
+  ///   This is used for files stored in your app's local storage.
+  ///   Always use the relative path from the Documents directory, as the full
+  ///   path may change when the app updates.
+  ///
+  ///   For example, if your file is located at:
+  ///   `/var/mobile/Containers/Data/Application/<UUID>/Documents/custom_sounds/audio.mp3`
+  ///   You should only specify: `custom_sounds/audio.mp3`
+  ///
+  ///   This ensures the path remains valid even after app updates, as the UUID
+  ///   portion of the path may change.
+  ///
+  /// Note: For Android, the READ_EXTERNAL_STORAGE permission is required in
+  /// your `AndroidManifest.xml` to access files from local storage.
   final String assetAudioPath;
 
   /// Settings for the alarm volume.
