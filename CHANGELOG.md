@@ -1,3 +1,6 @@
+## 5.1.2
+* Updated `AlarmSettings.assetAudioPath` documentation.
+
 ## 5.1.1
 * [Android] Add icon color parameter for notification.
 
