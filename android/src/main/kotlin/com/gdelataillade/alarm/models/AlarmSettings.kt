@@ -26,7 +26,8 @@ data class AlarmSettings(
     val vibrate: Boolean,
     val warningNotificationOnKill: Boolean,
     val androidFullScreenIntent: Boolean,
-    val allowAlarmOverlap: Boolean = false // Defaults to false for backward compatibility
+    val allowAlarmOverlap: Boolean = false, // Defaults to false for backward compatibility
+    val androidStopAlarmOnTermination: Boolean = true, // Defaults to true for backward compatibility
 ) {
     companion object {
         fun fromWire(e: AlarmSettingsWire): AlarmSettings {
@@ -40,7 +41,8 @@ data class AlarmSettings(
                 e.vibrate,
                 e.warningNotificationOnKill,
                 e.androidFullScreenIntent,
-                e.allowAlarmOverlap
+                e.allowAlarmOverlap,
+                e.androidStopAlarmOnTermination,
             )
         }
 
@@ -65,6 +67,9 @@ data class AlarmSettings(
 
             // Handle backward compatibility for `allowAlarmOverlap`
             val allowAlarmOverlap = jsonObject.primitiveBoolean("allowAlarmOverlap") ?: false
+
+            // Handle backward compatibility for `androidStopAlarmOnTermination`
+            val androidStopAlarmOnTermination = jsonObject.primitiveBoolean("androidStopAlarmOnTermination") ?: true
 
             // Handle backward compatibility for `volumeSettings`
             val volumeSettings = jsonObject["volumeSettings"]?.let {
@@ -93,7 +98,8 @@ data class AlarmSettings(
                 vibrate = vibrate,
                 warningNotificationOnKill = warningNotificationOnKill,
                 androidFullScreenIntent = androidFullScreenIntent,
-                allowAlarmOverlap = allowAlarmOverlap
+                allowAlarmOverlap = allowAlarmOverlap,
+                androidStopAlarmOnTermination = androidStopAlarmOnTermination,
             )
         }
     }

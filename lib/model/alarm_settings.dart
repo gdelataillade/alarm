@@ -23,6 +23,7 @@ class AlarmSettings extends Equatable {
     this.androidFullScreenIntent = true,
     this.allowAlarmOverlap = false,
     this.iOSBackgroundAudio = true,
+    this.androidStopAlarmOnTermination = true,
     this.payload,
   });
 
@@ -167,6 +168,12 @@ class AlarmSettings extends Equatable {
   /// Defaults to `true`. Has no effect on Android.
   final bool iOSBackgroundAudio;
 
+  /// Whether to stop the alarm when an Android task is terminated by e.g.
+  /// swiping away the app from the recent apps list.
+  ///
+  /// Defaults to `true`. Has no effect on iOS.
+  final bool androidStopAlarmOnTermination;
+
   /// Optional payload to be sent with the alarm. This can be used to pass
   /// additional data to the alarm handler.
   ///
@@ -189,6 +196,7 @@ class AlarmSettings extends Equatable {
         androidFullScreenIntent: androidFullScreenIntent,
         allowAlarmOverlap: allowAlarmOverlap,
         iOSBackgroundAudio: iOSBackgroundAudio,
+        androidStopAlarmOnTermination: androidStopAlarmOnTermination,
       );
 
   /// Creates a copy of `AlarmSettings` but with the given fields replaced with
@@ -212,6 +220,7 @@ class AlarmSettings extends Equatable {
     bool? androidFullScreenIntent,
     bool? allowAlarmOverlap,
     bool? iOSBackgroundAudio,
+    bool? androidStopAlarmOnTermination,
     String? Function()? payload,
   }) {
     return AlarmSettings(
@@ -228,6 +237,8 @@ class AlarmSettings extends Equatable {
           androidFullScreenIntent ?? this.androidFullScreenIntent,
       allowAlarmOverlap: allowAlarmOverlap ?? this.allowAlarmOverlap,
       iOSBackgroundAudio: iOSBackgroundAudio ?? this.iOSBackgroundAudio,
+      androidStopAlarmOnTermination:
+          androidStopAlarmOnTermination ?? this.androidStopAlarmOnTermination,
       payload: payload?.call() ?? this.payload,
     );
   }
@@ -245,6 +256,7 @@ class AlarmSettings extends Equatable {
         androidFullScreenIntent,
         allowAlarmOverlap,
         iOSBackgroundAudio,
+        androidStopAlarmOnTermination,
         payload,
       ];
 }
