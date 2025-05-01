@@ -86,6 +86,7 @@ vibrate |   `bool`     | If true, device will vibrate indefinitely until alarm i
 warningNotificationOnKill |   `bool`     | Whether to show a notification when application is killed to warn the user that the alarm he set may not ring. Recommanded for iOS. Enabled by default.
 androidFullScreenIntent |   `bool`     | Whether to turn screen on when android alarm notification is triggered. Enabled by default.
 allowAlarmOverlap | `bool` | Whether the alarm should ring if another alarm is already ringing. Disabled by default.
+androidStopAlarmOnTermination | `bool` | Whether to stop the alarm when an Android task is terminated. Enabled by default.
 payload | `String?` | Optional data sent with the alarm. Caller handles serialization and parsing.
 [notificationSettings](#notificationsettings-model) | `NotificationSettings` | Settings for notification title, body, icon, icon color and action buttons (only stop at the moment).
 [volumeSettings](#volumesettings-model) | `VolumeSettings` | Settings for alarm volume and fade durations.
@@ -95,6 +96,8 @@ If you enabled `warningNotificationOnKill`, you can choose your own notification
 ```Dart
 await Alarm.setWarningNotificationOnKill(title, body)
 ```
+
+The property `androidStopAlarmOnTermination` works only on Android as on iOS the alarm is naturally stopped by the system when the app is terminated (as the native code can no longer run).
 
 ### NotificationSettings model
 

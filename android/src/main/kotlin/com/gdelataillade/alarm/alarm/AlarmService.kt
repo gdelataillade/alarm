@@ -38,6 +38,7 @@ class AlarmService : Service() {
     private var volumeService: VolumeService? = null
     private var alarmStorage: AlarmStorage? = null
     private var showSystemUI: Boolean = true
+    private var shouldStopAlarmOnTermination: Boolean = true
 
     override fun onCreate() {
         super.onCreate()
@@ -173,6 +174,9 @@ class AlarmService : Service() {
             vibrationService?.startVibrating(longArrayOf(0, 500, 500), 1)
         }
 
+        // Retrieve whether the alarm should be stopped on task termination
+        shouldStopAlarmOnTermination = alarmSettings.androidStopAlarmOnTermination
+
         // Acquire a wake lock to wake up the device
         val wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager)
             .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "app:AlarmWakelockTag")
@@ -196,9 +200,16 @@ class AlarmService : Service() {
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        Log.d(TAG, "App closed, stopping alarm.")
-        unsaveAlarm(alarmId)
-        stopSelf()
+        Log.d(TAG, "App closed, checking if alarm should be stopped.")
+
+        if (shouldStopAlarmOnTermination) {
+            Log.d(TAG, "Stopping alarm as androidStopAlarmOnTermination is true.")
+            unsaveAlarm(alarmId)
+            stopSelf()
+        } else {
+            Log.d(TAG, "Keeping alarm running as androidStopAlarmOnTermination is false.")
+        }
+        
         super.onTaskRemoved(rootIntent)
     }
 
