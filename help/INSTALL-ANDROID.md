@@ -10,12 +10,21 @@ android {
   [...]
   defaultConfig {
     [...]
+    minSdkVersion 23  // Required minimum SDK version
     multiDexEnabled true
   }
 }
 ```
 
 ## Step 2
+In your `android/settings.gradle`, ensure you have the following Kotlin plugin configuration:
+```Gradle
+plugins {
+    id "org.jetbrains.kotlin.android" version "1.9.0" apply false  // Must be at least 1.9.0
+}
+```
+
+## Step 3
 Then, add the following permissions to your `AndroidManifest.xml` within the `<manifest></manifest>` tags:
 
 ```xml
@@ -41,7 +50,7 @@ See more details on Android permissions [here](https://developer.android.com/ref
     android:turnScreenOn="true">
 ```
 
-## Step 3
+## Step 4
 Inside the <application> tag of your `AndroidManifest.xml`, add the following declarations (if you need notification-on-kill feature):
 ```xml
 <application>
@@ -53,7 +62,7 @@ Inside the <application> tag of your `AndroidManifest.xml`, add the following de
 
 Necessary if you want to enable an optional notification with `Alarm.setWarningNotificationOnKill` to alert users if the app is terminated, hinting at a rare chance the alarm may not work.
 
-## Step 4
+## Step 5
 To guarantee that your alarm's foreground service can trigger when the app is in the background, it's recommanded to verify and request the necessary permission for scheduling exact alarms on Android 12+ devices. This step is particularly important due to varying device policies.
 
 Leverage the [permission_handler](https://pub.dev/packages/permission_handler) package to check and request this permission seamlessly within your Flutter application. Here's an example to integrate into your code:
@@ -70,7 +79,7 @@ Future<void> checkAndroidScheduleExactAlarmPermission() async {
 }
 ```
 
-## Step 5
+## Step 6
 If you want to use the `androidFullScreenIntent` feature, some OEM (Samsung, Honor, Huawei, Xiaomi, Oppo, Asus, etc...) will require to grant the [auto_start_flutter](https://pub.dev/packages/auto_start_flutter) permission.
 
 ## Additional Resources
