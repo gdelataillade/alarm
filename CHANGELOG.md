@@ -1,3 +1,7 @@
+## 5.1.3
+* [Android] Added `androidStopAlarmOnTermination` parameter.
+* [Android] Improved [installation steps](https://github.com/gdelataillade/alarm/blob/main/help/INSTALL-ANDROID.md).
+
 ## 5.1.2
 * Updated `AlarmSettings.assetAudioPath` documentation.
 

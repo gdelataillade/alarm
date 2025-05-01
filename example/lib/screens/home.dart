@@ -11,7 +11,7 @@ import 'package:alarm_example/widgets/tile.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-const version = '5.1.2';
+const version = '5.1.3';
 
 class ExampleAlarmHomeScreen extends StatefulWidget {
   const ExampleAlarmHomeScreen({super.key});
