@@ -1,3 +1,6 @@
+## 5.1.4
+* [Android] Simplified plugin lifecycle.
+
 ## 5.1.3
 * [Android] Added `androidStopAlarmOnTermination` parameter.
 * [Android] Improved [installation steps](https://github.com/gdelataillade/alarm/blob/main/help/INSTALL-ANDROID.md).
