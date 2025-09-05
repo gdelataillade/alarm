@@ -5,6 +5,7 @@ import 'package:alarm/src/generated/platform_bindings.g.dart';
 import 'package:alarm/utils/alarm_exception.dart';
 import 'package:alarm/utils/alarm_handler.dart';
 import 'package:logging/logging.dart';
+import 'package:alarm/src/platform_timers.dart';
 
 /// Uses method channel to interact with the native platform.
 class AndroidAlarm {
@@ -14,13 +15,19 @@ class AndroidAlarm {
 
   /// Schedules a native alarm with given [settings] with its notification.
   static Future<bool> set(AlarmSettings settings) async {
-    await _api
-        .setAlarm(alarmSettings: settings.toWire())
-        .catchError(AlarmExceptionHandlers.catchError<void>);
+    final id = settings.id;
+    try {
+      await _api.setAlarm(alarmSettings: settings.toWire()).catchError(AlarmExceptionHandlers.catchError<void>);
 
-    _log.info(
-      'Alarm with id ${settings.id} scheduled at ${settings.dateTime}.',
-    );
+      _log.info(
+        'Alarm with id $id scheduled successfully at ${settings.dateTime}',
+      );
+    } on AlarmException catch (_) {
+      await Alarm.stop(id);
+      rethrow;
+    }
+
+    PlatformTimers.setAlarm(settings);
 
     return true;
   }
@@ -28,6 +35,8 @@ class AndroidAlarm {
   /// Sends the message `stop` to the isolate so the audio player
   /// can stop playing and dispose.
   static Future<bool> stop(int id) async {
+    PlatformTimers.stopAlarm(id);
+
     try {
       await _api
           .stopAlarm(alarmId: id)
@@ -41,6 +50,7 @@ class AndroidAlarm {
 
   /// Calls the native `stopAll` function.
   static Future<void> stopAll() async {
+    PlatformTimers.stopAll();
     return _api.stopAll().catchError(AlarmExceptionHandlers.catchError<void>);
   }
 
