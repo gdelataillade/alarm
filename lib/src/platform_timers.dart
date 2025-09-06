@@ -27,7 +27,7 @@ class PlatformTimers {
     }
 
     _timers[id] = _periodicTimer(
-          () => unawaited(_alarmRang(settings)),
+      () => unawaited(_alarmRang(settings)),
       settings.dateTime,
       id,
     );
@@ -40,9 +40,9 @@ class PlatformTimers {
 
         bool alarmIsRinging;
         if (Platform.isIOS) {
-          alarmIsRinging = await IOSAlarm.isRinging(id);
+          alarmIsRinging = await IOSAlarm().isRinging(id);
         } else if (Platform.isAndroid) {
-          alarmIsRinging = await AndroidAlarm.isRinging(id);
+          alarmIsRinging = await AndroidAlarm().isRinging(id);
         } else {
           // Fallback for other platforms (though unlikely in this package)
           alarmIsRinging = false;
@@ -57,7 +57,7 @@ class PlatformTimers {
             timer.cancel();
           }
           _timers[id] = _periodicTimer(
-                () => unawaited(_alarmRang(settings)),
+            () => unawaited(_alarmRang(settings)),
             settings.dateTime,
             id,
           );

@@ -104,8 +104,8 @@ class Alarm {
     await AlarmStorage.saveAlarm(alarmSettings);
 
     final success = iOS
-        ? await IOSAlarm.setAlarm(alarmSettings)
-        : await AndroidAlarm.set(alarmSettings);
+        ? await IOSAlarm().setAlarm(alarmSettings)
+        : await AndroidAlarm().setAlarm(alarmSettings);
 
     if (success) {
       _scheduled.add(_scheduled.value.add(alarmSettings));
@@ -155,8 +155,8 @@ class Alarm {
     String title,
     String body,
   ) async {
-    if (iOS) await IOSAlarm.setWarningNotificationOnKill(title, body);
-    if (android) await AndroidAlarm.setWarningNotificationOnKill(title, body);
+    if (iOS) await IOSAlarm().setWarningNotificationOnKill(title, body);
+    if (android) await AndroidAlarm().setWarningNotificationOnKill(title, body);
   }
 
   /// Stops alarm.
@@ -164,8 +164,9 @@ class Alarm {
     await AlarmStorage.unsaveAlarm(id);
     updateStream.add(id);
 
-    final success =
-        iOS ? await IOSAlarm.stopAlarm(id) : await AndroidAlarm.stop(id);
+    final success = iOS
+        ? await IOSAlarm().stopAlarm(id)
+        : await AndroidAlarm().stopAlarm(id);
 
     if (success) {
       _scheduled.add(_scheduled.value.removeById(id));
@@ -179,7 +180,7 @@ class Alarm {
   static Future<void> stopAll() async {
     final alarms = await getAlarms();
 
-    iOS ? await IOSAlarm.stopAll() : await AndroidAlarm.stopAll();
+    iOS ? await IOSAlarm().stopAll() : await AndroidAlarm().stopAll();
 
     await AlarmStorage.unsaveAll();
 
@@ -197,8 +198,9 @@ class Alarm {
   /// If an `id` is provided, it checks if the specific alarm with that `id`
   /// is ringing.
   static Future<bool> isRinging([int? id]) async {
-    final isRinging =
-        iOS ? await IOSAlarm.isRinging(id) : await AndroidAlarm.isRinging(id);
+    final isRinging = iOS
+        ? await IOSAlarm().isRinging(id)
+        : await AndroidAlarm().isRinging(id);
 
     // Defensive programming: check if the stream status matches the platform
     // reported status.
