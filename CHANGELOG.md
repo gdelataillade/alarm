@@ -1,3 +1,6 @@
+## 5.1.5
+* [Android] Fixed stream not firing.
+
 ## 5.1.4
 * [Android] Simplified plugin lifecycle.
 
