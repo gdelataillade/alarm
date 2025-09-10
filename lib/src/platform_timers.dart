@@ -1,13 +1,15 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:alarm/alarm.dart';
+import 'package:alarm/src/android_alarm.dart';
 import 'package:alarm/src/ios_alarm.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:logging/logging.dart';
 
-/// Fallback logic for iOS alarm triggering.
-class IOSTimers {
-  static final _log = Logger('IOSTimers');
+/// Fallback logic for platform alarm triggering (iOS and Android).
+class PlatformTimers {
+  static final _log = Logger('PlatformTimers');
 
   /// Map of alarm timers.
   static final Map<int, Timer?> _timers = {};
@@ -36,7 +38,15 @@ class IOSTimers {
       onForeground: () async {
         if (_fgbgSubscriptions[id] == null) return;
 
-        final alarmIsRinging = await IOSAlarm.isRinging(id);
+        bool alarmIsRinging;
+        if (Platform.isIOS) {
+          alarmIsRinging = await IOSAlarm().isRinging(id);
+        } else if (Platform.isAndroid) {
+          alarmIsRinging = await AndroidAlarm().isRinging(id);
+        } else {
+          // Fallback for other platforms (though unlikely in this package)
+          alarmIsRinging = false;
+        }
 
         if (alarmIsRinging) {
           _disposeAlarm(id);
