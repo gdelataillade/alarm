@@ -171,6 +171,7 @@ An example can be found in `example/lib/utils/logging.dart`. This file defines a
 Several factors could prevent your alarm from ringing:
 - Your iPhone was restarted (either from a manual reboot or due to an iOS update).
 - The app was either manually terminated or was closed because of memory constraints.
+- See [flutter_alarmkit](https://pub.dev/packages/flutter_alarmkit) for a more robust way to manage alarms on iOS.
 
 ### My alarm is not firing on a specific Android device
 

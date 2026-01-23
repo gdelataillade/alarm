@@ -1,3 +1,7 @@
+## 5.2.0
+* Use device's default alarm sound when `assetAudioPath` is null.
+* [Android] Add support for Android Gradle Plugin 8.
+
 ## 5.1.5
 * [Android] Fixed stream not firing.
 
