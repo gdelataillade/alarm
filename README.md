@@ -76,20 +76,20 @@ await Alarm.set(alarmSettings: alarmSettings)
 ```
 
 ### AlarmSettings model
-Property |   Type     | Description
--------- |------------| ---------------
-id |   `int`     | Unique identifier of the alarm.
-dateTime |   `DateTime`     | The date and time you want your alarm to ring.
-assetAudioPath |   `String`     | The path to you audio asset you want to use as ringtone. Can be a path in your assets folder or a local file path with Android permission.
-loopAudio |   `bool`     | If true, audio will repeat indefinitely until alarm is stopped.
-vibrate |   `bool`     | If true, device will vibrate indefinitely until alarm is stopped. If [loopAudio] is set to false, vibrations will stop when audio ends.
-warningNotificationOnKill |   `bool`     | Whether to show a notification when application is killed to warn the user that the alarm he set may not ring. Recommanded for iOS. Enabled by default.
-androidFullScreenIntent |   `bool`     | Whether to turn screen on when android alarm notification is triggered. Enabled by default.
-allowAlarmOverlap | `bool` | Whether the alarm should ring if another alarm is already ringing. Disabled by default.
-androidStopAlarmOnTermination | `bool` | Whether to stop the alarm when an Android task is terminated. Enabled by default.
-payload | `String?` | Optional data sent with the alarm. Caller handles serialization and parsing.
-[notificationSettings](#notificationsettings-model) | `NotificationSettings` | Settings for notification title, body, icon, icon color and action buttons (only stop at the moment).
-[volumeSettings](#volumesettings-model) | `VolumeSettings` | Settings for alarm volume and fade durations.
+| Property                                            | Type                   | Description                                                                                                                                                                                          |
+| --------------------------------------------------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id                                                  | `int`                  | Unique identifier of the alarm.                                                                                                                                                                      |
+| dateTime                                            | `DateTime`             | The date and time you want your alarm to ring.                                                                                                                                                       |
+| assetAudioPath                                      | `String?`              | The path to you audio asset you want to use as ringtone. Can be a path in your assets folder or a local file path with Android permission. If `null`, the device's default alarm sound will be used. |
+| loopAudio                                           | `bool`                 | If true, audio will repeat indefinitely until alarm is stopped.                                                                                                                                      |
+| vibrate                                             | `bool`                 | If true, device will vibrate indefinitely until alarm is stopped. If [loopAudio] is set to false, vibrations will stop when audio ends.                                                              |
+| warningNotificationOnKill                           | `bool`                 | Whether to show a notification when application is killed to warn the user that the alarm he set may not ring. Recommanded for iOS. Enabled by default.                                              |
+| androidFullScreenIntent                             | `bool`                 | Whether to turn screen on when android alarm notification is triggered. Enabled by default.                                                                                                          |
+| allowAlarmOverlap                                   | `bool`                 | Whether the alarm should ring if another alarm is already ringing. Disabled by default.                                                                                                              |
+| androidStopAlarmOnTermination                       | `bool`                 | Whether to stop the alarm when an Android task is terminated. Enabled by default.                                                                                                                    |
+| payload                                             | `String?`              | Optional data sent with the alarm. Caller handles serialization and parsing.                                                                                                                         |
+| [notificationSettings](#notificationsettings-model) | `NotificationSettings` | Settings for notification title, body, icon, icon color and action buttons (only stop at the moment).                                                                                                |
+| [volumeSettings](#volumesettings-model)             | `VolumeSettings`       | Settings for alarm volume and fade durations.                                                                                                                                                        |
 
 
 If you enabled `warningNotificationOnKill`, you can choose your own notification title and body by using this method before setting your alarms:
@@ -101,22 +101,22 @@ The property `androidStopAlarmOnTermination` works only on Android as on iOS the
 
 ### NotificationSettings model
 
-Property |   Type     | Description
--------- |------------| ---------------
-title |   `String`     | Title of the alarm notification.
-body |   `String`     | Body of the alarm notification.
-stopButton | `String?` | Text shown in the stop button of the alarm notification. Button not shown if null.
-icon | `String?` | Icon to display on the notification. Only customizable on Android.
-iconColor | `Color?` | Color of the notification icon. Only customizable on Android.
+| Property   | Type      | Description                                                                        |
+| ---------- | --------- | ---------------------------------------------------------------------------------- |
+| title      | `String`  | Title of the alarm notification.                                                   |
+| body       | `String`  | Body of the alarm notification.                                                    |
+| stopButton | `String?` | Text shown in the stop button of the alarm notification. Button not shown if null. |
+| icon       | `String?` | Icon to display on the notification. Only customizable on Android.                 |
+| iconColor  | `Color?`  | Color of the notification icon. Only customizable on Android.                      |
 
 ### VolumeSettings model
 
-Property |   Type     | Description
--------- |------------| ---------------
-volume |   `double?`     | Sets system volume level (0.0 to 1.0). Reverts on alarm stop. Defaults to current volume if null.
-fadeDuration | `Duration?` | Duration over which to fade the alarm ringtone. Null means no fade.
-fadeSteps | `List<VolumeFadeStep>` | Controls how the alarm volume will fade over time.
-volumeEnforced | `bool` | Automatically resets to the original alarm [volume] if the user attempts to adjust it. Disabled by default.
+| Property       | Type                   | Description                                                                                                 |
+| -------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------- |
+| volume         | `double?`              | Sets system volume level (0.0 to 1.0). Reverts on alarm stop. Defaults to current volume if null.           |
+| fadeDuration   | `Duration?`            | Duration over which to fade the alarm ringtone. Null means no fade.                                         |
+| fadeSteps      | `List<VolumeFadeStep>` | Controls how the alarm volume will fade over time.                                                          |
+| volumeEnforced | `bool`                 | Automatically resets to the original alarm [volume] if the user attempts to adjust it. Disabled by default. |
 
 This is how to stop/cancel your alarm:
 ```Dart
@@ -145,14 +145,14 @@ Don't hesitate to check out the [example's code](https://github.com/gdelataillad
 
 ## ⏰ Alarm behaviour
 
-|                          | Sound | Vibrate | Volume | Notification
-| ------------------------ | ----- | ------- | -------| -------
-| Locked screen            |  ✅   | ✅       | ✅     | ✅
-| Silent / Mute            |  ✅   | ✅       | ✅     | ✅
-| Do not disturb           |  ✅   | ✅       | ✅     | Silenced
-| Sleep mode               |  ✅   | ✅       | ✅     | Silenced
-| While playing other media|  ✅   | ✅       | ✅     | ✅
-| App killed               |  🤖   | 🤖       | 🤖     | ✅
+|                           | Sound | Vibrate | Volume | Notification |
+| ------------------------- | ----- | ------- | ------ | ------------ |
+| Locked screen             | ✅     | ✅       | ✅      | ✅            |
+| Silent / Mute             | ✅     | ✅       | ✅      | ✅            |
+| Do not disturb            | ✅     | ✅       | ✅      | Silenced     |
+| Sleep mode                | ✅     | ✅       | ✅      | Silenced     |
+| While playing other media | ✅     | ✅       | ✅      | ✅            |
+| App killed                | 🤖     | 🤖       | 🤖      | ✅            |
 
 ✅ : iOS and Android.\
 🤖 : Android only.\

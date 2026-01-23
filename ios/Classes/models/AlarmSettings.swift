@@ -3,7 +3,7 @@ import Foundation
 struct AlarmSettings: Codable {
     let id: Int
     let dateTime: Date
-    let assetAudioPath: String
+    let assetAudioPath: String?
     let volumeSettings: VolumeSettings
     let notificationSettings: NotificationSettings
     let loopAudio: Bool
@@ -26,7 +26,7 @@ struct AlarmSettings: Codable {
         // Decode mandatory fields
         id = try container.decode(Int.self, forKey: .id)
         dateTime = try container.decode(Date.self, forKey: .dateTime)
-        assetAudioPath = try container.decode(String.self, forKey: .assetAudioPath)
+        assetAudioPath = try container.decodeIfPresent(String.self, forKey: .assetAudioPath)
         notificationSettings = try container.decode(NotificationSettings.self, forKey: .notificationSettings)
         loopAudio = try container.decode(Bool.self, forKey: .loopAudio)
         vibrate = try container.decode(Bool.self, forKey: .vibrate)
@@ -64,7 +64,7 @@ struct AlarmSettings: Codable {
 
         try container.encode(id, forKey: .id)
         try container.encode(dateTime, forKey: .dateTime)
-        try container.encode(assetAudioPath, forKey: .assetAudioPath)
+        try container.encodeIfPresent(assetAudioPath, forKey: .assetAudioPath)
         try container.encode(volumeSettings, forKey: .volumeSettings)
         try container.encode(notificationSettings, forKey: .notificationSettings)
         try container.encode(loopAudio, forKey: .loopAudio)
@@ -79,7 +79,7 @@ struct AlarmSettings: Codable {
     init(
         id: Int,
         dateTime: Date,
-        assetAudioPath: String,
+        assetAudioPath: String?,
         volumeSettings: VolumeSettings,
         notificationSettings: NotificationSettings,
         loopAudio: Bool,

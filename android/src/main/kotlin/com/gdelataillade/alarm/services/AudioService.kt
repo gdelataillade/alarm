@@ -2,6 +2,7 @@ package com.gdelataillade.alarm.services
 
 import android.content.Context
 import android.media.MediaPlayer
+import android.media.RingtoneManager
 import com.gdelataillade.alarm.models.VolumeFadeStep
 import java.util.concurrent.ConcurrentHashMap
 import java.util.Timer
@@ -34,37 +35,52 @@ class AudioService(private val context: Context) {
 
     fun playAudio(
         id: Int,
-        filePath: String,
+        filePath: String?,
         loopAudio: Boolean,
         fadeDuration: Duration?,
         fadeSteps: List<VolumeFadeStep>
     ) {
         stopAudio(id) // Stop and release any existing MediaPlayer and Timer for this ID
 
-        val baseAppFlutterPath = context.filesDir.parent?.plus("/app_flutter/")
-        val adjustedFilePath = when {
-            filePath.startsWith("assets/") -> "flutter_assets/$filePath"
-            !filePath.startsWith("/") -> baseAppFlutterPath + filePath
-            else -> filePath
-        }
-
         try {
             MediaPlayer().apply {
-                when {
-                    adjustedFilePath.startsWith("flutter_assets/") -> {
-                        // It's an asset file
-                        val assetManager = context.assets
-                        val descriptor = assetManager.openFd(adjustedFilePath)
-                        setDataSource(
-                            descriptor.fileDescriptor,
-                            descriptor.startOffset,
-                            descriptor.length
-                        )
+                if (filePath == null) {
+                    // Use the device's default alarm sound
+                    val defaultAlarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+                        ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+                        ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
+
+                    if (defaultAlarmUri != null) {
+                        setDataSource(context, defaultAlarmUri)
+                        Log.d(TAG, "Using device default alarm sound: $defaultAlarmUri")
+                    } else {
+                        Log.e(TAG, "No default alarm sound available on this device")
+                        return
+                    }
+                } else {
+                    val baseAppFlutterPath = context.filesDir.parent?.plus("/app_flutter/")
+                    val adjustedFilePath = when {
+                        filePath.startsWith("assets/") -> "flutter_assets/$filePath"
+                        !filePath.startsWith("/") -> baseAppFlutterPath + filePath
+                        else -> filePath
                     }
 
-                    else -> {
-                        // Handle local files and adjusted paths
-                        setDataSource(adjustedFilePath)
+                    when {
+                        adjustedFilePath.startsWith("flutter_assets/") -> {
+                            // It's an asset file
+                            val assetManager = context.assets
+                            val descriptor = assetManager.openFd(adjustedFilePath)
+                            setDataSource(
+                                descriptor.fileDescriptor,
+                                descriptor.startOffset,
+                                descriptor.length
+                            )
+                        }
+
+                        else -> {
+                            // Handle local files and adjusted paths
+                            setDataSource(adjustedFilePath)
+                        }
                     }
                 }
 

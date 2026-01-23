@@ -15,7 +15,8 @@ AlarmSettings _$AlarmSettingsFromJson(Map<String, dynamic> json) =>
           id: $checkedConvert('id', (v) => (v as num).toInt()),
           dateTime:
               $checkedConvert('dateTime', (v) => DateTime.parse(v as String)),
-          assetAudioPath: $checkedConvert('assetAudioPath', (v) => v as String),
+          assetAudioPath:
+              $checkedConvert('assetAudioPath', (v) => v as String?),
           volumeSettings: $checkedConvert('volumeSettings',
               (v) => VolumeSettings.fromJson(v as Map<String, dynamic>)),
           notificationSettings: $checkedConvert('notificationSettings',
@@ -40,7 +41,7 @@ Map<String, dynamic> _$AlarmSettingsToJson(AlarmSettings instance) =>
     <String, dynamic>{
       'id': instance.id,
       'dateTime': instance.dateTime.toIso8601String(),
-      'assetAudioPath': instance.assetAudioPath,
+      if (instance.assetAudioPath case final value?) 'assetAudioPath': value,
       'volumeSettings': instance.volumeSettings.toJson(),
       'notificationSettings': instance.notificationSettings.toJson(),
       'loopAudio': instance.loopAudio,

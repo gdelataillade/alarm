@@ -20,7 +20,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
   late double? volume;
   late Duration? fadeDuration;
   late bool staircaseFade;
-  late String assetAudio;
+  late String? assetAudio;
 
   @override
   void initState() {
@@ -35,7 +35,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       volume = null;
       fadeDuration = null;
       staircaseFade = false;
-      assetAudio = 'assets/marimba.mp3';
+      assetAudio = null;
     } else {
       selectedDateTime = widget.alarmSettings!.dateTime;
       loopAudio = widget.alarmSettings!.loopAudio;
@@ -233,31 +233,34 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
                 'Sound',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
-              DropdownButton(
+              DropdownButton<String?>(
                 value: assetAudio,
                 items: const [
-                  DropdownMenuItem<String>(
+                  DropdownMenuItem<String?>(
+                    child: Text('Default'),
+                  ),
+                  DropdownMenuItem<String?>(
                     value: 'assets/marimba.mp3',
                     child: Text('Marimba'),
                   ),
-                  DropdownMenuItem<String>(
+                  DropdownMenuItem<String?>(
                     value: 'assets/nokia.mp3',
                     child: Text('Nokia'),
                   ),
-                  DropdownMenuItem<String>(
+                  DropdownMenuItem<String?>(
                     value: 'assets/mozart.mp3',
                     child: Text('Mozart'),
                   ),
-                  DropdownMenuItem<String>(
+                  DropdownMenuItem<String?>(
                     value: 'assets/star_wars.mp3',
                     child: Text('Star Wars'),
                   ),
-                  DropdownMenuItem<String>(
+                  DropdownMenuItem<String?>(
                     value: 'assets/one_piece.mp3',
                     child: Text('One Piece'),
                   ),
                 ],
-                onChanged: (value) => setState(() => assetAudio = value!),
+                onChanged: (value) => setState(() => assetAudio = value),
               ),
             ],
           ),

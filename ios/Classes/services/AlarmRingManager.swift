@@ -16,7 +16,7 @@ class AlarmRingManager: NSObject {
         super.init()
     }
 
-    func start(registrar: FlutterPluginRegistrar, assetAudioPath: String, loopAudio: Bool, volumeSettings: VolumeSettings, onComplete: (() -> Void)?) async {
+    func start(registrar: FlutterPluginRegistrar, assetAudioPath: String?, loopAudio: Bool, volumeSettings: VolumeSettings, onComplete: (() -> Void)?) async {
         let start = Date()
 
         self.duckOtherAudios()
@@ -151,26 +151,41 @@ class AlarmRingManager: NSObject {
         }
     }
 
-    private func loadAudioPlayer(registrar: FlutterPluginRegistrar, assetAudioPath: String) -> AVAudioPlayer? {
+    private func loadAudioPlayer(registrar: FlutterPluginRegistrar, assetAudioPath: String?) -> AVAudioPlayer? {
         let audioURL: URL
-        if assetAudioPath.hasPrefix("assets/") || assetAudioPath.hasPrefix("asset/") {
-            let filename = registrar.lookupKey(forAsset: assetAudioPath)
-            guard let audioPath = Bundle.main.path(forResource: filename, ofType: nil) else {
-                os_log(.error, log: AlarmRingManager.logger, "Audio file not found: %@", assetAudioPath)
+
+        if let assetAudioPath = assetAudioPath {
+            // Use provided audio path
+            if assetAudioPath.hasPrefix("assets/") || assetAudioPath.hasPrefix("asset/") {
+                let filename = registrar.lookupKey(forAsset: assetAudioPath)
+                guard let audioPath = Bundle.main.path(forResource: filename, ofType: nil) else {
+                    os_log(.error, log: AlarmRingManager.logger, "Audio file not found: %@", assetAudioPath)
+                    return nil
+                }
+                audioURL = URL(fileURLWithPath: audioPath)
+            } else {
+                guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+                    os_log(.error, log: AlarmRingManager.logger, "Document directory not found.")
+                    return nil
+                }
+                audioURL = documentsDirectory.appendingPathComponent(assetAudioPath)
+            }
+        } else {
+            // Use the bundled default alarm sound for iOS
+            let bundle = Bundle(for: Self.self)
+            guard let bundleURL = bundle.url(forResource: "alarm", withExtension: "bundle"),
+                  let resourceBundle = Bundle(url: bundleURL),
+                  let audioPath = resourceBundle.path(forResource: "default", ofType: "m4a") else {
+                os_log(.error, log: AlarmRingManager.logger, "Default alarm sound 'default.m4a' not found in alarm.bundle")
                 return nil
             }
             audioURL = URL(fileURLWithPath: audioPath)
-        } else {
-            guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
-                os_log(.error, log: AlarmRingManager.logger, "Document directory not found.")
-                return nil
-            }
-            audioURL = documentsDirectory.appendingPathComponent(assetAudioPath)
+            os_log(.debug, log: AlarmRingManager.logger, "Using bundled default alarm sound: %@", audioURL.absoluteString)
         }
 
         do {
             let audioPlayer = try AVAudioPlayer(contentsOf: audioURL)
-            os_log(.debug, log: AlarmRingManager.logger, "Audio player loaded from: %@", assetAudioPath)
+            os_log(.debug, log: AlarmRingManager.logger, "Audio player loaded from: %@", audioURL.absoluteString)
             return audioPlayer
         } catch {
             os_log(.error, log: AlarmRingManager.logger, "Error loading audio player: %@", error.localizedDescription)

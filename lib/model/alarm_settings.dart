@@ -14,9 +14,9 @@ class AlarmSettings extends Equatable {
   const AlarmSettings({
     required this.id,
     required this.dateTime,
-    required this.assetAudioPath,
     required this.volumeSettings,
     required this.notificationSettings,
+    this.assetAudioPath,
     this.loopAudio = true,
     this.vibrate = true,
     this.warningNotificationOnKill = true,
@@ -91,7 +91,11 @@ class AlarmSettings extends Equatable {
   /// Date and time when the alarm will be triggered.
   final DateTime dateTime;
 
-  /// Path to audio asset to be used as the alarm ringtone. Accepted formats:
+  /// Path to audio asset to be used as the alarm ringtone.
+  ///
+  /// If `null`, the device's default alarm sound will be used.
+  ///
+  /// Accepted formats:
   ///
   /// * **Project asset**:
   ///   Specifies an asset bundled with your Flutter project.
@@ -114,7 +118,7 @@ class AlarmSettings extends Equatable {
   ///
   /// Note: For Android, the READ_EXTERNAL_STORAGE permission is required in
   /// your `AndroidManifest.xml` to access files from local storage.
-  final String assetAudioPath;
+  final String? assetAudioPath;
 
   /// Settings for the alarm volume.
   final VolumeSettings volumeSettings;

@@ -19,7 +19,7 @@ data class AlarmSettings(
     val id: Int,
     @Serializable(with = DateSerializer::class)
     val dateTime: Date,
-    val assetAudioPath: String,
+    val assetAudioPath: String?, // Null means use device default alarm sound
     val volumeSettings: VolumeSettings,
     val notificationSettings: NotificationSettings,
     val loopAudio: Boolean,
@@ -54,7 +54,7 @@ data class AlarmSettings(
 
             val id = jsonObject.primitiveInt("id") ?: throw SerializationException("Missing 'id'")
             val dateTimeMillis = jsonObject.primitiveLong("dateTime") ?: throw SerializationException("Missing 'dateTime'")
-            val assetAudioPath = jsonObject.primitiveString("assetAudioPath") ?: throw SerializationException("Missing 'assetAudioPath'")
+            val assetAudioPath = jsonObject.primitiveString("assetAudioPath") // Can be null to use device default
             val notificationSettings = jsonObject["notificationSettings"]?.let {
                 Json.decodeFromJsonElement(NotificationSettings.serializer(), it)
             } ?: throw SerializationException("Missing 'notificationSettings'")

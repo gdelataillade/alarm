@@ -14,6 +14,9 @@ An alarm manager for iOS and Android.
   s.author           = { 'Your Company' => 'email@example.com' }
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
+  s.resource_bundles = {
+    'alarm' => ['Assets/default.m4a']
+  }
   s.dependency 'Flutter'
   s.platform = :ios, '13.0'
 

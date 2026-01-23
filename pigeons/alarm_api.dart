@@ -33,7 +33,7 @@ class AlarmSettingsWire {
 
   final int id;
   final int millisecondsSinceEpoch;
-  final String assetAudioPath;
+  final String? assetAudioPath;
   final VolumeSettingsWire volumeSettings;
   final NotificationSettingsWire notificationSettings;
   final bool loopAudio;
