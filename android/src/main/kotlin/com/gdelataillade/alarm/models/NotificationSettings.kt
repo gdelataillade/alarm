@@ -10,7 +10,8 @@ data class NotificationSettings(
     val body: String,
     val stopButton: String? = null,
     val icon: String? = null,
-    val iconColor: Int? = null
+    val iconColor: Int? = null,
+    val keepNotificationAfterAlarmEnds: Boolean = false,
 ) {
     companion object {
         fun fromWire(e: NotificationSettingsWire): NotificationSettings {
@@ -30,6 +31,7 @@ data class NotificationSettings(
                 e.stopButton,
                 e.icon,
                 iconColor,
+                e.keepNotificationAfterAlarmEnds,
             )
         }
     }

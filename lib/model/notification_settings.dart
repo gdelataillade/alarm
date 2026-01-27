@@ -18,6 +18,7 @@ class NotificationSettings extends Equatable {
     this.stopButton,
     this.icon,
     this.iconColor,
+    this.keepNotificationAfterAlarmEnds = false,
   });
 
   /// Converts the JSON object to a `NotificationSettings` instance.
@@ -70,6 +71,19 @@ class NotificationSettings extends Equatable {
   /// Defaults to `null`.
   final Color? iconColor;
 
+  /// Keeps the notification banner visible even after the alarm sound ends.
+  ///
+  /// **iOS only for now.** On Android, the notification already stays
+  /// visible after the sound ends because it is tied to the foreground
+  /// service.
+  ///
+  /// If `true`, when the alarm finishes ringing automatically (non-looping
+  /// alarms), the delivered notification will not be dismissed so the user
+  /// can still see it in the notification center.
+  ///
+  /// Defaults to `false`.
+  final bool keepNotificationAfterAlarmEnds;
+
   /// Converts the `NotificationSettings` instance to a JSON object.
   Map<String, dynamic> toJson() => _$NotificationSettingsToJson(this);
 
@@ -83,6 +97,7 @@ class NotificationSettings extends Equatable {
         iconColorRed: iconColor?.r,
         iconColorGreen: iconColor?.g,
         iconColorBlue: iconColor?.b,
+        keepNotificationAfterAlarmEnds: keepNotificationAfterAlarmEnds,
       );
 
   /// Creates a copy of this notification settings but with the given fields
@@ -93,6 +108,7 @@ class NotificationSettings extends Equatable {
     String? stopButton,
     String? icon,
     Color? iconColor,
+    bool? keepNotificationAfterAlarmEnds,
   }) {
     assert(title != null, 'NotificationSettings.title cannot be null');
     assert(body != null, 'NotificationSettings.body cannot be null');
@@ -103,9 +119,18 @@ class NotificationSettings extends Equatable {
       stopButton: stopButton ?? this.stopButton,
       icon: icon ?? this.icon,
       iconColor: iconColor ?? this.iconColor,
+      keepNotificationAfterAlarmEnds:
+          keepNotificationAfterAlarmEnds ?? this.keepNotificationAfterAlarmEnds,
     );
   }
 
   @override
-  List<Object?> get props => [title, body, stopButton, icon, iconColor];
+  List<Object?> get props => [
+        title,
+        body,
+        stopButton,
+        icon,
+        iconColor,
+        keepNotificationAfterAlarmEnds,
+      ];
 }
