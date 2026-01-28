@@ -101,13 +101,15 @@ The property `androidStopAlarmOnTermination` works only on Android as on iOS the
 
 ### NotificationSettings model
 
-| Property   | Type      | Description                                                                        |
-| ---------- | --------- | ---------------------------------------------------------------------------------- |
-| title      | `String`  | Title of the alarm notification.                                                   |
-| body       | `String`  | Body of the alarm notification.                                                    |
-| stopButton | `String?` | Text shown in the stop button of the alarm notification. Button not shown if null. |
-| icon       | `String?` | Icon to display on the notification. Only customizable on Android.                 |
-| iconColor  | `Color?`  | Color of the notification icon. Only customizable on Android.                      |
+| Property                       | Type      | Description                                                                        |
+| ------------------------------ | --------- | ---------------------------------------------------------------------------------- |
+| title                          | `String`  | Title of the alarm notification.                                                   |
+| body                           | `String`  | Body of the alarm notification.                                                    |
+| stopButton                     | `String?` | Text shown in the stop button of the alarm notification. Button not shown if null. |
+| icon                           | `String?` | Icon to display on the notification. Only customizable on Android.                 |
+| iconColor                      | `Color?`  | Color of the notification icon. Only customizable on Android.                      |
+| keepNotificationAfterAlarmEnds | `bool`    | Keeps the notification visible after the alarm sound ends. iOS only.               |
+
 
 ### VolumeSettings model
 
