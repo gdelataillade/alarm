@@ -152,8 +152,6 @@ enum AlarmErrorCode: Int {
 struct AlarmSettingsWire: Hashable {
   var id: Int64
   var millisecondsSinceEpoch: Int64
-  /// Path to the audio asset. If null, the device's default alarm sound
-  /// will be used (Android only for now).
   var assetAudioPath: String? = nil
   var volumeSettings: VolumeSettingsWire
   var notificationSettings: NotificationSettingsWire
@@ -295,6 +293,7 @@ struct NotificationSettingsWire: Hashable {
   var iconColorRed: Double? = nil
   var iconColorGreen: Double? = nil
   var iconColorBlue: Double? = nil
+  var keepNotificationAfterAlarmEnds: Bool
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -307,6 +306,7 @@ struct NotificationSettingsWire: Hashable {
     let iconColorRed: Double? = nilOrValue(pigeonVar_list[5])
     let iconColorGreen: Double? = nilOrValue(pigeonVar_list[6])
     let iconColorBlue: Double? = nilOrValue(pigeonVar_list[7])
+    let keepNotificationAfterAlarmEnds = pigeonVar_list[8] as! Bool
 
     return NotificationSettingsWire(
       title: title,
@@ -316,7 +316,8 @@ struct NotificationSettingsWire: Hashable {
       iconColorAlpha: iconColorAlpha,
       iconColorRed: iconColorRed,
       iconColorGreen: iconColorGreen,
-      iconColorBlue: iconColorBlue
+      iconColorBlue: iconColorBlue,
+      keepNotificationAfterAlarmEnds: keepNotificationAfterAlarmEnds
     )
   }
   func toList() -> [Any?] {
@@ -329,6 +330,7 @@ struct NotificationSettingsWire: Hashable {
       iconColorRed,
       iconColorGreen,
       iconColorBlue,
+      keepNotificationAfterAlarmEnds,
     ]
   }
   static func == (lhs: NotificationSettingsWire, rhs: NotificationSettingsWire) -> Bool {

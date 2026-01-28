@@ -51,7 +51,17 @@ class AlarmManager: NSObject {
         if cancelNotif {
             NotificationManager.shared.cancelNotification(id: id)
         }
-        NotificationManager.shared.dismissNotification(id: id)
+
+        // When the alarm stops automatically because the sound finished (non-looping
+        // alarms), we may want to keep the delivered notification so the user can
+        // still see it in the notification center. This is controlled by
+        // `NotificationSettings.keepNotificationAfterAlarmEnds`.
+        let shouldKeepDeliveredNotification =
+            !cancelNotif && (self.alarms[id]?.settings.notificationSettings.keepNotificationAfterAlarmEnds ?? false)
+
+        if !shouldKeepDeliveredNotification {
+            NotificationManager.shared.dismissNotification(id: id)
+        }
 
         await AlarmRingManager.shared.stop()
 

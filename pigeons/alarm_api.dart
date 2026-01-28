@@ -79,6 +79,7 @@ class NotificationSettingsWire {
     required this.iconColorRed,
     required this.iconColorGreen,
     required this.iconColorBlue,
+    required this.keepNotificationAfterAlarmEnds,
   });
 
   final String title;
@@ -89,6 +90,7 @@ class NotificationSettingsWire {
   final double? iconColorRed;
   final double? iconColorGreen;
   final double? iconColorBlue;
+  final bool keepNotificationAfterAlarmEnds;
 }
 
 /// Errors that can occur when interacting with the Alarm API.

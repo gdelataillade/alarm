@@ -81,8 +81,6 @@ class AlarmSettingsWire {
 
   int millisecondsSinceEpoch;
 
-  /// Path to the audio asset. If null, the device's default alarm sound
-  /// will be used (Android only for now).
   String? assetAudioPath;
 
   VolumeSettingsWire volumeSettings;
@@ -271,6 +269,7 @@ class NotificationSettingsWire {
     this.iconColorRed,
     this.iconColorGreen,
     this.iconColorBlue,
+    required this.keepNotificationAfterAlarmEnds,
   });
 
   String title;
@@ -289,6 +288,8 @@ class NotificationSettingsWire {
 
   double? iconColorBlue;
 
+  bool keepNotificationAfterAlarmEnds;
+
   List<Object?> _toList() {
     return <Object?>[
       title,
@@ -299,6 +300,7 @@ class NotificationSettingsWire {
       iconColorRed,
       iconColorGreen,
       iconColorBlue,
+      keepNotificationAfterAlarmEnds,
     ];
   }
 
@@ -317,6 +319,7 @@ class NotificationSettingsWire {
       iconColorRed: result[5] as double?,
       iconColorGreen: result[6] as double?,
       iconColorBlue: result[7] as double?,
+      keepNotificationAfterAlarmEnds: result[8]! as bool,
     );
   }
 
