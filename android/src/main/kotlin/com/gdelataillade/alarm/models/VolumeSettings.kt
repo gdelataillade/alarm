@@ -11,7 +11,8 @@ data class VolumeSettings(
     val volume: Double?,
     val fadeDuration: Duration?,
     val fadeSteps: List<VolumeFadeStep>,
-    val volumeEnforced: Boolean
+    val volumeEnforced: Boolean,
+    val showSystemUI: Boolean
 ) {
     companion object {
         fun fromWire(e: VolumeSettingsWire): VolumeSettings {
@@ -20,6 +21,7 @@ data class VolumeSettings(
                 e.fadeDurationMillis?.milliseconds,
                 e.fadeSteps.map { VolumeFadeStep.fromWire(it) },
                 e.volumeEnforced,
+                e.showSystemUI,
             )
         }
     }

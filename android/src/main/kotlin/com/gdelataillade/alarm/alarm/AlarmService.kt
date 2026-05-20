@@ -176,6 +176,7 @@ class AlarmService : Service() {
 
         // Retrieve whether the alarm should be stopped on task termination
         shouldStopAlarmOnTermination = alarmSettings.androidStopAlarmOnTermination
+        showSystemUI = alarmSettings.volumeSettings.showSystemUI
 
         // Acquire a wake lock to wake up the device
         val wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager)
