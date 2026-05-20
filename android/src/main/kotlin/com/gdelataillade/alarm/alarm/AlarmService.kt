@@ -136,6 +136,9 @@ class AlarmService : Service() {
             }
         }
 
+        // Read showSystemUI before any volume calls that depend on it
+        showSystemUI = alarmSettings.volumeSettings.showSystemUI
+
         // Set the volume if specified
         if (alarmSettings.volumeSettings.volume != null) {
             volumeService?.setVolume(
@@ -176,7 +179,6 @@ class AlarmService : Service() {
 
         // Retrieve whether the alarm should be stopped on task termination
         shouldStopAlarmOnTermination = alarmSettings.androidStopAlarmOnTermination
-        showSystemUI = alarmSettings.volumeSettings.showSystemUI
 
         // Acquire a wake lock to wake up the device
         val wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager)
