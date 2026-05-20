@@ -23,11 +23,11 @@ class VolumeService(context: Context) {
     private var volumeCheckRunnable: Runnable? = null
 
     fun setVolume(volume: Double, volumeEnforced: Boolean, showSystemUI: Boolean) {
-        val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-        previousVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+        val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM)
+        previousVolume = audioManager.getStreamVolume(AudioManager.STREAM_ALARM)
         targetVolume = (round(volume * maxVolume)).toInt()
         audioManager.setStreamVolume(
-            AudioManager.STREAM_MUSIC,
+            AudioManager.STREAM_ALARM,
             targetVolume,
             if (showSystemUI) AudioManager.FLAG_SHOW_UI else 0
         )
@@ -40,10 +40,10 @@ class VolumeService(context: Context) {
     private fun startVolumeEnforcement(showSystemUI: Boolean) {
         // Define the Runnable that checks and enforces the volume level
         volumeCheckRunnable = Runnable {
-            val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+            val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_ALARM)
             if (currentVolume != targetVolume) {
                 audioManager.setStreamVolume(
-                    AudioManager.STREAM_MUSIC,
+                    AudioManager.STREAM_ALARM,
                     targetVolume,
                     if (showSystemUI) AudioManager.FLAG_SHOW_UI else 0
                 )
@@ -68,7 +68,7 @@ class VolumeService(context: Context) {
         // Restore the previous volume
         previousVolume?.let { prevVolume ->
             audioManager.setStreamVolume(
-                AudioManager.STREAM_MUSIC,
+                AudioManager.STREAM_ALARM,
                 prevVolume,
                 if (showSystemUI) AudioManager.FLAG_SHOW_UI else 0
             )
