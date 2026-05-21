@@ -1,3 +1,6 @@
+## 5.4.0
+* [Android] Added `VolumeSettings.showSystemUI` to suppress the system volume bar when the alarm sets or restores volume.
+
 ## 5.3.0
 * [Android] Route alarm audio through the alarm volume stream so it responds to the alarm slider instead of media volume.
 
