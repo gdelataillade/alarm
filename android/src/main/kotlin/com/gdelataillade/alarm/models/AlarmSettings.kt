@@ -84,7 +84,8 @@ data class AlarmSettings(
                     volume = volume,
                     fadeDuration = fadeDuration?.toKotlinDuration(),
                     fadeSteps = emptyList(), // No equivalent for older models
-                    volumeEnforced = volumeEnforced
+                    volumeEnforced = volumeEnforced,
+                    showSystemUI = true
                 )
             }
 

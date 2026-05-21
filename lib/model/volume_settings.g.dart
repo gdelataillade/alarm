@@ -28,6 +28,8 @@ VolumeSettings _$VolumeSettingsFromJson(Map<String, dynamic> json) =>
                   const []),
           volumeEnforced:
               $checkedConvert('volumeEnforced', (v) => v as bool? ?? false),
+          showSystemUI:
+              $checkedConvert('showSystemUI', (v) => v as bool? ?? true),
         );
         return val;
       },
@@ -40,6 +42,7 @@ Map<String, dynamic> _$VolumeSettingsToJson(VolumeSettings instance) =>
         'fadeDuration': value,
       'fadeSteps': instance.fadeSteps.map((e) => e.toJson()).toList(),
       'volumeEnforced': instance.volumeEnforced,
+      'showSystemUI': instance.showSystemUI,
     };
 
 VolumeFadeStep _$VolumeFadeStepFromJson(Map<String, dynamic> json) =>

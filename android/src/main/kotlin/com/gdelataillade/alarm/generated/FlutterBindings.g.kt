@@ -171,7 +171,8 @@ data class VolumeSettingsWire (
   val volume: Double? = null,
   val fadeDurationMillis: Long? = null,
   val fadeSteps: List<VolumeFadeStepWire>,
-  val volumeEnforced: Boolean
+  val volumeEnforced: Boolean,
+  val showSystemUI: Boolean
 )
  {
   companion object {
@@ -180,7 +181,8 @@ data class VolumeSettingsWire (
       val fadeDurationMillis = pigeonVar_list[1] as Long?
       val fadeSteps = pigeonVar_list[2] as List<VolumeFadeStepWire>
       val volumeEnforced = pigeonVar_list[3] as Boolean
-      return VolumeSettingsWire(volume, fadeDurationMillis, fadeSteps, volumeEnforced)
+      val showSystemUI = pigeonVar_list[4] as Boolean
+      return VolumeSettingsWire(volume, fadeDurationMillis, fadeSteps, volumeEnforced, showSystemUI)
     }
   }
   fun toList(): List<Any?> {
@@ -189,6 +191,7 @@ data class VolumeSettingsWire (
       fadeDurationMillis,
       fadeSteps,
       volumeEnforced,
+      showSystemUI,
     )
   }
   override fun equals(other: Any?): Boolean {
