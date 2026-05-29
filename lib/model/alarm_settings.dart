@@ -24,6 +24,7 @@ class AlarmSettings extends Equatable {
     this.allowAlarmOverlap = false,
     this.iOSBackgroundAudio = true,
     this.androidStopAlarmOnTermination = true,
+    this.preferConnectedAudioDevice = false,
     this.payload,
   });
 
@@ -178,6 +179,18 @@ class AlarmSettings extends Equatable {
   /// Defaults to `true`. Has no effect on iOS.
   final bool androidStopAlarmOnTermination;
 
+  /// If true, alarm audio routes to a connected earphone or Bluetooth device
+  /// when one is present, falling back to the built-in speaker if not.
+  /// Uses `STREAM_MUSIC` and `USAGE_MEDIA` instead of `STREAM_ALARM` and
+  /// `USAGE_ALARM`, so the media volume slider controls the volume instead
+  /// of the alarm slider.
+  ///
+  /// If false (default), audio is always forced to the built-in speaker
+  /// via `USAGE_ALARM`, and the alarm volume slider applies.
+  ///
+  /// Has no effect on iOS. Defaults to `false`.
+  final bool preferConnectedAudioDevice;
+
   /// Optional payload to be sent with the alarm. This can be used to pass
   /// additional data to the alarm handler.
   ///
@@ -201,6 +214,7 @@ class AlarmSettings extends Equatable {
         allowAlarmOverlap: allowAlarmOverlap,
         iOSBackgroundAudio: iOSBackgroundAudio,
         androidStopAlarmOnTermination: androidStopAlarmOnTermination,
+        preferConnectedAudioDevice: preferConnectedAudioDevice,
       );
 
   /// Creates a copy of `AlarmSettings` but with the given fields replaced with
@@ -225,6 +239,7 @@ class AlarmSettings extends Equatable {
     bool? allowAlarmOverlap,
     bool? iOSBackgroundAudio,
     bool? androidStopAlarmOnTermination,
+    bool? preferConnectedAudioDevice,
     String? Function()? payload,
   }) {
     return AlarmSettings(
@@ -243,6 +258,8 @@ class AlarmSettings extends Equatable {
       iOSBackgroundAudio: iOSBackgroundAudio ?? this.iOSBackgroundAudio,
       androidStopAlarmOnTermination:
           androidStopAlarmOnTermination ?? this.androidStopAlarmOnTermination,
+      preferConnectedAudioDevice:
+          preferConnectedAudioDevice ?? this.preferConnectedAudioDevice,
       payload: payload?.call() ?? this.payload,
     );
   }
@@ -261,6 +278,7 @@ class AlarmSettings extends Equatable {
         allowAlarmOverlap,
         iOSBackgroundAudio,
         androidStopAlarmOnTermination,
+        preferConnectedAudioDevice,
         payload,
       ];
 }

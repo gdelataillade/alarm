@@ -75,6 +75,7 @@ class AlarmSettingsWire {
     required this.allowAlarmOverlap,
     required this.iOSBackgroundAudio,
     required this.androidStopAlarmOnTermination,
+    required this.preferConnectedAudioDevice,
   });
 
   int id;
@@ -101,6 +102,8 @@ class AlarmSettingsWire {
 
   bool androidStopAlarmOnTermination;
 
+  bool preferConnectedAudioDevice;
+
   List<Object?> _toList() {
     return <Object?>[
       id,
@@ -115,6 +118,7 @@ class AlarmSettingsWire {
       allowAlarmOverlap,
       iOSBackgroundAudio,
       androidStopAlarmOnTermination,
+      preferConnectedAudioDevice,
     ];
   }
 
@@ -137,6 +141,7 @@ class AlarmSettingsWire {
       allowAlarmOverlap: result[9]! as bool,
       iOSBackgroundAudio: result[10]! as bool,
       androidStopAlarmOnTermination: result[11]! as bool,
+      preferConnectedAudioDevice: result[12]! as bool,
     );
   }
 

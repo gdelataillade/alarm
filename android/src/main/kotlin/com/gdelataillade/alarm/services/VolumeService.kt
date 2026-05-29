@@ -21,13 +21,15 @@ class VolumeService(context: Context) {
     private val handler = Handler(Looper.getMainLooper())
     private var targetVolume: Int = 0
     private var volumeCheckRunnable: Runnable? = null
+    private var activeStream: Int = AudioManager.STREAM_ALARM
 
-    fun setVolume(volume: Double, volumeEnforced: Boolean, showSystemUI: Boolean) {
-        val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-        previousVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+    fun setVolume(volume: Double, volumeEnforced: Boolean, showSystemUI: Boolean, preferConnectedAudioDevice: Boolean) {
+        activeStream = if (preferConnectedAudioDevice) AudioManager.STREAM_MUSIC else AudioManager.STREAM_ALARM
+        val maxVolume = audioManager.getStreamMaxVolume(activeStream)
+        previousVolume = audioManager.getStreamVolume(activeStream)
         targetVolume = (round(volume * maxVolume)).toInt()
         audioManager.setStreamVolume(
-            AudioManager.STREAM_MUSIC,
+            activeStream,
             targetVolume,
             if (showSystemUI) AudioManager.FLAG_SHOW_UI else 0
         )
@@ -40,10 +42,10 @@ class VolumeService(context: Context) {
     private fun startVolumeEnforcement(showSystemUI: Boolean) {
         // Define the Runnable that checks and enforces the volume level
         volumeCheckRunnable = Runnable {
-            val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+            val currentVolume = audioManager.getStreamVolume(activeStream)
             if (currentVolume != targetVolume) {
                 audioManager.setStreamVolume(
-                    AudioManager.STREAM_MUSIC,
+                    activeStream,
                     targetVolume,
                     if (showSystemUI) AudioManager.FLAG_SHOW_UI else 0
                 )
@@ -68,7 +70,7 @@ class VolumeService(context: Context) {
         // Restore the previous volume
         previousVolume?.let { prevVolume ->
             audioManager.setStreamVolume(
-                AudioManager.STREAM_MUSIC,
+                activeStream,
                 prevVolume,
                 if (showSystemUI) AudioManager.FLAG_SHOW_UI else 0
             )

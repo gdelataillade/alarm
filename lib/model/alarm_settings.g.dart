@@ -31,6 +31,10 @@ AlarmSettings _$AlarmSettingsFromJson(Map<String, dynamic> json) =>
               $checkedConvert('allowAlarmOverlap', (v) => v as bool? ?? false),
           iOSBackgroundAudio:
               $checkedConvert('iOSBackgroundAudio', (v) => v as bool? ?? true),
+          androidStopAlarmOnTermination: $checkedConvert(
+              'androidStopAlarmOnTermination', (v) => v as bool? ?? true),
+          preferConnectedAudioDevice: $checkedConvert(
+              'preferConnectedAudioDevice', (v) => v as bool? ?? false),
           payload: $checkedConvert('payload', (v) => v as String?),
         );
         return val;
@@ -50,5 +54,7 @@ Map<String, dynamic> _$AlarmSettingsToJson(AlarmSettings instance) =>
       'androidFullScreenIntent': instance.androidFullScreenIntent,
       'allowAlarmOverlap': instance.allowAlarmOverlap,
       'iOSBackgroundAudio': instance.iOSBackgroundAudio,
+      'androidStopAlarmOnTermination': instance.androidStopAlarmOnTermination,
+      'preferConnectedAudioDevice': instance.preferConnectedAudioDevice,
       if (instance.payload case final value?) 'payload': value,
     };
