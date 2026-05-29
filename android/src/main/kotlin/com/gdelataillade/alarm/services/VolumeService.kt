@@ -78,10 +78,14 @@ class VolumeService(context: Context) {
         }
     }
 
-    fun requestAudioFocus() {
+    fun requestAudioFocus(preferConnectedAudioDevice: Boolean) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val usage = if (preferConnectedAudioDevice)
+                AudioAttributes.USAGE_MEDIA
+            else
+                AudioAttributes.USAGE_ALARM
             val audioAttributes = AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_ALARM)
+                .setUsage(usage)
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                 .build()
 
@@ -95,10 +99,14 @@ class VolumeService(context: Context) {
                 Log.e(TAG, "Audio focus request failed")
             }
         } else {
+            val stream = if (preferConnectedAudioDevice)
+                AudioManager.STREAM_MUSIC
+            else
+                AudioManager.STREAM_ALARM
             @Suppress("DEPRECATION")
             val result = audioManager.requestAudioFocus(
                 null,
-                AudioManager.STREAM_ALARM,
+                stream,
                 AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK
             )
             if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {

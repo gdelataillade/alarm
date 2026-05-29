@@ -150,7 +150,7 @@ class AlarmService : Service() {
         }
 
         // Request audio focus
-        volumeService?.requestAudioFocus()
+        volumeService?.requestAudioFocus(alarmSettings.preferConnectedAudioDevice)
 
         // Set up audio completion listener
         audioService?.setOnAudioCompleteListener {
