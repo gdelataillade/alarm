@@ -227,6 +227,7 @@ struct VolumeSettingsWire: Hashable {
   var fadeDurationMillis: Int64? = nil
   var fadeSteps: [VolumeFadeStepWire]
   var volumeEnforced: Bool
+  var showSystemUI: Bool
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -235,12 +236,14 @@ struct VolumeSettingsWire: Hashable {
     let fadeDurationMillis: Int64? = nilOrValue(pigeonVar_list[1])
     let fadeSteps = pigeonVar_list[2] as! [VolumeFadeStepWire]
     let volumeEnforced = pigeonVar_list[3] as! Bool
+    let showSystemUI = pigeonVar_list[4] as! Bool
 
     return VolumeSettingsWire(
       volume: volume,
       fadeDurationMillis: fadeDurationMillis,
       fadeSteps: fadeSteps,
-      volumeEnforced: volumeEnforced
+      volumeEnforced: volumeEnforced,
+      showSystemUI: showSystemUI
     )
   }
   func toList() -> [Any?] {
@@ -249,6 +252,7 @@ struct VolumeSettingsWire: Hashable {
       fadeDurationMillis,
       fadeSteps,
       volumeEnforced,
+      showSystemUI,
     ]
   }
   static func == (lhs: VolumeSettingsWire, rhs: VolumeSettingsWire) -> Bool {

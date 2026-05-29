@@ -13,6 +13,7 @@ class VolumeSettings extends Equatable {
     this.fadeDuration,
     this.fadeSteps = const [],
     this.volumeEnforced = false,
+    this.showSystemUI = true,
   })  : assert(
           volume == null || (volume >= 0 && volume <= 1),
           'volume must be NULL or in the range [0, 1]',
@@ -26,9 +27,11 @@ class VolumeSettings extends Equatable {
   const VolumeSettings.fixed({
     double? volume,
     bool volumeEnforced = false,
+    bool showSystemUI = true,
   }) : this._(
           volume: volume,
           volumeEnforced: volumeEnforced,
+          showSystemUI: showSystemUI,
         );
 
   /// Constructs [VolumeSettings] with fading volume level.
@@ -36,10 +39,12 @@ class VolumeSettings extends Equatable {
     required Duration fadeDuration,
     double? volume,
     bool volumeEnforced = false,
+    bool showSystemUI = true,
   }) : this._(
           volume: volume,
           fadeDuration: fadeDuration,
           volumeEnforced: volumeEnforced,
+          showSystemUI: showSystemUI,
         );
 
   /// Constructs [VolumeSettings] with slowly increasing (stepped) volume level.
@@ -47,12 +52,14 @@ class VolumeSettings extends Equatable {
     required List<VolumeFadeStep> fadeSteps,
     double? volume,
     bool volumeEnforced = false,
+    bool showSystemUI = true,
   }) {
     assert(fadeSteps.isNotEmpty, 'fadeSteps must not be empty');
     return VolumeSettings._(
       volume: volume,
       fadeSteps: fadeSteps,
       volumeEnforced: volumeEnforced,
+      showSystemUI: showSystemUI,
     );
   }
 
@@ -95,6 +102,12 @@ class VolumeSettings extends Equatable {
   /// Defaults to false.
   final bool volumeEnforced;
 
+  /// If true, the system volume bar is shown when the alarm sets or restores
+  /// the volume. Set to false to suppress the volume UI entirely.
+  ///
+  /// Defaults to true.
+  final bool showSystemUI;
+
   /// Converts the [VolumeSettings] instance to a JSON object.
   Map<String, dynamic> toJson() => _$VolumeSettingsToJson(this);
 
@@ -104,10 +117,12 @@ class VolumeSettings extends Equatable {
         fadeDurationMillis: fadeDuration?.inMilliseconds,
         fadeSteps: fadeSteps.map((e) => e.toWire()).toList(),
         volumeEnforced: volumeEnforced,
+        showSystemUI: showSystemUI,
       );
 
   @override
-  List<Object?> get props => [volume, fadeDuration, fadeSteps, volumeEnforced];
+  List<Object?> get props =>
+      [volume, fadeDuration, fadeSteps, volumeEnforced, showSystemUI];
 }
 
 /// Represents a step in a volume fade sequence.

@@ -168,6 +168,7 @@ class VolumeSettingsWire {
     this.fadeDurationMillis,
     required this.fadeSteps,
     required this.volumeEnforced,
+    required this.showSystemUI,
   });
 
   double? volume;
@@ -178,12 +179,15 @@ class VolumeSettingsWire {
 
   bool volumeEnforced;
 
+  bool showSystemUI;
+
   List<Object?> _toList() {
     return <Object?>[
       volume,
       fadeDurationMillis,
       fadeSteps,
       volumeEnforced,
+      showSystemUI,
     ];
   }
 
@@ -198,6 +202,7 @@ class VolumeSettingsWire {
       fadeDurationMillis: result[1] as int?,
       fadeSteps: (result[2] as List<Object?>?)!.cast<VolumeFadeStepWire>(),
       volumeEnforced: result[3]! as bool,
+      showSystemUI: result[4]! as bool,
     );
   }
 

@@ -53,12 +53,14 @@ class VolumeSettingsWire {
     required this.fadeDurationMillis,
     required this.fadeSteps,
     required this.volumeEnforced,
+    required this.showSystemUI,
   });
 
   final double? volume;
   final int? fadeDurationMillis;
   final List<VolumeFadeStepWire> fadeSteps;
   final bool volumeEnforced;
+  final bool showSystemUI;
 }
 
 class VolumeFadeStepWire {

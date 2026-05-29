@@ -136,6 +136,9 @@ class AlarmService : Service() {
             }
         }
 
+        // Read showSystemUI before any volume calls that depend on it
+        showSystemUI = alarmSettings.volumeSettings.showSystemUI
+
         // Set the volume if specified
         if (alarmSettings.volumeSettings.volume != null) {
             volumeService?.setVolume(
