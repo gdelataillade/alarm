@@ -1,3 +1,7 @@
+## 5.4.1
+* [Android] Added `AlarmSettings.preferConnectedAudioDevice` to route alarm audio through connected earphones or Bluetooth.
+* [Android] Fixed `androidStopAlarmOnTermination` not persisting across app restarts.
+
 ## 5.4.0
 * [Android] Added `VolumeSettings.showSystemUI` to suppress the system volume bar when the alarm sets or restores volume.
 
