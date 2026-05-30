@@ -162,6 +162,7 @@ struct AlarmSettingsWire: Hashable {
   var allowAlarmOverlap: Bool
   var iOSBackgroundAudio: Bool
   var androidStopAlarmOnTermination: Bool
+  var preferConnectedAudioDevice: Bool
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -178,6 +179,7 @@ struct AlarmSettingsWire: Hashable {
     let allowAlarmOverlap = pigeonVar_list[9] as! Bool
     let iOSBackgroundAudio = pigeonVar_list[10] as! Bool
     let androidStopAlarmOnTermination = pigeonVar_list[11] as! Bool
+    let preferConnectedAudioDevice = pigeonVar_list[12] as! Bool
 
     return AlarmSettingsWire(
       id: id,
@@ -191,7 +193,8 @@ struct AlarmSettingsWire: Hashable {
       androidFullScreenIntent: androidFullScreenIntent,
       allowAlarmOverlap: allowAlarmOverlap,
       iOSBackgroundAudio: iOSBackgroundAudio,
-      androidStopAlarmOnTermination: androidStopAlarmOnTermination
+      androidStopAlarmOnTermination: androidStopAlarmOnTermination,
+      preferConnectedAudioDevice: preferConnectedAudioDevice
     )
   }
   func toList() -> [Any?] {
@@ -208,6 +211,7 @@ struct AlarmSettingsWire: Hashable {
       allowAlarmOverlap,
       iOSBackgroundAudio,
       androidStopAlarmOnTermination,
+      preferConnectedAudioDevice,
     ]
   }
   static func == (lhs: AlarmSettingsWire, rhs: AlarmSettingsWire) -> Bool {

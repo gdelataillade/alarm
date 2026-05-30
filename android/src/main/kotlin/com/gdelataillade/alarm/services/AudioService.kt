@@ -41,7 +41,8 @@ class AudioService(private val context: Context) {
         filePath: String?,
         loopAudio: Boolean,
         fadeDuration: Duration?,
-        fadeSteps: List<VolumeFadeStep>
+        fadeSteps: List<VolumeFadeStep>,
+        preferConnectedAudioDevice: Boolean
     ) {
         stopAudio(id) // Stop and release any existing MediaPlayer and Timer for this ID
 
@@ -88,15 +89,23 @@ class AudioService(private val context: Context) {
                 }
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    val usage = if (preferConnectedAudioDevice)
+                        AudioAttributes.USAGE_MEDIA
+                    else
+                        AudioAttributes.USAGE_ALARM
                     setAudioAttributes(
                         AudioAttributes.Builder()
-                            .setUsage(AudioAttributes.USAGE_ALARM)
+                            .setUsage(usage)
                             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                             .build()
                     )
                 } else {
                     @Suppress("DEPRECATION")
-                    setAudioStreamType(AudioManager.STREAM_ALARM)
+                    val stream = if (preferConnectedAudioDevice)
+                        AudioManager.STREAM_MUSIC
+                    else
+                        AudioManager.STREAM_ALARM
+                    setAudioStreamType(stream)
                 }
                 prepare()
                 isLooping = loopAudio

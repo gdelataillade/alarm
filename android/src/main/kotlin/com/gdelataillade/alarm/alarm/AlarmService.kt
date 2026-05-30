@@ -144,12 +144,13 @@ class AlarmService : Service() {
             volumeService?.setVolume(
                 alarmSettings.volumeSettings.volume,
                 alarmSettings.volumeSettings.volumeEnforced,
-                showSystemUI
+                showSystemUI,
+                alarmSettings.preferConnectedAudioDevice
             )
         }
 
         // Request audio focus
-        volumeService?.requestAudioFocus()
+        volumeService?.requestAudioFocus(alarmSettings.preferConnectedAudioDevice)
 
         // Set up audio completion listener
         audioService?.setOnAudioCompleteListener {
@@ -166,7 +167,8 @@ class AlarmService : Service() {
             alarmSettings.assetAudioPath,
             alarmSettings.loopAudio,
             alarmSettings.volumeSettings.fadeDuration,
-            alarmSettings.volumeSettings.fadeSteps
+            alarmSettings.volumeSettings.fadeSteps,
+            alarmSettings.preferConnectedAudioDevice
         )
 
         // Update the list of ringing alarms
