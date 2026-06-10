@@ -66,9 +66,8 @@ class _ExampleAlarmHomeShortcutButtonState
         id: baseId + i,
         dateTime: dateTime,
         loopAudio: false,
-        vibrate: true,
         assetAudioPath: sounds[i],
-        volumeSettings: VolumeSettings.fixed(volume: 0.8),
+        volumeSettings: const VolumeSettings.fixed(volume: 0.8),
         allowSameSecondScheduling: true,
         allowAlarmOverlap: allowOverlap,
         notificationSettings: NotificationSettings(

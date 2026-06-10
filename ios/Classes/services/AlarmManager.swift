@@ -166,16 +166,19 @@ class AlarmManager: NSObject {
         }
 
         // If another alarm is already ringing
-        if self.alarms.contains(where: { $1.state == .ringing }) {
-            if !config.settings.allowAlarmOverlap {
+        if !config.settings.allowAlarmOverlap && self.alarms.contains(where: { $1.state == .ringing }) {
+            if config.settings.allowSameSecondScheduling {
                 // Queue for sequential ringing (like iOS system Clock app)
                 if !self.ringingQueue.contains(id) {
                     self.ringingQueue.append(id)
                 }
                 os_log(.info, log: AlarmManager.logger, "Alarm %d queued because another alarm is already ringing.", id)
                 return
+            } else {
+                os_log(.error, log: AlarmManager.logger, "Ignoring alarm with id %d because another alarm is already ringing.", id)
+                await self.stopAlarm(id: id, cancelNotif: true)
+                return
             }
-            // allowAlarmOverlap == true: continue to ring, AlarmRingManager will override the previous one
         }
 
         if config.state == .ringing {

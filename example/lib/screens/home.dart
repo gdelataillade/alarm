@@ -170,7 +170,9 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
                           onDismissed: () {
                             Alarm.stop(alarm.id).then((_) {
                               setState(() {
-                                alarmHistory.removeWhere((a) => a.id == alarm.id);
+                                alarmHistory.removeWhere(
+                                  (a) => a.id == alarm.id,
+                                );
                               });
                             });
                           },

@@ -36,14 +36,15 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
 
     override fun stopAlarm(alarmId: Long, callback: (Result<Unit>) -> Unit) {
         val id = alarmId.toInt()
-        var alarmWasRinging = false
-        if (AlarmService.ringingAlarmIds.contains(id)) {
-            alarmWasRinging = true
-            val stopIntent = Intent(context, AlarmService::class.java)
-            stopIntent.action = "STOP_ALARM"
-            stopIntent.putExtra("id", id)
-            context.stopService(stopIntent)
-        }
+        val alarmWasRinging = AlarmService.ringingAlarmIds.contains(id)
+
+        // Always deliver STOP_ALARM action to the service so it can clean up
+        // ringing alarms and remove from queue if needed.
+        val stopIntent = Intent(context, AlarmService::class.java)
+        stopIntent.action = "STOP_ALARM"
+        stopIntent.putExtra(AlarmReceiver.EXTRA_ALARM_ACTION, "STOP_ALARM")
+        stopIntent.putExtra("id", id)
+        context.startService(stopIntent)
 
         // Intent to cancel the future alarm if it's set
         val alarmIntent = Intent(context, AlarmReceiver::class.java)

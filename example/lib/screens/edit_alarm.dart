@@ -48,7 +48,8 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       fadeDuration = widget.alarmSettings!.volumeSettings.fadeDuration;
       staircaseFade = widget.alarmSettings!.volumeSettings.fadeSteps.isNotEmpty;
       assetAudio = widget.alarmSettings!.assetAudioPath;
-      allowSameSecondScheduling = widget.alarmSettings!.allowSameSecondScheduling;
+      allowSameSecondScheduling =
+          widget.alarmSettings!.allowSameSecondScheduling;
       allowAlarmOverlap = widget.alarmSettings!.allowAlarmOverlap;
     }
   }

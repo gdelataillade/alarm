@@ -95,15 +95,18 @@ class AlarmService : Service() {
         }
 
         // If another alarm is already ringing
-        if (ringingAlarmIds.isNotEmpty()) {
-            if (!alarmSettings.allowAlarmOverlap) {
+        if (!alarmSettings.allowAlarmOverlap && ringingAlarmIds.isNotEmpty()) {
+            if (alarmSettings.allowSameSecondScheduling) {
                 // Queue for sequential ringing (like iOS system Clock app)
                 ringingQueue.add(id)
                 queuedAlarmSettings[id] = alarmSettings
                 Log.d(TAG, "Alarm $id queued because another alarm is already ringing.")
                 return START_NOT_STICKY
+            } else {
+                Log.d(TAG, "An alarm is already ringing. Ignoring new alarm with id: $id")
+                unsaveAlarm(id)
+                return START_NOT_STICKY
             }
-            // allowAlarmOverlap == true: continue to ring, later alarm overrides previous one
         }
 
         ringAlarm(id, alarmSettings)
@@ -275,33 +278,48 @@ class AlarmService : Service() {
         try {
             audioService?.stopAudio(id)
 
+            // Remove from queue if present so stopped alarms never get promoted
+            ringingQueue.remove(id)
+            queuedAlarmSettings.remove(id)
+
             val playingIds = audioService?.getPlayingMediaPlayersIds() ?: listOf()
             ringingAlarmIds = playingIds
 
             if (playingIds.isEmpty()) {
-                // Check if there are queued alarms to trigger next
-                if (ringingQueue.isNotEmpty()) {
-                    val nextId = ringingQueue.removeAt(ringingQueue.lastIndex)
-                    val nextSettings = queuedAlarmSettings.remove(nextId)
-                    nextSettings?.let {
-                        Log.d(TAG, "Triggering queued alarm $nextId.")
-                        ringAlarm(nextId, it)
-                        return
-                    }
-                }
+                triggerNextQueuedAlarm()
 
-                // No more queued alarms, perform full cleanup
-                AlarmRingingLiveData.instance.update(false)
-                volumeService?.restorePreviousVolume(showSystemUI)
-                volumeService?.abandonAudioFocus()
-                vibrationService?.stopVibrating()
-                stopForeground(true)
-                stopSelf()
+                if (ringingAlarmIds.isEmpty()) {
+                    // No more queued alarms, perform full cleanup
+                    AlarmRingingLiveData.instance.update(false)
+                    volumeService?.restorePreviousVolume(showSystemUI)
+                    volumeService?.abandonAudioFocus()
+                    vibrationService?.stopVibrating()
+                    stopForeground(true)
+                    stopSelf()
+                }
             }
         } catch (e: IllegalStateException) {
             Log.e(TAG, "Illegal State: ${e.message}", e)
         } catch (e: Exception) {
             Log.e(TAG, "Error in stopping alarm: ${e.message}", e)
+        }
+    }
+
+    private fun triggerNextQueuedAlarm() {
+        while (ringingQueue.isNotEmpty()) {
+            val nextId = ringingQueue.removeAt(ringingQueue.lastIndex)
+            val nextSettings = queuedAlarmSettings.remove(nextId)
+            if (nextSettings != null) {
+                // Validate the alarm still exists in storage before promoting
+                val savedAlarms = alarmStorage?.getSavedAlarms() ?: listOf()
+                if (savedAlarms.any { alarm -> alarm.id == nextId }) {
+                    Log.d(TAG, "Triggering queued alarm $nextId.")
+                    ringAlarm(nextId, nextSettings)
+                    return
+                } else {
+                    Log.d(TAG, "Queued alarm $nextId no longer exists in storage, skipping.")
+                }
+            }
         }
     }
 

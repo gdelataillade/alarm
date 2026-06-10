@@ -75,8 +75,12 @@ class Alarm {
       if (alarm.dateTime.isAfter(now)) {
         await set(alarmSettings: alarm);
       } else {
-        // Expired alarm: always stop and clean up, do not trigger ringing
-        await stop(alarm.id);
+        if (await Alarm.isRinging(alarm.id)) {
+          _ringing.add(_ringing.value.add(alarm));
+          ringStream.add(alarm);
+        } else {
+          await stop(alarm.id);
+        }
       }
     }
   }
