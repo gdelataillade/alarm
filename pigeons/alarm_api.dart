@@ -27,6 +27,7 @@ class AlarmSettingsWire {
     required this.warningNotificationOnKill,
     required this.androidFullScreenIntent,
     required this.allowAlarmOverlap,
+    required this.allowSameSecondScheduling,
     required this.iOSBackgroundAudio,
     required this.androidStopAlarmOnTermination,
     required this.preferConnectedAudioDevice,
@@ -42,6 +43,7 @@ class AlarmSettingsWire {
   final bool warningNotificationOnKill;
   final bool androidFullScreenIntent;
   final bool allowAlarmOverlap;
+  final bool allowSameSecondScheduling;
   final bool iOSBackgroundAudio;
   final bool androidStopAlarmOnTermination;
   final bool preferConnectedAudioDevice;

@@ -11,13 +11,25 @@ class AlarmRingManager: NSObject {
     private var previousVolume: Float?
     private var volumeEnforcementTimer: Timer?
     private var audioPlayer: AVAudioPlayer?
+    private var currentAlarmId: Int?
 
     override private init() {
         super.init()
     }
 
-    func start(registrar: FlutterPluginRegistrar, assetAudioPath: String?, loopAudio: Bool, volumeSettings: VolumeSettings, onComplete: (() -> Void)?) async {
+    func start(id: Int, registrar: FlutterPluginRegistrar, assetAudioPath: String?, loopAudio: Bool, volumeSettings: VolumeSettings, onComplete: (() -> Void)?) async {
         let start = Date()
+
+        // If another alarm is already ringing, stop it before starting the new one
+        if let currentId = self.currentAlarmId, currentId != id {
+            os_log(.info, log: AlarmRingManager.logger, "Overriding previous alarm ID=%d with new alarm ID=%d", currentId, id)
+            self.audioPlayer?.stop()
+            self.audioPlayer = nil
+            self.volumeEnforcementTimer?.invalidate()
+            self.volumeEnforcementTimer = nil
+        }
+
+        self.currentAlarmId = id
 
         self.duckOtherAudios()
 
@@ -68,15 +80,23 @@ class AlarmRingManager: NSObject {
         os_log(.debug, log: AlarmRingManager.logger, "Alarm ring started in %.2fs.", runDuration)
     }
 
-    func stop() async {
+    func stop(id: Int? = nil) async {
+        if let id = id, self.currentAlarmId != id {
+            os_log(.debug, log: AlarmRingManager.logger,
+                "Skipping stop for alarm ID=%d because current alarm is ID=%d", id, self.currentAlarmId ?? -1)
+            return
+        }
+
         if self.volumeEnforcementTimer == nil && self.previousVolume == nil && self.audioPlayer == nil {
             os_log(.debug, log: AlarmRingManager.logger, "Alarm ringer already stopped.")
+            self.currentAlarmId = nil
             return
         }
 
         let start = Date()
 
-        self.mixOtherAudios()
+        self.audioPlayer?.stop()
+        self.audioPlayer = nil
 
         self.volumeEnforcementTimer?.invalidate()
         self.volumeEnforcementTimer = nil
@@ -86,8 +106,8 @@ class AlarmRingManager: NSObject {
             self.previousVolume = nil
         }
 
-        self.audioPlayer?.stop()
-        self.audioPlayer = nil
+        self.currentAlarmId = nil
+        self.mixOtherAudios()
 
         let runDuration = Date().timeIntervalSince(start)
         os_log(.debug, log: AlarmRingManager.logger, "Alarm ring stopped in %.2fs.", runDuration)

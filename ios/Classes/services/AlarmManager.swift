@@ -7,6 +7,7 @@ class AlarmManager: NSObject {
     private let registrar: FlutterPluginRegistrar
 
     private var alarms: [Int: AlarmConfiguration] = [:]
+    private var ringingQueue: [Int] = []
 
     init(registrar: FlutterPluginRegistrar) {
         self.registrar = registrar
@@ -63,7 +64,9 @@ class AlarmManager: NSObject {
             NotificationManager.shared.dismissNotification(id: id)
         }
 
-        await AlarmRingManager.shared.stop()
+        let wasRinging = self.alarms[id]?.state == .ringing
+
+        await AlarmRingManager.shared.stop(id: id)
 
         if let config = self.alarms[id] {
             config.timer?.invalidate()
@@ -75,6 +78,11 @@ class AlarmManager: NSObject {
 
         await self.notifyAlarmStopped(id: id)
 
+        // If the stopped alarm was ringing, trigger the next queued alarm
+        if wasRinging {
+            self.triggerNextQueuedAlarm()
+        }
+
         os_log(.info, log: AlarmManager.logger, "Stop alarm for ID=%d complete.", id)
     }
 
@@ -82,6 +90,8 @@ class AlarmManager: NSObject {
         await NotificationManager.shared.removeAllNotifications()
 
         await AlarmRingManager.shared.stop()
+
+        self.ringingQueue.removeAll()
 
         let alarmIds = Array(self.alarms.keys)
         self.alarms.forEach { $0.value.timer?.invalidate() }
@@ -155,10 +165,17 @@ class AlarmManager: NSObject {
             return
         }
 
-        if !config.settings.allowAlarmOverlap && self.alarms.contains(where: { $1.state == .ringing }) {
-            os_log(.error, log: AlarmManager.logger, "Ignoring alarm with id %d because another alarm is already ringing.", id)
-            await self.stopAlarm(id: id, cancelNotif: true)
-            return
+        // If another alarm is already ringing
+        if self.alarms.contains(where: { $1.state == .ringing }) {
+            if !config.settings.allowAlarmOverlap {
+                // Queue for sequential ringing (like iOS system Clock app)
+                if !self.ringingQueue.contains(id) {
+                    self.ringingQueue.append(id)
+                }
+                os_log(.info, log: AlarmManager.logger, "Alarm %d queued because another alarm is already ringing.", id)
+                return
+            }
+            // allowAlarmOverlap == true: continue to ring, AlarmRingManager will override the previous one
         }
 
         if config.state == .ringing {
@@ -178,6 +195,7 @@ class AlarmManager: NSObject {
         BackgroundAudioManager.shared.stop()
 
         await AlarmRingManager.shared.start(
+            id: id,
             registrar: self.registrar,
             assetAudioPath: config.settings.assetAudioPath,
             loopAudio: config.settings.loopAudio,
@@ -236,6 +254,20 @@ class AlarmManager: NSObject {
                 }
                 continuation.resume()
             })
+        }
+    }
+
+    private func triggerNextQueuedAlarm() {
+        guard !self.ringingQueue.isEmpty else { return }
+        let nextId = self.ringingQueue.removeLast()
+        guard self.alarms[nextId] != nil else {
+            os_log(.error, log: AlarmManager.logger, "Queued alarm %d no longer exists, skipping.", nextId)
+            self.triggerNextQueuedAlarm()
+            return
+        }
+        os_log(.info, log: AlarmManager.logger, "Triggering queued alarm %d.", nextId)
+        Task {
+            await self.ringAlarm(id: nextId)
         }
     }
 

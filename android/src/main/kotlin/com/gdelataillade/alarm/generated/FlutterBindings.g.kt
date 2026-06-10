@@ -117,6 +117,7 @@ data class AlarmSettingsWire (
   val warningNotificationOnKill: Boolean,
   val androidFullScreenIntent: Boolean,
   val allowAlarmOverlap: Boolean,
+  val allowSameSecondScheduling: Boolean,
   val iOSBackgroundAudio: Boolean,
   val androidStopAlarmOnTermination: Boolean,
   val preferConnectedAudioDevice: Boolean
@@ -134,10 +135,11 @@ data class AlarmSettingsWire (
       val warningNotificationOnKill = pigeonVar_list[7] as Boolean
       val androidFullScreenIntent = pigeonVar_list[8] as Boolean
       val allowAlarmOverlap = pigeonVar_list[9] as Boolean
-      val iOSBackgroundAudio = pigeonVar_list[10] as Boolean
-      val androidStopAlarmOnTermination = pigeonVar_list[11] as Boolean
-      val preferConnectedAudioDevice = pigeonVar_list[12] as Boolean
-      return AlarmSettingsWire(id, millisecondsSinceEpoch, assetAudioPath, volumeSettings, notificationSettings, loopAudio, vibrate, warningNotificationOnKill, androidFullScreenIntent, allowAlarmOverlap, iOSBackgroundAudio, androidStopAlarmOnTermination, preferConnectedAudioDevice)
+      val allowSameSecondScheduling = pigeonVar_list[10] as Boolean
+      val iOSBackgroundAudio = pigeonVar_list[11] as Boolean
+      val androidStopAlarmOnTermination = pigeonVar_list[12] as Boolean
+      val preferConnectedAudioDevice = pigeonVar_list[13] as Boolean
+      return AlarmSettingsWire(id, millisecondsSinceEpoch, assetAudioPath, volumeSettings, notificationSettings, loopAudio, vibrate, warningNotificationOnKill, androidFullScreenIntent, allowAlarmOverlap, allowSameSecondScheduling, iOSBackgroundAudio, androidStopAlarmOnTermination, preferConnectedAudioDevice)
     }
   }
   fun toList(): List<Any?> {
@@ -152,6 +154,7 @@ data class AlarmSettingsWire (
       warningNotificationOnKill,
       androidFullScreenIntent,
       allowAlarmOverlap,
+      allowSameSecondScheduling,
       iOSBackgroundAudio,
       androidStopAlarmOnTermination,
       preferConnectedAudioDevice,

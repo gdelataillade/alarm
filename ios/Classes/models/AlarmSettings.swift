@@ -11,12 +11,14 @@ struct AlarmSettings: Codable {
     let warningNotificationOnKill: Bool
     let androidFullScreenIntent: Bool
     let allowAlarmOverlap: Bool
+    let allowSameSecondScheduling: Bool
     let iOSBackgroundAudio: Bool
 
     enum CodingKeys: String, CodingKey {
         case id, dateTime, assetAudioPath, volumeSettings, notificationSettings,
              loopAudio, vibrate, warningNotificationOnKill, androidFullScreenIntent,
-             allowAlarmOverlap, iOSBackgroundAudio, volume, fadeDuration, volumeEnforced
+             allowAlarmOverlap, allowSameSecondScheduling, iOSBackgroundAudio,
+             volume, fadeDuration, volumeEnforced
     }
 
     /// Custom initializer to handle backward compatibility for older models
@@ -35,7 +37,10 @@ struct AlarmSettings: Codable {
 
         // Backward compatibility for `allowAlarmOverlap`
         allowAlarmOverlap = try container.decodeIfPresent(Bool.self, forKey: .allowAlarmOverlap) ?? false
-        
+
+        // Backward compatibility for `allowSameSecondScheduling`
+        allowSameSecondScheduling = try container.decodeIfPresent(Bool.self, forKey: .allowSameSecondScheduling) ?? false
+
         // Backward compatibility for `iOSBackgroundAudio`
         iOSBackgroundAudio = try container.decodeIfPresent(Bool.self, forKey: .iOSBackgroundAudio) ?? true
 
@@ -72,6 +77,7 @@ struct AlarmSettings: Codable {
         try container.encode(warningNotificationOnKill, forKey: .warningNotificationOnKill)
         try container.encode(androidFullScreenIntent, forKey: .androidFullScreenIntent)
         try container.encode(allowAlarmOverlap, forKey: .allowAlarmOverlap)
+        try container.encode(allowSameSecondScheduling, forKey: .allowSameSecondScheduling)
         try container.encode(iOSBackgroundAudio, forKey: .iOSBackgroundAudio)
     }
 
@@ -87,6 +93,7 @@ struct AlarmSettings: Codable {
         warningNotificationOnKill: Bool,
         androidFullScreenIntent: Bool,
         allowAlarmOverlap: Bool,
+        allowSameSecondScheduling: Bool,
         iOSBackgroundAudio: Bool
     ) {
         self.id = id
@@ -99,6 +106,7 @@ struct AlarmSettings: Codable {
         self.warningNotificationOnKill = warningNotificationOnKill
         self.androidFullScreenIntent = androidFullScreenIntent
         self.allowAlarmOverlap = allowAlarmOverlap
+        self.allowSameSecondScheduling = allowSameSecondScheduling
         self.iOSBackgroundAudio = iOSBackgroundAudio
     }
 
@@ -115,6 +123,7 @@ struct AlarmSettings: Codable {
             warningNotificationOnKill: wire.warningNotificationOnKill,
             androidFullScreenIntent: wire.androidFullScreenIntent,
             allowAlarmOverlap: wire.allowAlarmOverlap,
+            allowSameSecondScheduling: wire.allowSameSecondScheduling,
             iOSBackgroundAudio: wire.iOSBackgroundAudio
         )
     }

@@ -138,6 +138,25 @@ You can also listen to the `Alarm.updateStream` to know when an alarm is added, 
 
 To avoid unexpected behaviors, if you set an alarm for the same time, down to the second, as an existing one, the new alarm will replace the existing one.
 
+If you need to schedule multiple alarms with different ids for the exact same second, you can set `allowSameSecondScheduling` to `true`:
+
+```dart
+AlarmSettings(
+  id: 1,
+  dateTime: dateTime,
+  allowSameSecondScheduling: true,
+  // ...
+)
+```
+
+When `allowSameSecondScheduling` is enabled:
+- Alarms with the **same id** still replace each other
+- Alarms with **different ids** can be scheduled for the same second
+- How they ring depends on `allowAlarmOverlap`:
+  - `allowAlarmOverlap = false` (default): Alarms ring **sequentially** one after another — just like the iOS system Clock app. The first alarm rings first; when it stops, the next queued alarm starts ringing automatically.
+  - `allowAlarmOverlap = true`: Alarms ring **concurrently** — the later alarm will override the previous one and continue ringing.
+- These two options are independent and can be combined as needed
+
 ## 📱 Example app
 
 Don't hesitate to check out the [example's code](https://github.com/gdelataillade/alarm/tree/main/example), and take a look at the app:

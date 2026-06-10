@@ -48,6 +48,58 @@ class _ExampleAlarmHomeShortcutButtonState
     widget.refreshAlarms();
   }
 
+  Future<void> scheduleMultipleAlarms({required bool allowOverlap}) async {
+    setState(() => showMenu = false);
+
+    final now = DateTime.now();
+    final baseId = now.millisecondsSinceEpoch % 10000;
+    final dateTime = now.add(const Duration(seconds: 5));
+
+    final sounds = [
+      'assets/marimba.mp3',
+      'assets/nokia.mp3',
+      'assets/mozart.mp3',
+    ];
+
+    for (var i = 0; i < 3; i++) {
+      final alarmSettings = AlarmSettings(
+        id: baseId + i,
+        dateTime: dateTime,
+        loopAudio: false,
+        vibrate: true,
+        assetAudioPath: sounds[i],
+        volumeSettings: VolumeSettings.fixed(volume: 0.8),
+        allowSameSecondScheduling: true,
+        allowAlarmOverlap: allowOverlap,
+        notificationSettings: NotificationSettings(
+          title: 'Alarm ${i + 1} of 3',
+          body: allowOverlap
+              ? 'Concurrent mode: overlapping alarms'
+              : 'Sequential mode: queued alarms',
+          stopButton: 'Stop',
+          icon: 'notification_icon',
+        ),
+        warningNotificationOnKill: Platform.isIOS,
+      );
+
+      await Alarm.set(alarmSettings: alarmSettings);
+    }
+
+    widget.refreshAlarms();
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            allowOverlap
+                ? '3 concurrent alarms scheduled for ${dateTime.toLocal()}'
+                : '3 sequential alarms scheduled for ${dateTime.toLocal()}',
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -82,6 +134,14 @@ class _ExampleAlarmHomeShortcutButtonState
               TextButton(
                 onPressed: () => onPressButton(48),
                 child: const Text('+48h'),
+              ),
+              TextButton(
+                onPressed: () => scheduleMultipleAlarms(allowOverlap: false),
+                child: const Text('3 seq'),
+              ),
+              TextButton(
+                onPressed: () => scheduleMultipleAlarms(allowOverlap: true),
+                child: const Text('3 overlap'),
               ),
             ],
           ),
