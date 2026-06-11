@@ -58,8 +58,10 @@ class AlarmService : Service() {
             return START_NOT_STICKY
         }
 
+        // Note: `alarmId` is only updated in ringAlarm() so that queued or
+        // stopped alarms never overwrite the id of the currently ringing
+        // alarm, which onTaskRemoved relies on.
         val id = intent.getIntExtra("id", 0)
-        alarmId = id
         val action = intent.getStringExtra(AlarmReceiver.EXTRA_ALARM_ACTION)
 
         if (action == "STOP_ALARM" && id != 0) {
