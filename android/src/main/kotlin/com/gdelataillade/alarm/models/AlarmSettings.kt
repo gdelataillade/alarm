@@ -27,6 +27,7 @@ data class AlarmSettings(
     val warningNotificationOnKill: Boolean,
     val androidFullScreenIntent: Boolean,
     val allowAlarmOverlap: Boolean = false, // Defaults to false for backward compatibility
+    val allowSameSecondScheduling: Boolean = false, // Defaults to false for backward compatibility
     val androidStopAlarmOnTermination: Boolean = true, // Defaults to true for backward compatibility
     val preferConnectedAudioDevice: Boolean = false, // Defaults to false for backward compatibility
 ) {
@@ -43,6 +44,7 @@ data class AlarmSettings(
                 e.warningNotificationOnKill,
                 e.androidFullScreenIntent,
                 e.allowAlarmOverlap,
+                e.allowSameSecondScheduling,
                 e.androidStopAlarmOnTermination,
                 e.preferConnectedAudioDevice,
             )
@@ -69,6 +71,9 @@ data class AlarmSettings(
 
             // Handle backward compatibility for `allowAlarmOverlap`
             val allowAlarmOverlap = jsonObject.primitiveBoolean("allowAlarmOverlap") ?: false
+
+            // Handle backward compatibility for `allowSameSecondScheduling`
+            val allowSameSecondScheduling = jsonObject.primitiveBoolean("allowSameSecondScheduling") ?: false
 
             // Handle backward compatibility for `androidStopAlarmOnTermination`
             val androidStopAlarmOnTermination = jsonObject.primitiveBoolean("androidStopAlarmOnTermination") ?: true
@@ -105,6 +110,7 @@ data class AlarmSettings(
                 warningNotificationOnKill = warningNotificationOnKill,
                 androidFullScreenIntent = androidFullScreenIntent,
                 allowAlarmOverlap = allowAlarmOverlap,
+                allowSameSecondScheduling = allowSameSecondScheduling,
                 androidStopAlarmOnTermination = androidStopAlarmOnTermination,
                 preferConnectedAudioDevice = preferConnectedAudioDevice,
             )

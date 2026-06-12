@@ -29,6 +29,8 @@ AlarmSettings _$AlarmSettingsFromJson(Map<String, dynamic> json) =>
               'androidFullScreenIntent', (v) => v as bool? ?? true),
           allowAlarmOverlap:
               $checkedConvert('allowAlarmOverlap', (v) => v as bool? ?? false),
+          allowSameSecondScheduling: $checkedConvert('allowSameSecondScheduling',
+              (v) => v as bool? ?? false),
           iOSBackgroundAudio:
               $checkedConvert('iOSBackgroundAudio', (v) => v as bool? ?? true),
           androidStopAlarmOnTermination: $checkedConvert(
@@ -53,6 +55,7 @@ Map<String, dynamic> _$AlarmSettingsToJson(AlarmSettings instance) =>
       'warningNotificationOnKill': instance.warningNotificationOnKill,
       'androidFullScreenIntent': instance.androidFullScreenIntent,
       'allowAlarmOverlap': instance.allowAlarmOverlap,
+      'allowSameSecondScheduling': instance.allowSameSecondScheduling,
       'iOSBackgroundAudio': instance.iOSBackgroundAudio,
       'androidStopAlarmOnTermination': instance.androidStopAlarmOnTermination,
       'preferConnectedAudioDevice': instance.preferConnectedAudioDevice,

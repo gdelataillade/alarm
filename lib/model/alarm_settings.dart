@@ -22,6 +22,7 @@ class AlarmSettings extends Equatable {
     this.warningNotificationOnKill = true,
     this.androidFullScreenIntent = true,
     this.allowAlarmOverlap = false,
+    this.allowSameSecondScheduling = false,
     this.iOSBackgroundAudio = true,
     this.androidStopAlarmOnTermination = true,
     this.preferConnectedAudioDevice = false,
@@ -56,6 +57,10 @@ class AlarmSettings extends Equatable {
 
       // Default `allowAlarmOverlap` to false for v4
       json['allowAlarmOverlap'] = json['allowAlarmOverlap'] ?? false;
+
+      // Default `allowSameSecondScheduling` to false for v4
+      json['allowSameSecondScheduling'] =
+          json['allowSameSecondScheduling'] ?? false;
 
       // Default `iOSBackgroundAudio` to true for v4
       json['iOSBackgroundAudio'] = json['iOSBackgroundAudio'] ?? true;
@@ -160,6 +165,14 @@ class AlarmSettings extends Equatable {
   /// Defaults to `false`.
   final bool allowAlarmOverlap;
 
+  /// Whether multiple alarms with different ids can be scheduled for the same
+  /// second. When `false` (default), a new alarm scheduled for the same second
+  /// as an existing one will replace it. When `true`, alarms with different ids
+  /// can coexist even if they share the same second.
+  ///
+  /// Defaults to `false`.
+  final bool allowSameSecondScheduling;
+
   /// iOS apps are killed if they remain inactive in the background. Android
   /// does not have this limitation due to native AlarmManager support.
   ///
@@ -212,6 +225,7 @@ class AlarmSettings extends Equatable {
         warningNotificationOnKill: warningNotificationOnKill,
         androidFullScreenIntent: androidFullScreenIntent,
         allowAlarmOverlap: allowAlarmOverlap,
+        allowSameSecondScheduling: allowSameSecondScheduling,
         iOSBackgroundAudio: iOSBackgroundAudio,
         androidStopAlarmOnTermination: androidStopAlarmOnTermination,
         preferConnectedAudioDevice: preferConnectedAudioDevice,
@@ -237,6 +251,7 @@ class AlarmSettings extends Equatable {
     bool? warningNotificationOnKill,
     bool? androidFullScreenIntent,
     bool? allowAlarmOverlap,
+    bool? allowSameSecondScheduling,
     bool? iOSBackgroundAudio,
     bool? androidStopAlarmOnTermination,
     bool? preferConnectedAudioDevice,
@@ -255,6 +270,8 @@ class AlarmSettings extends Equatable {
       androidFullScreenIntent:
           androidFullScreenIntent ?? this.androidFullScreenIntent,
       allowAlarmOverlap: allowAlarmOverlap ?? this.allowAlarmOverlap,
+      allowSameSecondScheduling:
+          allowSameSecondScheduling ?? this.allowSameSecondScheduling,
       iOSBackgroundAudio: iOSBackgroundAudio ?? this.iOSBackgroundAudio,
       androidStopAlarmOnTermination:
           androidStopAlarmOnTermination ?? this.androidStopAlarmOnTermination,
@@ -276,6 +293,7 @@ class AlarmSettings extends Equatable {
         warningNotificationOnKill,
         androidFullScreenIntent,
         allowAlarmOverlap,
+        allowSameSecondScheduling,
         iOSBackgroundAudio,
         androidStopAlarmOnTermination,
         preferConnectedAudioDevice,

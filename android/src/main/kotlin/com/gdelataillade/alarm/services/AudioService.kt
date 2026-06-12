@@ -21,11 +21,10 @@ class AudioService(private val context: Context) {
 
     private val mediaPlayers = ConcurrentHashMap<Int, MediaPlayer>()
     private val timers = ConcurrentHashMap<Int, Timer>()
+    private val onAudioCompleteListeners = ConcurrentHashMap<Int, () -> Unit>()
 
-    private var onAudioComplete: (() -> Unit)? = null
-
-    fun setOnAudioCompleteListener(listener: () -> Unit) {
-        onAudioComplete = listener
+    fun setOnAudioCompleteListener(id: Int, listener: () -> Unit) {
+        onAudioCompleteListeners[id] = listener
     }
 
     fun isMediaPlayerEmpty(): Boolean {
@@ -44,7 +43,7 @@ class AudioService(private val context: Context) {
         fadeSteps: List<VolumeFadeStep>,
         preferConnectedAudioDevice: Boolean
     ) {
-        stopAudio(id) // Stop and release any existing MediaPlayer and Timer for this ID
+        releaseMediaPlayer(id) // Stop and release any existing MediaPlayer and Timer for this ID
 
         try {
             MediaPlayer().apply {
@@ -113,7 +112,7 @@ class AudioService(private val context: Context) {
 
                 setOnCompletionListener {
                     if (!loopAudio) {
-                        onAudioComplete?.invoke()
+                        onAudioCompleteListeners[id]?.invoke()
                     }
                 }
 
@@ -136,6 +135,14 @@ class AudioService(private val context: Context) {
     }
 
     fun stopAudio(id: Int) {
+        onAudioCompleteListeners.remove(id)
+        releaseMediaPlayer(id)
+    }
+
+    // Releases the MediaPlayer and Timer for this ID without touching the
+    // completion listener, so playAudio can clean up a previous player after
+    // the listener for the new ring has already been registered.
+    private fun releaseMediaPlayer(id: Int) {
         timers[id]?.cancel()
         timers.remove(id)
 
@@ -217,6 +224,8 @@ class AudioService(private val context: Context) {
     }
 
     fun cleanUp() {
+        onAudioCompleteListeners.clear()
+
         timers.values.forEach(Timer::cancel)
         timers.clear()
 

@@ -160,6 +160,7 @@ struct AlarmSettingsWire: Hashable {
   var warningNotificationOnKill: Bool
   var androidFullScreenIntent: Bool
   var allowAlarmOverlap: Bool
+  var allowSameSecondScheduling: Bool
   var iOSBackgroundAudio: Bool
   var androidStopAlarmOnTermination: Bool
   var preferConnectedAudioDevice: Bool
@@ -177,9 +178,10 @@ struct AlarmSettingsWire: Hashable {
     let warningNotificationOnKill = pigeonVar_list[7] as! Bool
     let androidFullScreenIntent = pigeonVar_list[8] as! Bool
     let allowAlarmOverlap = pigeonVar_list[9] as! Bool
-    let iOSBackgroundAudio = pigeonVar_list[10] as! Bool
-    let androidStopAlarmOnTermination = pigeonVar_list[11] as! Bool
-    let preferConnectedAudioDevice = pigeonVar_list[12] as! Bool
+    let allowSameSecondScheduling = pigeonVar_list[10] as! Bool
+    let iOSBackgroundAudio = pigeonVar_list[11] as! Bool
+    let androidStopAlarmOnTermination = pigeonVar_list[12] as! Bool
+    let preferConnectedAudioDevice = pigeonVar_list[13] as! Bool
 
     return AlarmSettingsWire(
       id: id,
@@ -192,6 +194,7 @@ struct AlarmSettingsWire: Hashable {
       warningNotificationOnKill: warningNotificationOnKill,
       androidFullScreenIntent: androidFullScreenIntent,
       allowAlarmOverlap: allowAlarmOverlap,
+      allowSameSecondScheduling: allowSameSecondScheduling,
       iOSBackgroundAudio: iOSBackgroundAudio,
       androidStopAlarmOnTermination: androidStopAlarmOnTermination,
       preferConnectedAudioDevice: preferConnectedAudioDevice
@@ -209,6 +212,7 @@ struct AlarmSettingsWire: Hashable {
       warningNotificationOnKill,
       androidFullScreenIntent,
       allowAlarmOverlap,
+      allowSameSecondScheduling,
       iOSBackgroundAudio,
       androidStopAlarmOnTermination,
       preferConnectedAudioDevice,

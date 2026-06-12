@@ -95,8 +95,12 @@ class Alarm {
     final alarms = await getAlarms();
 
     for (final alarm in alarms) {
-      if (alarm.id == alarmSettings.id ||
-          alarm.dateTime.isSameSecond(alarmSettings.dateTime)) {
+      final sameId = alarm.id == alarmSettings.id;
+      final sameSecond = alarm.dateTime.isSameSecond(alarmSettings.dateTime);
+      final shouldReplaceSameSecond =
+          sameSecond && !alarmSettings.allowSameSecondScheduling;
+
+      if (sameId || shouldReplaceSameSecond) {
         await Alarm.stop(alarm.id);
       }
     }

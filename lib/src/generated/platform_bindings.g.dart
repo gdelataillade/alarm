@@ -73,6 +73,7 @@ class AlarmSettingsWire {
     required this.warningNotificationOnKill,
     required this.androidFullScreenIntent,
     required this.allowAlarmOverlap,
+    required this.allowSameSecondScheduling,
     required this.iOSBackgroundAudio,
     required this.androidStopAlarmOnTermination,
     required this.preferConnectedAudioDevice,
@@ -98,6 +99,8 @@ class AlarmSettingsWire {
 
   bool allowAlarmOverlap;
 
+  bool allowSameSecondScheduling;
+
   bool iOSBackgroundAudio;
 
   bool androidStopAlarmOnTermination;
@@ -116,6 +119,7 @@ class AlarmSettingsWire {
       warningNotificationOnKill,
       androidFullScreenIntent,
       allowAlarmOverlap,
+      allowSameSecondScheduling,
       iOSBackgroundAudio,
       androidStopAlarmOnTermination,
       preferConnectedAudioDevice,
@@ -139,9 +143,10 @@ class AlarmSettingsWire {
       warningNotificationOnKill: result[7]! as bool,
       androidFullScreenIntent: result[8]! as bool,
       allowAlarmOverlap: result[9]! as bool,
-      iOSBackgroundAudio: result[10]! as bool,
-      androidStopAlarmOnTermination: result[11]! as bool,
-      preferConnectedAudioDevice: result[12]! as bool,
+      allowSameSecondScheduling: result[10]! as bool,
+      iOSBackgroundAudio: result[11]! as bool,
+      androidStopAlarmOnTermination: result[12]! as bool,
+      preferConnectedAudioDevice: result[13]! as bool,
     );
   }
 
