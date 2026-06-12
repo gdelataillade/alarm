@@ -1,4 +1,5 @@
 import AVFoundation
+import UIKit
 import os.log
 
 class AppTerminateManager: NSObject {
