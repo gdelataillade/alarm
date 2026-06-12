@@ -40,9 +40,9 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
 
 SPEC CHECKSUMS:
-  alarm: 8a8ed4893eb9bd09e7c5a96bf8ab8104f380f65f
+  alarm: 19ed54ac2676c70ff0d164221082a416f47a0cd8
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  flutter_fgbg: d3da78df78454b1808f0829a5da9cd17dfe16444
+  flutter_fgbg: e791a8b5d5fab97ad42771e692108dc7869e2651
   flutter_local_notifications: a5a732f069baa862e728d839dd2ebb904737effb
   permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
   shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7

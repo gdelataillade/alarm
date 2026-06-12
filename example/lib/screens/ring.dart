@@ -26,12 +26,7 @@ class _ExampleAlarmRingScreenState extends State<ExampleAlarmRingScreen> {
       if (alarms.containsId(widget.alarmSettings.id)) return;
       _log.info('Alarm ${widget.alarmSettings.id} stopped ringing.');
       _ringingSubscription?.cancel();
-      if (mounted) {
-        final route = ModalRoute.of(context);
-        if (route != null) {
-          Navigator.of(context).removeRoute(route);
-        }
-      }
+      if (mounted) Navigator.pop(context);
     });
   }
 
@@ -49,20 +44,8 @@ class _ExampleAlarmRingScreenState extends State<ExampleAlarmRingScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             Text(
-              'Alarm ${widget.alarmSettings.id} is ringing',
+              'You alarm (${widget.alarmSettings.id}) is ringing...',
               style: Theme.of(context).textTheme.titleLarge,
-            ),
-            Text(
-              widget.alarmSettings.allowAlarmOverlap
-                  ? 'Concurrent mode'
-                  : 'Sequential mode',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            Text(
-              widget.alarmSettings.allowSameSecondScheduling
-                  ? 'Same-second scheduling enabled'
-                  : '',
-              style: Theme.of(context).textTheme.bodySmall,
             ),
             const Text('🔔', style: TextStyle(fontSize: 50)),
             Row(

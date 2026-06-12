@@ -22,7 +22,6 @@ class ExampleAlarmHomeScreen extends StatefulWidget {
 
 class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
   List<AlarmSettings> alarms = [];
-  final List<AlarmSettings> alarmHistory = [];
   Notifications? notifications;
 
   static StreamSubscription<AlarmSet>? ringSubscription;
@@ -43,22 +42,10 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
   }
 
   Future<void> loadAlarms() async {
-    final scheduled = await Alarm.getAlarms();
-
-    // Merge scheduled alarms into history, keeping stopped ones visible
-    for (final alarm in scheduled) {
-      final index = alarmHistory.indexWhere((a) => a.id == alarm.id);
-      if (index == -1) {
-        alarmHistory.add(alarm);
-      } else {
-        alarmHistory[index] = alarm;
-      }
-    }
-
-    alarmHistory.sort((a, b) => a.dateTime.isBefore(b.dateTime) ? 0 : 1);
-
+    final updatedAlarms = await Alarm.getAlarms();
+    updatedAlarms.sort((a, b) => a.dateTime.isBefore(b.dateTime) ? 0 : 1);
     setState(() {
-      alarms = scheduled;
+      alarms = updatedAlarms;
     });
   }
 
@@ -140,41 +127,22 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
         child: Column(
           children: [
             Expanded(
-              child: alarmHistory.isNotEmpty
+              child: alarms.isNotEmpty
                   ? ListView.separated(
-                      itemCount: alarmHistory.length,
+                      itemCount: alarms.length,
                       separatorBuilder: (context, index) =>
                           const Divider(height: 1),
                       itemBuilder: (context, index) {
-                        final alarm = alarmHistory[index];
-                        final isStopped = !alarms.any((a) => a.id == alarm.id);
-                        final soundName = alarm.assetAudioPath
-                            ?.split('/')
-                            .last
-                            .replaceAll('.mp3', '');
-                        final flags = <String>[
-                          'id:${alarm.id}',
-                          if (soundName != null) soundName else 'default',
-                          if (alarm.allowSameSecondScheduling) 'same-second',
-                          if (alarm.allowAlarmOverlap) 'overlap',
-                        ];
                         return ExampleAlarmTile(
-                          key: Key(alarm.id.toString()),
+                          key: Key(alarms[index].id.toString()),
                           title: TimeOfDay(
-                            hour: alarm.dateTime.hour,
-                            minute: alarm.dateTime.minute,
+                            hour: alarms[index].dateTime.hour,
+                            minute: alarms[index].dateTime.minute,
                           ).format(context),
-                          subtitle: flags.join(' · '),
-                          isStopped: isStopped,
-                          onPressed: () => navigateToAlarmScreen(alarm),
+                          onPressed: () => navigateToAlarmScreen(alarms[index]),
                           onDismissed: () {
-                            Alarm.stop(alarm.id).then((_) {
-                              setState(() {
-                                alarmHistory.removeWhere(
-                                  (a) => a.id == alarm.id,
-                                );
-                              });
-                            });
+                            Alarm.stop(alarms[index].id)
+                                .then((_) => loadAlarms());
                           },
                         );
                       },

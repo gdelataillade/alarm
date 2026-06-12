@@ -21,8 +21,6 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
   late Duration? fadeDuration;
   late bool staircaseFade;
   late String? assetAudio;
-  late bool allowSameSecondScheduling;
-  late bool allowAlarmOverlap;
 
   @override
   void initState() {
@@ -38,8 +36,6 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       fadeDuration = null;
       staircaseFade = false;
       assetAudio = null;
-      allowSameSecondScheduling = false;
-      allowAlarmOverlap = false;
     } else {
       selectedDateTime = widget.alarmSettings!.dateTime;
       loopAudio = widget.alarmSettings!.loopAudio;
@@ -48,9 +44,6 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       fadeDuration = widget.alarmSettings!.volumeSettings.fadeDuration;
       staircaseFade = widget.alarmSettings!.volumeSettings.fadeSteps.isNotEmpty;
       assetAudio = widget.alarmSettings!.assetAudioPath;
-      allowSameSecondScheduling =
-          widget.alarmSettings!.allowSameSecondScheduling;
-      allowAlarmOverlap = widget.alarmSettings!.allowAlarmOverlap;
     }
   }
 
@@ -126,8 +119,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
       vibrate: vibrate,
       assetAudioPath: assetAudio,
       volumeSettings: volumeSettings,
-      allowSameSecondScheduling: allowSameSecondScheduling,
-      allowAlarmOverlap: allowAlarmOverlap,
+      allowAlarmOverlap: true,
       notificationSettings: NotificationSettings(
         title: 'Alarm example',
         body: 'Your alarm ($id) is ringing',
@@ -331,38 +323,6 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
                   () => fadeDuration =
                       value != null ? Duration(seconds: value) : null,
                 ),
-              ),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  'Same-second scheduling',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ),
-              Switch(
-                value: allowSameSecondScheduling,
-                onChanged: (value) =>
-                    setState(() => allowSameSecondScheduling = value),
-              ),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  'Alarm overlap',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ),
-              Switch(
-                value: allowAlarmOverlap,
-                onChanged: (value) =>
-                    setState(() => allowAlarmOverlap = value),
               ),
             ],
           ),
