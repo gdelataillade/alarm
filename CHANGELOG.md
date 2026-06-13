@@ -1,3 +1,8 @@
+## 5.5.0
+* [iOS] Added Swift Package Manager support.
+* Added `AlarmSettings.allowSameSecondScheduling` to allow multiple alarms to ring in the same second.
+* **Requires Flutter 3.41.0 or later.** Older Flutter projects will continue to resolve to 5.4.1.
+
 ## 5.4.1
 * [Android] Added `AlarmSettings.preferConnectedAudioDevice` to route alarm audio through connected earphones or Bluetooth.
 * [Android] Fixed `androidStopAlarmOnTermination` not persisting across app restarts.

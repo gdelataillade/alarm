@@ -191,12 +191,22 @@ class AlarmRingManager: NSObject {
                 audioURL = documentsDirectory.appendingPathComponent(assetAudioPath)
             }
         } else {
-            // Use the bundled default alarm sound for iOS
-            let bundle = Bundle(for: Self.self)
-            guard let bundleURL = bundle.url(forResource: "alarm", withExtension: "bundle"),
-                  let resourceBundle = Bundle(url: bundleURL),
-                  let audioPath = resourceBundle.path(forResource: "default", ofType: "m4a") else {
-                os_log(.error, log: AlarmRingManager.logger, "Default alarm sound 'default.m4a' not found in alarm.bundle")
+            // Use the bundled default alarm sound for iOS.
+            // Under SwiftPM the resources are exposed via Bundle.module; under
+            // CocoaPods they live in a nested alarm.bundle inside the framework.
+            #if SWIFT_PACKAGE
+            let resourceBundle: Bundle = .module
+            #else
+            let frameworkBundle = Bundle(for: Self.self)
+            guard let bundleURL = frameworkBundle.url(forResource: "alarm", withExtension: "bundle"),
+                  let nestedBundle = Bundle(url: bundleURL) else {
+                os_log(.error, log: AlarmRingManager.logger, "alarm.bundle not found inside the framework")
+                return nil
+            }
+            let resourceBundle = nestedBundle
+            #endif
+            guard let audioPath = resourceBundle.path(forResource: "default", ofType: "m4a") else {
+                os_log(.error, log: AlarmRingManager.logger, "Default alarm sound 'default.m4a' not found in resource bundle")
                 return nil
             }
             audioURL = URL(fileURLWithPath: audioPath)
