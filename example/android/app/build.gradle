@@ -22,28 +22,28 @@ if (flutterVersionName == null) {
 }
 
 android {
-    namespace 'com.gdelataillade.alarm.alarm_example'
+    namespace = 'com.gdelataillade.alarm.alarm_example'
 
-    compileSdkVersion 36
-    ndkVersion "27.0.12077973"
+    compileSdk = 36
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
 
         // For flutter_local_notifications plugin.
-        coreLibraryDesugaringEnabled true
+        coreLibraryDesugaringEnabled = true
     }
 
     defaultConfig {
-        applicationId "com.gdelataillade.alarm.alarm_example"
-        minSdkVersion flutter.minSdkVersion
-        targetSdkVersion flutter.targetSdkVersion
-        versionCode flutterVersionCode.toInteger()
-        versionName flutterVersionName
+        applicationId = "com.gdelataillade.alarm.alarm_example"
+        minSdk = flutter.minSdkVersion
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutterVersionCode.toInteger()
+        versionName = flutterVersionName
 
         // For flutter_local_notifications and alarm plugin.
-        multiDexEnabled true
+        multiDexEnabled = true
     }
 
     buildTypes {
