@@ -1,3 +1,6 @@
+## 5.6.0
+* [Android] Update to AGP9 and built-in Kotlin.
+
 ## 5.5.0
 * [iOS] Added Swift Package Manager support.
 * Added `AlarmSettings.allowSameSecondScheduling` to allow multiple alarms to ring in the same second.
