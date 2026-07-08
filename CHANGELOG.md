@@ -1,3 +1,15 @@
+## 5.6.0
+* [ANDROID] Upgraded to AGP9 and Built in kotlin support added.
+* Updated dependencies:
+    * `json_annotation` to `^4.12.0`
+    * `shared_preferences` to `^2.5.5`
+    * `equatable` to `^2.1.0`
+    * `build_runner` to `^2.15.0`
+    * `json_serializable` to `6.14.0`
+    * `pigeon` to `27.1.0`
+    * `very_good_analysis` to `10.3.0`
+
+
 ## 5.5.0
 * [iOS] Added Swift Package Manager support.
 * Added `AlarmSettings.allowSameSecondScheduling` to allow multiple alarms to ring in the same second.
