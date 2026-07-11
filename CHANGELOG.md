@@ -1,5 +1,8 @@
 ## 5.6.0
-* [Android] Update to AGP9 and built-in Kotlin.
+* [Android] Added support for Android Gradle Plugin 9 and its built-in Kotlin toolchain, while keeping compatibility with AGP 8. The Kotlin Gradle plugin is now applied conditionally, following Flutter's official plugin migration guide.
+* [Android] Bumped `compileSdk` from 34 to 35 and the build's Kotlin version from 2.1.0 to 2.2.10.
+* [Android] Minimum Kotlin Gradle plugin version for consuming apps is now 2.0.0 (already required by Flutter 3.44+). No API or runtime behavior changes.
+* Updated the example app to AGP 9.0.1 / Gradle 9.1.0.
 
 ## 5.5.0
 * [iOS] Added Swift Package Manager support.
