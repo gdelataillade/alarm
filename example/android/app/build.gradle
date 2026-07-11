@@ -21,11 +21,19 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
+// Mirrors the alarm plugin's conditional. AGP 9's built-in Kotlin derives the JVM
+// target from compileOptions.targetCompatibility; on AGP < 9 or when the app opts
+// out of built-in Kotlin (Flutter's migrator sets android.builtInKotlin=false),
+// the standalone Kotlin plugin is active and the target must be set explicitly.
+def agpMajor = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')[0] as int
+def builtInKotlin = providers.gradleProperty('android.builtInKotlin').map { it.toBoolean() }.orElse(true).get()
+def usesStandaloneKotlin = agpMajor < 9 || !builtInKotlin
+
 android {
     namespace = 'com.gdelataillade.alarm.alarm_example'
 
     compileSdk = 36
-    ndkVersion = "27.0.12077973"
+    ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -44,6 +52,12 @@ android {
 
         // For flutter_local_notifications and alarm plugin.
         multiDexEnabled = true
+    }
+
+    if (usesStandaloneKotlin) {
+        kotlinOptions {
+            jvmTarget = '17'
+        }
     }
 
     buildTypes {
