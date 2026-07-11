@@ -6,7 +6,7 @@ If you are using a plugin version below `3.0.0`, follow [these installation step
 In your `android/app/build.gradle`, make sure you have the following config:
 ```Gradle
 android {
-  compileSdkVersion 34
+  compileSdkVersion 35
   [...]
   defaultConfig {
     [...]
@@ -20,9 +20,11 @@ android {
 In your `android/settings.gradle`, ensure you have the following Kotlin plugin configuration:
 ```Gradle
 plugins {
-    id "org.jetbrains.kotlin.android" version "1.9.0" apply false  // Must be at least 1.9.0
+    id "org.jetbrains.kotlin.android" version "2.0.0" apply false  // Must be at least 2.0.0
 }
 ```
+
+> **Android Gradle Plugin 9+:** you don't need this line. AGP 9 compiles Kotlin with its built-in support, and the alarm plugin applies the Kotlin Gradle plugin only when building under AGP 8. Keep it for apps on AGP 8.
 
 ## Step 3
 Then, add the following permissions to your `AndroidManifest.xml` within the `<manifest></manifest>` tags:

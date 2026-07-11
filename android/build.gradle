@@ -2,7 +2,7 @@ group 'com.gdelataillade.alarm.alarm'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '2.1.0'
+    ext.kotlin_version = '2.2.10'
     repositories {
         google()
         mavenCentral()
@@ -23,29 +23,35 @@ allprojects {
 }
 
 apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
+
+def agpMajor = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')[0] as int
+def builtInKotlin = providers.gradleProperty('android.builtInKotlin').map { it.toBoolean() }.orElse(true).get()
+def shouldApplyKotlinAndroidPlugin = agpMajor < 9 || !builtInKotlin
+
+// AGP 9 compiles Kotlin via its built-in Kotlin support unless the app opts out.
+if (shouldApplyKotlinAndroidPlugin) {
+    apply plugin: 'kotlin-android'
+}
 apply plugin: 'kotlinx-serialization'
 
 android {
-    namespace 'com.gdelataillade.alarm.alarm'
+    namespace = 'com.gdelataillade.alarm.alarm'
 
-    compileSdkVersion 34
+    compileSdk = 35
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = '17'
-    }
-
-    sourceSets {
-        main.java.srcDirs += 'src/main/kotlin'
+    if (shouldApplyKotlinAndroidPlugin) {
+        kotlinOptions {
+            jvmTarget = '17'
+        }
     }
 
     defaultConfig {
-        minSdkVersion 19
+        minSdk = 19
     }
 
     buildTypes {
