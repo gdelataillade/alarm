@@ -1,3 +1,9 @@
+
+## 5.6.1
+* [IOS] SwiftPM path related issue fixed
+* example updated for swiftPM
+
+
 ## 5.6.0
 * [Android] Added support for Android Gradle Plugin 9 and its built-in Kotlin toolchain, while keeping compatibility with AGP 8. The Kotlin Gradle plugin is now applied conditionally, following Flutter's official plugin migration guide.
 * [Android] Bumped `compileSdk` from 34 to 35 and the build's Kotlin version from 2.1.0 to 2.2.10.
