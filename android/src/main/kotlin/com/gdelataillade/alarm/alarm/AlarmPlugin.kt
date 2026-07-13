@@ -31,6 +31,7 @@ class AlarmPlugin : FlutterPlugin, ActivityAware {
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        AlarmApi.setUp(binding.binaryMessenger, null)
         alarmTriggerApi = null
     }
 

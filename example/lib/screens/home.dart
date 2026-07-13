@@ -11,7 +11,7 @@ import 'package:alarm_example/widgets/tile.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-const version = '5.5.0';
+const version = '5.5.1';
 
 class ExampleAlarmHomeScreen extends StatefulWidget {
   const ExampleAlarmHomeScreen({super.key});
@@ -24,8 +24,8 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
   List<AlarmSettings> alarms = [];
   Notifications? notifications;
 
-  static StreamSubscription<AlarmSet>? ringSubscription;
-  static StreamSubscription<AlarmSet>? updateSubscription;
+  StreamSubscription<AlarmSet>? ringSubscription;
+  StreamSubscription<AlarmSet>? updateSubscription;
 
   @override
   void initState() {
@@ -34,8 +34,8 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
       (_) => AlarmPermissions.checkAndroidScheduleExactAlarmPermission(),
     );
     unawaited(loadAlarms());
-    ringSubscription ??= Alarm.ringing.listen(ringingAlarmsChanged);
-    updateSubscription ??= Alarm.scheduled.listen((_) {
+    ringSubscription = Alarm.ringing.listen(ringingAlarmsChanged);
+    updateSubscription = Alarm.scheduled.listen((_) {
       unawaited(loadAlarms());
     });
     notifications = Notifications();
@@ -43,7 +43,8 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
 
   Future<void> loadAlarms() async {
     final updatedAlarms = await Alarm.getAlarms();
-    updatedAlarms.sort((a, b) => a.dateTime.isBefore(b.dateTime) ? 0 : 1);
+    updatedAlarms.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+    if (!mounted) return;
     setState(() {
       alarms = updatedAlarms;
     });
@@ -51,6 +52,7 @@ class _ExampleAlarmHomeScreenState extends State<ExampleAlarmHomeScreen> {
 
   Future<void> ringingAlarmsChanged(AlarmSet alarms) async {
     if (alarms.alarms.isEmpty) return;
+    if (!mounted) return;
     await Navigator.push(
       context,
       MaterialPageRoute<void>(

@@ -16,28 +16,32 @@ public class AlarmApiImpl: NSObject, AlarmApi {
         let alarmSettings = AlarmSettings.from(wire: alarmSettings)
         os_log(.info, log: AlarmApiImpl.logger, "Set alarm called with: %@", String(describing: alarmSettings))
 
-        Task {
+        Task { @MainActor in
             await self.manager.setAlarm(alarmSettings: alarmSettings)
             completion(.success(()))
         }
     }
 
     func stopAlarm(alarmId: Int64, completion: @escaping (Result<Void, Error>) -> Void) {
-        Task {
+        Task { @MainActor in
             await self.manager.stopAlarm(id: Int(truncatingIfNeeded: alarmId), cancelNotif: true)
             completion(.success(()))
         }
     }
 
     func stopAll(completion: @escaping (Result<Void, Error>) -> Void) {
-        Task {
+        Task { @MainActor in
             await self.manager.stopAll()
             completion(.success(()))
         }
     }
 
     func isRinging(alarmId: Int64?) throws -> Bool {
-        return self.manager.isRinging(id: alarmId.map { Int(truncatingIfNeeded: $0) })
+        // Pigeon invokes this handler on the main thread; assumeIsolated makes
+        // that explicit so the manager state can stay main-actor confined.
+        return MainActor.assumeIsolated {
+            self.manager.isRinging(id: alarmId.map { Int(truncatingIfNeeded: $0) })
+        }
     }
 
     func setWarningNotificationOnKill(title: String, body: String) throws {
@@ -51,6 +55,7 @@ public class AlarmApiImpl: NSObject, AlarmApi {
             details: nil)
     }
 
+    @MainActor
     func appRefresh() async {
         BackgroundAudioManager.shared.refresh(registrar: self.registrar)
         await self.manager.checkAlarms()

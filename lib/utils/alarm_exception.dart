@@ -11,7 +11,7 @@ class AlarmException implements Exception {
   /// Exception message.
   final String? message;
 
-  /// The Stacktrace when the exception occured.
+  /// The Stacktrace when the exception occurred.
   final String? stacktrace;
 
   @override

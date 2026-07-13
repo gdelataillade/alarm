@@ -17,6 +17,26 @@ jobs:
       - run: flutter --version
       - run: flutter pub get
       - run: flutter analyze
+      - run: flutter test
+
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+      - run: flutter --version
+      # SwiftPM is the default for end users on Flutter 3.44+, but enable it
+      # explicitly so a CocoaPods fallback can never mask SwiftPM breakage
+      # (e.g. the Xcode project issue found in PR #407).
+      - run: flutter config --enable-swift-package-manager
+      - name: Build example iOS app
+        working-directory: example
+        run: |
+          flutter pub get
+          flutter build ios --no-codesign --debug
 
   build-android:
     runs-on: ubuntu-latest

@@ -8,21 +8,28 @@ class AlarmRingManager: NSObject {
 
     private static let logger = OSLog(subsystem: ALARM_BUNDLE, category: "AlarmRingManager")
 
+    /// State is confined to the main actor; see AlarmManager.
     private var previousVolume: Float?
     private var volumeEnforcementTimer: Timer?
     private var audioPlayer: AVAudioPlayer?
     private var currentAlarmId: Int?
+    /// Pending tasks (audio completion callback and volume fades) that must
+    /// not outlive the current ring. Cancelled on stop so a stale completion
+    /// can never stop an alarm that was re-scheduled with the same id.
+    private var pendingTasks: [Task<Void, Never>] = []
 
     override private init() {
         super.init()
     }
 
+    @MainActor
     func start(id: Int, registrar: FlutterPluginRegistrar, assetAudioPath: String?, loopAudio: Bool, volumeSettings: VolumeSettings, onComplete: (() -> Void)?) async {
         let start = Date()
 
         // If another alarm is already ringing, stop it before starting the new one
         if let currentId = self.currentAlarmId, currentId != id {
             os_log(.info, log: AlarmRingManager.logger, "Overriding previous alarm ID=%d with new alarm ID=%d", currentId, id)
+            self.cancelPendingTasks()
             self.audioPlayer?.stop()
             self.audioPlayer = nil
             self.volumeEnforcementTimer?.invalidate()
@@ -42,9 +49,11 @@ class AlarmRingManager: NSObject {
         }
 
         if volumeSettings.volumeEnforced {
-            self.volumeEnforcementTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            let timer = Timer(timeInterval: 1.0, repeats: true) { _ in
                 AlarmRingManager.shared.enforcementTimerTriggered(targetSystemVolume: targetSystemVolume)
             }
+            RunLoop.main.add(timer, forMode: .common)
+            self.volumeEnforcementTimer = timer
         }
 
         guard let audioPlayer = self.loadAudioPlayer(registrar: registrar, assetAudioPath: assetAudioPath) else {
@@ -69,23 +78,30 @@ class AlarmRingManager: NSObject {
             audioPlayer.volume = 1.0
         }
 
-        if !loopAudio {
-            Task {
+        if !loopAudio, let onComplete = onComplete {
+            let completionTask = Task {
                 try? await Task.sleep(nanoseconds: UInt64(audioPlayer.duration * 1_000_000_000))
-                onComplete?()
+                if Task.isCancelled {
+                    return
+                }
+                onComplete()
             }
+            self.pendingTasks.append(completionTask)
         }
 
         let runDuration = Date().timeIntervalSince(start)
         os_log(.debug, log: AlarmRingManager.logger, "Alarm ring started in %.2fs.", runDuration)
     }
 
+    @MainActor
     func stop(id: Int? = nil) async {
         if let id = id, self.currentAlarmId != id {
             os_log(.debug, log: AlarmRingManager.logger,
                 "Skipping stop for alarm ID=%d because current alarm is ID=%d", id, self.currentAlarmId ?? -1)
             return
         }
+
+        self.cancelPendingTasks()
 
         if self.volumeEnforcementTimer == nil && self.previousVolume == nil && self.audioPlayer == nil {
             os_log(.debug, log: AlarmRingManager.logger, "Alarm ringer already stopped.")
@@ -111,6 +127,12 @@ class AlarmRingManager: NSObject {
 
         let runDuration = Date().timeIntervalSince(start)
         os_log(.debug, log: AlarmRingManager.logger, "Alarm ring stopped in %.2fs.", runDuration)
+    }
+
+    @MainActor
+    private func cancelPendingTasks() {
+        self.pendingTasks.forEach { $0.cancel() }
+        self.pendingTasks.removeAll()
     }
 
     private func duckOtherAudios() {
@@ -161,8 +183,8 @@ class AlarmRingManager: NSObject {
         return previousVolume
     }
 
-    @objc private func enforcementTimerTriggered(targetSystemVolume: Float) {
-        Task {
+    private func enforcementTimerTriggered(targetSystemVolume: Float) {
+        Task { @MainActor in
             let currentSystemVolume = self.getSystemVolume()
             if abs(currentSystemVolume - targetSystemVolume) > 0.01 {
                 os_log(.debug, log: AlarmRingManager.logger, "System volume changed. Restoring to %f.", targetSystemVolume)
@@ -223,6 +245,7 @@ class AlarmRingManager: NSObject {
         }
     }
 
+    @MainActor
     private func fadeVolume(steps: [VolumeFadeStep]) {
         guard let audioPlayer = self.audioPlayer else {
             os_log(.error, log: AlarmRingManager.logger, "Cannot fade volume because audioPlayer is nil.")
@@ -244,14 +267,15 @@ class AlarmRingManager: NSObject {
             let targetVolume = Float(nextStep.volume)
 
             // Schedule the fade using setVolume for a smooth transition
-            Task {
+            let fadeTask = Task {
                 try? await Task.sleep(nanoseconds: UInt64(startTime * 1_000_000_000))
-                if !audioPlayer.isPlaying {
+                if Task.isCancelled || !audioPlayer.isPlaying {
                     return
                 }
                 os_log(.info, log: AlarmRingManager.logger, "Fading volume to %f over %f seconds.", targetVolume, fadeDuration)
                 audioPlayer.setVolume(targetVolume, fadeDuration: fadeDuration)
             }
+            self.pendingTasks.append(fadeTask)
         }
     }
 }

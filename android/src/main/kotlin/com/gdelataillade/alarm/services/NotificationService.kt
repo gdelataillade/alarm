@@ -64,9 +64,12 @@ class NotificationHandler(private val context: Context) {
             action = AlarmReceiver.ACTION_ALARM_STOP
             putExtra("id", alarmId)
         }
+        // Use the alarm id as request code so each alarm gets its own pending
+        // intent; with a shared request code the stop button of one alarm
+        // would stop whichever alarm was scheduled last.
         val stopPendingIntent = PendingIntent.getBroadcast(
             context,
-            0,
+            alarmId,
             stopIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )

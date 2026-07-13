@@ -86,6 +86,9 @@ class PlatformTimers {
     required void Function() onForeground,
     required void Function() onBackground,
   }) {
+    // Cancel any previous subscription for this id so replacing an alarm
+    // never leaks a listener.
+    _fgbgSubscriptions[id]?.cancel();
     _fgbgSubscriptions[id] = FGBGEvents.instance.stream.listen((event) {
       if (event == FGBGType.foreground) onForeground();
       if (event == FGBGType.background) onBackground();

@@ -44,7 +44,7 @@ class _ExampleAlarmRingScreenState extends State<ExampleAlarmRingScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             Text(
-              'You alarm (${widget.alarmSettings.id}) is ringing...',
+              'Your alarm (${widget.alarmSettings.id}) is ringing...',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const Text('🔔', style: TextStyle(fontSize: 50)),

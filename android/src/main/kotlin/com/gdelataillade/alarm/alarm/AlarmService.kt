@@ -15,7 +15,9 @@ import android.content.pm.ServiceInfo
 import android.os.IBinder
 import android.os.PowerManager
 import android.os.Build
+import androidx.core.app.ServiceCompat
 import com.gdelataillade.alarm.models.AlarmSettings
+import com.gdelataillade.alarm.models.NotificationSettings
 import com.gdelataillade.alarm.services.AlarmRingingLiveData
 import com.gdelataillade.alarm.services.NotificationHandler
 import com.gdelataillade.alarm.services.NotificationOnKillService
@@ -25,6 +27,10 @@ import kotlinx.serialization.json.Json
 class AlarmService : Service() {
     companion object {
         private const val TAG = "AlarmService"
+
+        // Arbitrary non-zero id used when the service must enter the
+        // foreground without a real alarm notification to show.
+        private const val PLACEHOLDER_NOTIFICATION_ID = 973_422
 
         var instance: AlarmService? = null
 
@@ -42,6 +48,12 @@ class AlarmService : Service() {
     private val ringingQueue = mutableListOf<Int>()
     private val queuedAlarmSettings = mutableMapOf<Int, AlarmSettings>()
 
+    // Last notification passed to startForeground, so no-op start commands
+    // (queued or ignored alarms) can re-post it to satisfy the
+    // startForegroundService() contract without any visible change.
+    private var currentForegroundId: Int? = null
+    private var currentForegroundNotification: Notification? = null
+
     override fun onCreate() {
         super.onCreate()
 
@@ -54,7 +66,11 @@ class AlarmService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent == null) {
-            stopSelf()
+            // Sticky restart after process death: there is no alarm state to
+            // restore from the intent, shut down quietly. This start did not
+            // come from startForegroundService(), so there is no
+            // startForeground() obligation.
+            stopSelfIfIdle()
             return START_NOT_STICKY
         }
 
@@ -62,28 +78,12 @@ class AlarmService : Service() {
         // stopped alarms never overwrite the id of the currently ringing
         // alarm, which onTaskRemoved relies on.
         val id = intent.getIntExtra("id", 0)
-        val action = intent.getStringExtra(AlarmReceiver.EXTRA_ALARM_ACTION)
-
-        if (action == "STOP_ALARM" && id != 0) {
-            unsaveAlarm(id)
-            return START_NOT_STICKY
-        }
-
-        // Build the notification
-        val notificationHandler = NotificationHandler(this)
-        val appIntent =
-            applicationContext.packageManager.getLaunchIntentForPackage(applicationContext.packageName)
-        val pendingIntent = PendingIntent.getActivity(
-            this,
-            id,
-            appIntent,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
 
         val alarmSettingsJson = intent.getStringExtra("alarmSettings")
         if (alarmSettingsJson == null) {
             Log.e(TAG, "Intent is missing AlarmSettings.")
-            stopSelf()
+            fulfillForegroundObligation()
+            stopSelfIfIdle()
             return START_NOT_STICKY
         }
 
@@ -91,24 +91,28 @@ class AlarmService : Service() {
         try {
             alarmSettings = Json.decodeFromString<AlarmSettings>(alarmSettingsJson)
         } catch (e: Exception) {
-            Log.e(TAG, "Cannot parse AlarmSettings from Intent.")
-            stopSelf()
+            Log.e(TAG, "Cannot parse AlarmSettings from Intent.", e)
+            fulfillForegroundObligation()
+            stopSelfIfIdle()
             return START_NOT_STICKY
         }
 
         // If another alarm is already ringing
         if (!alarmSettings.allowAlarmOverlap && ringingAlarmIds.isNotEmpty()) {
+            // The service is already in the foreground for the ringing alarm;
+            // re-post its notification so this start command also fulfills
+            // the startForegroundService() contract.
+            fulfillForegroundObligation()
             if (alarmSettings.allowSameSecondScheduling) {
                 // Queue for sequential ringing (like iOS system Clock app)
                 ringingQueue.add(id)
                 queuedAlarmSettings[id] = alarmSettings
                 Log.d(TAG, "Alarm $id queued because another alarm is already ringing.")
-                return START_NOT_STICKY
             } else {
                 Log.d(TAG, "An alarm is already ringing. Ignoring new alarm with id: $id")
                 unsaveAlarm(id)
-                return START_NOT_STICKY
             }
+            return START_NOT_STICKY
         }
 
         ringAlarm(id, alarmSettings)
@@ -242,7 +246,7 @@ class AlarmService : Service() {
         } else {
             Log.d(TAG, "Keeping alarm running as androidStopAlarmOnTermination is false.")
         }
-        
+
         super.onTaskRemoved(rootIntent)
     }
 
@@ -255,6 +259,53 @@ class AlarmService : Service() {
             )
         } else {
             startForeground(id, notification)
+        }
+        currentForegroundId = id
+        currentForegroundNotification = notification
+    }
+
+    /// Matches a startForegroundService() call with the mandatory
+    /// startForeground() call, even when the command turns out to be a no-op.
+    /// Missing this contract crashes the app on Android 8+ with
+    /// "Context.startForegroundService() did not then call startForeground()".
+    private fun fulfillForegroundObligation() {
+        try {
+            val id = currentForegroundId
+            val notification = currentForegroundNotification
+            if (id != null && notification != null) {
+                // Re-posting the same notification is invisible to the user.
+                startAlarmService(id, notification)
+                return
+            }
+
+            // Fresh service instance with nothing to show: post a minimal
+            // placeholder. The caller stops the service right after, which
+            // removes it again.
+            val appIntent =
+                applicationContext.packageManager.getLaunchIntentForPackage(applicationContext.packageName)
+            val pendingIntent = PendingIntent.getActivity(
+                this,
+                0,
+                appIntent ?: Intent(),
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            )
+            val placeholder = NotificationHandler(this).buildNotification(
+                NotificationSettings(title = "Alarm", body = ""),
+                false,
+                pendingIntent,
+                0
+            )
+            startAlarmService(PLACEHOLDER_NOTIFICATION_ID, placeholder)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to fulfill the foreground service contract", e)
+        }
+    }
+
+    /// Stops the service only when no alarm is ringing, so an invalid start
+    /// command can never kill an in-progress alarm.
+    private fun stopSelfIfIdle() {
+        if (ringingAlarmIds.isEmpty()) {
+            stopSelf()
         }
     }
 
@@ -296,7 +347,9 @@ class AlarmService : Service() {
                     volumeService?.restorePreviousVolume(showSystemUI)
                     volumeService?.abandonAudioFocus()
                     vibrationService?.stopVibrating()
-                    stopForeground(true)
+                    ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
+                    currentForegroundId = null
+                    currentForegroundNotification = null
                     stopSelf()
                 }
             }
@@ -309,7 +362,9 @@ class AlarmService : Service() {
 
     private fun triggerNextQueuedAlarm() {
         while (ringingQueue.isNotEmpty()) {
-            val nextId = ringingQueue.removeAt(ringingQueue.lastIndex)
+            // FIFO: the alarm that was queued first rings first, matching the
+            // documented sequential behavior.
+            val nextId = ringingQueue.removeAt(0)
             val nextSettings = queuedAlarmSettings.remove(nextId)
             if (nextSettings != null) {
                 // Validate the alarm still exists in storage before promoting
@@ -337,7 +392,9 @@ class AlarmService : Service() {
 
         AlarmRingingLiveData.instance.update(false)
 
-        stopForeground(true)
+        ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
+        currentForegroundId = null
+        currentForegroundNotification = null
         instance = null
 
         super.onDestroy()

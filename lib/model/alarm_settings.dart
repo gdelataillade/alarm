@@ -42,15 +42,16 @@ class AlarmSettings extends Equatable {
 
       final volume = (json['volume'] as num?)?.toDouble();
       final fadeDurationSeconds = (json['fadeDuration'] as num?)?.toDouble();
-      final fadeDurationMillis =
+      // The generated VolumeSettings parser reads durations in microseconds.
+      final fadeDurationMicros =
           (fadeDurationSeconds != null && fadeDurationSeconds > 0)
-              ? (fadeDurationSeconds * 1000).toInt()
+              ? (fadeDurationSeconds * Duration.microsecondsPerSecond).toInt()
               : null;
       final volumeEnforced = json['volumeEnforced'] as bool? ?? false;
 
       json['volumeSettings'] = {
         'volume': volume,
-        'fadeDuration': fadeDurationMillis,
+        'fadeDuration': fadeDurationMicros,
         'fadeSteps': <Map<String, dynamic>>[],
         'volumeEnforced': volumeEnforced,
       };
@@ -277,7 +278,9 @@ class AlarmSettings extends Equatable {
           androidStopAlarmOnTermination ?? this.androidStopAlarmOnTermination,
       preferConnectedAudioDevice:
           preferConnectedAudioDevice ?? this.preferConnectedAudioDevice,
-      payload: payload?.call() ?? this.payload,
+      // The function wrapper allows callers to clear the payload by
+      // explicitly returning null.
+      payload: payload != null ? payload() : this.payload,
     );
   }
 

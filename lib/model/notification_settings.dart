@@ -110,9 +110,6 @@ class NotificationSettings extends Equatable {
     Color? iconColor,
     bool? keepNotificationAfterAlarmEnds,
   }) {
-    assert(title != null, 'NotificationSettings.title cannot be null');
-    assert(body != null, 'NotificationSettings.body cannot be null');
-
     return NotificationSettings(
       title: title ?? this.title,
       body: body ?? this.body,

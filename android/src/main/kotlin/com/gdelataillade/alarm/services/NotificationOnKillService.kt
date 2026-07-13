@@ -9,7 +9,6 @@ import android.content.Intent
 import android.provider.Settings
 import android.os.Build
 import android.os.IBinder
-import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import io.flutter.Log
 
@@ -43,7 +42,6 @@ class NotificationOnKillService : Service() {
         return START_STICKY
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onTaskRemoved(rootIntent: Intent?) {
         try {
             val notificationIntent = packageManager.getLaunchIntentForPackage(packageName)
@@ -64,17 +62,23 @@ class NotificationOnKillService : Service() {
                 .setContentIntent(pendingIntent)
                 .setSound(Settings.System.DEFAULT_ALARM_ALERT_URI)
 
-            val name = "Alarm reliability warning"
-            val descriptionText =
-                "If an alarm was set and the app is killed, a notification will warn you that the alarm might not ring on schedule."
-            val importance = NotificationManager.IMPORTANCE_HIGH
-            val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
-                description = descriptionText
-            }
-
             val notificationManager: NotificationManager =
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
+
+            // Notification channels only exist on Android 8+. Referencing the
+            // class on older devices would throw a NoClassDefFoundError, which
+            // the catch below would not intercept.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val name = "Alarm reliability warning"
+                val descriptionText =
+                    "If an alarm was set and the app is killed, a notification will warn you that the alarm might not ring on schedule."
+                val importance = NotificationManager.IMPORTANCE_HIGH
+                val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
+                    description = descriptionText
+                }
+                notificationManager.createNotificationChannel(channel)
+            }
+
             notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build())
         } catch (e: Exception) {
             Log.e(TAG, "Error showing notification", e)

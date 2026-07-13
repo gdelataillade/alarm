@@ -56,10 +56,18 @@ class AlarmStorage(context: Context) {
                         val alarm = Json.decodeFromString<AlarmSettings>(value)
                         alarms.add(alarm)
                     } catch (e: Exception) {
-                        Log.e(
-                            TAG,
-                            "Error parsing alarm settings for key ${key.name}: ${e.message}"
-                        )
+                        // Fall back to the lenient parser, which understands
+                        // payloads written by older plugin versions, instead
+                        // of silently dropping the alarm.
+                        try {
+                            alarms.add(AlarmSettings.fromJson(value))
+                            Log.w(TAG, "Recovered alarm for key ${key.name} with legacy parser.")
+                        } catch (e2: Exception) {
+                            Log.e(
+                                TAG,
+                                "Error parsing alarm settings for key ${key.name}: ${e2.message}"
+                            )
+                        }
                     }
                 } else {
                     Log.w(TAG, "Skipping non-alarm preference with key: ${key.name}")

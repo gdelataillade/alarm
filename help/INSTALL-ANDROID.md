@@ -24,7 +24,7 @@ plugins {
 }
 ```
 
-> **Android Gradle Plugin 9+:** you don't need this line. AGP 9 compiles Kotlin with its built-in support, and the alarm plugin applies the Kotlin Gradle plugin only when building under AGP 8. Keep it for apps on AGP 8.
+> **Android Gradle Plugin 9+:** you don't need this line. With built-in Kotlin enabled, AGP compiles Kotlin itself; if your project opts out (`android.builtInKotlin=false`, which Flutter's tooling currently sets), the Kotlin Gradle plugin is applied automatically by Flutter and the alarm plugin. Apps on AGP 8 must keep it.
 
 ## Step 3
 Then, add the following permissions to your `AndroidManifest.xml` within the `<manifest></manifest>` tags:
@@ -65,7 +65,7 @@ Inside the <application> tag of your `AndroidManifest.xml`, add the following de
 Necessary if you want to enable an optional notification with `Alarm.setWarningNotificationOnKill` to alert users if the app is terminated, hinting at a rare chance the alarm may not work.
 
 ## Step 5
-To guarantee that your alarm's foreground service can trigger when the app is in the background, it's recommanded to verify and request the necessary permission for scheduling exact alarms on Android 12+ devices. This step is particularly important due to varying device policies.
+To guarantee that your alarm's foreground service can trigger when the app is in the background, it's recommended to verify and request the necessary permission for scheduling exact alarms on Android 12+ devices. This step is particularly important due to varying device policies.
 
 Leverage the [permission_handler](https://pub.dev/packages/permission_handler) package to check and request this permission seamlessly within your Flutter application. Here's an example to integrate into your code:
 

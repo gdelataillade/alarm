@@ -9,7 +9,10 @@ class BackgroundTaskManager: NSObject {
 
     static func setup() {
         BGTaskScheduler.shared.register(forTaskWithIdentifier: backgroundTaskIdentifier, using: nil) { task in
-            // Schedule the next task:
+            // The submitted request was consumed by this launch. Reset the
+            // flag so the next refresh actually gets scheduled; otherwise
+            // enable() would return early and the chain would stop here.
+            self.enabled = false
             self.enable()
 
             // Run the task:

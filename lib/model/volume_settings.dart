@@ -20,7 +20,7 @@ class VolumeSettings extends Equatable {
         ),
         assert(
           fadeDuration == null || fadeDuration > Duration.zero,
-          'fadeDuration must be NULL or stricly positive',
+          'fadeDuration must be NULL or strictly positive',
         );
 
   /// Constructs [VolumeSettings] with fixed volume level.
@@ -55,6 +55,15 @@ class VolumeSettings extends Equatable {
     bool showSystemUI = true,
   }) {
     assert(fadeSteps.isNotEmpty, 'fadeSteps must not be empty');
+    assert(
+      () {
+        for (var i = 1; i < fadeSteps.length; i++) {
+          if (fadeSteps[i].time <= fadeSteps[i - 1].time) return false;
+        }
+        return true;
+      }(),
+      'fadeSteps must be sorted by strictly increasing time',
+    );
     return VolumeSettings._(
       volume: volume,
       fadeSteps: fadeSteps,
@@ -70,9 +79,9 @@ class VolumeSettings extends Equatable {
   /// Specifies the system volume level to be set when the alarm goes off.
   ///
   /// Accepts a value between 0 (mute) and 1 (maximum volume).
-  /// When the alarm is triggered,, the system volume adjusts to this specified
-  /// specified level. Upon stopping the alarm, the system volume reverts to its
-  /// prior setting.
+  /// When the alarm is triggered, the system volume adjusts to this
+  /// specified level. Upon stopping the alarm, the system volume reverts to
+  /// its prior setting.
   ///
   /// If left unspecified or set to `null`, the current system volume
   /// at the time of the alarm will be used.

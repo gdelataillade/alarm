@@ -1,6 +1,6 @@
 import Foundation
 
-struct VolumeSettings: Codable {
+struct VolumeSettings {
     var volume: Double?
     var fadeDuration: TimeInterval?
     var fadeSteps: [VolumeFadeStep]
@@ -9,20 +9,20 @@ struct VolumeSettings: Codable {
     static func from(wire: VolumeSettingsWire) -> VolumeSettings {
         return VolumeSettings(
             volume: wire.volume,
-            fadeDuration: wire.fadeDurationMillis.map { Double($0 / 1000) },
+            fadeDuration: wire.fadeDurationMillis.map { Double($0) / 1_000.0 },
             fadeSteps: wire.fadeSteps.map(VolumeFadeStep.from),
             volumeEnforced: wire.volumeEnforced
         )
     }
 }
 
-struct VolumeFadeStep: Codable {
+struct VolumeFadeStep {
     var time: TimeInterval
     var volume: Double
 
     static func from(wire: VolumeFadeStepWire) -> VolumeFadeStep {
         return VolumeFadeStep(
-            time: Double(wire.timeMillis / 1000),
+            time: Double(wire.timeMillis) / 1_000.0,
             volume: wire.volume
         )
     }

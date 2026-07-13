@@ -80,10 +80,10 @@ await Alarm.set(alarmSettings: alarmSettings)
 | --------------------------------------------------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | id                                                  | `int`                  | Unique identifier of the alarm.                                                                                                                                                                      |
 | dateTime                                            | `DateTime`             | The date and time you want your alarm to ring.                                                                                                                                                       |
-| assetAudioPath                                      | `String?`              | The path to you audio asset you want to use as ringtone. Can be a path in your assets folder or a local file path with Android permission. If `null`, the device's default alarm sound will be used. |
+| assetAudioPath                                      | `String?`              | The path to your audio asset you want to use as ringtone. Can be a path in your assets folder or a local file path with Android permission. If `null`, the device's default alarm sound will be used. |
 | loopAudio                                           | `bool`                 | If true, audio will repeat indefinitely until alarm is stopped.                                                                                                                                      |
 | vibrate                                             | `bool`                 | If true, device will vibrate indefinitely until alarm is stopped. If [loopAudio] is set to false, vibrations will stop when audio ends.                                                              |
-| warningNotificationOnKill                           | `bool`                 | Whether to show a notification when application is killed to warn the user that the alarm he set may not ring. Recommanded for iOS. Enabled by default.                                              |
+| warningNotificationOnKill                           | `bool`                 | Whether to show a notification when application is killed to warn the user that the alarm he set may not ring. Recommended for iOS. Enabled by default.                                              |
 | androidFullScreenIntent                             | `bool`                 | Whether to turn screen on when android alarm notification is triggered. Enabled by default.                                                                                                          |
 | allowAlarmOverlap                                   | `bool`                 | Whether the alarm should ring if another alarm is already ringing. Disabled by default.                                                                                                              |
 | androidStopAlarmOnTermination                       | `bool`                 | Whether to stop the alarm when an Android task is terminated. Enabled by default.                                                                                                                    |
@@ -182,7 +182,7 @@ Silenced: Means that the notification is not shown directly on the top of the sc
 
 ## 📋 Logging
 
-This plugin uses the [logging package](https://pub.dev/packages/logging) to log information. If you aren't already, (optional) you'll need to install and configre the logging package to see these logs.
+This plugin uses the [logging package](https://pub.dev/packages/logging) to log information. If you aren't already, (optional) you'll need to install and configure the logging package to see these logs.
 
 An example can be found in `example/lib/utils/logging.dart`. This file defines a `setupLogging` method which is called from `main.dart`.
 

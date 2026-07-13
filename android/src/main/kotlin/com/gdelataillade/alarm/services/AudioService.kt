@@ -27,10 +27,6 @@ class AudioService(private val context: Context) {
         onAudioCompleteListeners[id] = listener
     }
 
-    fun isMediaPlayerEmpty(): Boolean {
-        return mediaPlayers.isEmpty()
-    }
-
     fun getPlayingMediaPlayersIds(): List<Int> {
         return mediaPlayers.filter { (_, mediaPlayer) -> mediaPlayer.isPlaying }.keys.toList()
     }
@@ -45,92 +41,88 @@ class AudioService(private val context: Context) {
     ) {
         releaseMediaPlayer(id) // Stop and release any existing MediaPlayer and Timer for this ID
 
+        val mediaPlayer = MediaPlayer()
         try {
-            MediaPlayer().apply {
-                if (filePath == null) {
-                    // Use the device's default alarm sound
-                    val defaultAlarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
-                        ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-                        ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
+            if (filePath == null) {
+                // Use the device's default alarm sound
+                val defaultAlarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+                    ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+                    ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
+                    ?: throw IllegalStateException("No default alarm sound available on this device")
 
-                    if (defaultAlarmUri != null) {
-                        setDataSource(context, defaultAlarmUri)
-                        Log.d(TAG, "Using device default alarm sound: $defaultAlarmUri")
-                    } else {
-                        Log.e(TAG, "No default alarm sound available on this device")
-                        return
+                mediaPlayer.setDataSource(context, defaultAlarmUri)
+                Log.d(TAG, "Using device default alarm sound: $defaultAlarmUri")
+            } else {
+                val baseAppFlutterPath = context.filesDir.parent?.plus("/app_flutter/")
+                val adjustedFilePath = when {
+                    filePath.startsWith("assets/") -> "flutter_assets/$filePath"
+                    !filePath.startsWith("/") -> baseAppFlutterPath + filePath
+                    else -> filePath
+                }
+
+                if (adjustedFilePath.startsWith("flutter_assets/")) {
+                    // It's an asset file. Close the descriptor once the data
+                    // source is set to avoid leaking a file descriptor per ring.
+                    context.assets.openFd(adjustedFilePath).use { descriptor ->
+                        mediaPlayer.setDataSource(
+                            descriptor.fileDescriptor,
+                            descriptor.startOffset,
+                            descriptor.length
+                        )
                     }
                 } else {
-                    val baseAppFlutterPath = context.filesDir.parent?.plus("/app_flutter/")
-                    val adjustedFilePath = when {
-                        filePath.startsWith("assets/") -> "flutter_assets/$filePath"
-                        !filePath.startsWith("/") -> baseAppFlutterPath + filePath
-                        else -> filePath
-                    }
-
-                    when {
-                        adjustedFilePath.startsWith("flutter_assets/") -> {
-                            // It's an asset file
-                            val assetManager = context.assets
-                            val descriptor = assetManager.openFd(adjustedFilePath)
-                            setDataSource(
-                                descriptor.fileDescriptor,
-                                descriptor.startOffset,
-                                descriptor.length
-                            )
-                        }
-
-                        else -> {
-                            // Handle local files and adjusted paths
-                            setDataSource(adjustedFilePath)
-                        }
-                    }
-                }
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    val usage = if (preferConnectedAudioDevice)
-                        AudioAttributes.USAGE_MEDIA
-                    else
-                        AudioAttributes.USAGE_ALARM
-                    setAudioAttributes(
-                        AudioAttributes.Builder()
-                            .setUsage(usage)
-                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                            .build()
-                    )
-                } else {
-                    @Suppress("DEPRECATION")
-                    val stream = if (preferConnectedAudioDevice)
-                        AudioManager.STREAM_MUSIC
-                    else
-                        AudioManager.STREAM_ALARM
-                    setAudioStreamType(stream)
-                }
-                prepare()
-                isLooping = loopAudio
-                start()
-
-                setOnCompletionListener {
-                    if (!loopAudio) {
-                        onAudioCompleteListeners[id]?.invoke()
-                    }
-                }
-
-                mediaPlayers[id] = this
-
-                if (fadeSteps.isNotEmpty()) {
-                    val timer = Timer(true)
-                    timers[id] = timer
-                    startStaircaseFadeIn(this, fadeSteps, timer)
-                } else if (fadeDuration != null) {
-                    val timer = Timer(true)
-                    timers[id] = timer
-                    startFadeIn(this, fadeDuration, timer)
+                    // Handle local files and adjusted paths
+                    mediaPlayer.setDataSource(adjustedFilePath)
                 }
             }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                val usage = if (preferConnectedAudioDevice)
+                    AudioAttributes.USAGE_MEDIA
+                else
+                    AudioAttributes.USAGE_ALARM
+                mediaPlayer.setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setUsage(usage)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .build()
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                val stream = if (preferConnectedAudioDevice)
+                    AudioManager.STREAM_MUSIC
+                else
+                    AudioManager.STREAM_ALARM
+                @Suppress("DEPRECATION")
+                mediaPlayer.setAudioStreamType(stream)
+            }
+
+            mediaPlayer.prepare()
+            mediaPlayer.isLooping = loopAudio
+            mediaPlayer.start()
+
+            mediaPlayer.setOnCompletionListener {
+                if (!loopAudio) {
+                    onAudioCompleteListeners[id]?.invoke()
+                }
+            }
+
+            mediaPlayers[id] = mediaPlayer
+
+            if (fadeSteps.isNotEmpty()) {
+                val timer = Timer(true)
+                timers[id] = timer
+                startStaircaseFadeIn(mediaPlayer, fadeSteps, timer)
+            } else if (fadeDuration != null) {
+                val timer = Timer(true)
+                timers[id] = timer
+                startFadeIn(mediaPlayer, fadeDuration, timer)
+            }
         } catch (e: Exception) {
-            e.printStackTrace()
-            Log.e(TAG, "Error playing audio: $e")
+            // Never leak the MediaPlayer when setup fails.
+            mediaPlayers.remove(id)
+            runCatching { mediaPlayer.release() }
+            Log.e(TAG, "Error playing audio for alarm $id", e)
         }
     }
 
@@ -160,7 +152,9 @@ class AudioService(private val context: Context) {
         val maxVolume = 1.0f
         val fadeDuration = duration.inWholeMilliseconds
         val fadeInterval = 100L
-        val numberOfSteps = fadeDuration / fadeInterval
+        // Clamp to at least one step so fades shorter than the interval
+        // don't divide by zero.
+        val numberOfSteps = (fadeDuration / fadeInterval).coerceAtLeast(1L)
         val deltaVolume = maxVolume / numberOfSteps
         var volume = 0.0f
 
