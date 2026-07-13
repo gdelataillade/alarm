@@ -27,6 +27,11 @@ dev_dependencies:
   very_good_analysis: ^7.0.0
 
 flutter:
+  # The example is CocoaPods-free, so it must build with SwiftPM regardless
+  # of the machine's global `enable-swift-package-manager` setting.
+  config:
+    enable-swift-package-manager: true
+
   uses-material-design: true
 
   assets:
