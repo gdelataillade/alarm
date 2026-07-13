@@ -12,6 +12,8 @@
 Icon?
 **/Pods/
 **/.symlinks/
+Podfile
+Podfile.lock
 profile
 xcuserdata
 **/.generated/
