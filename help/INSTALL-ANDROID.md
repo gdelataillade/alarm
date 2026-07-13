@@ -24,7 +24,12 @@ plugins {
 }
 ```
 
-> **Android Gradle Plugin 9+:** you don't need this line. With built-in Kotlin enabled, AGP compiles Kotlin itself; if your project opts out (`android.builtInKotlin=false`, which Flutter's tooling currently sets), the Kotlin Gradle plugin is applied automatically by Flutter and the alarm plugin. Apps on AGP 8 must keep it.
+> **Android Gradle Plugin 9+:** keep the Kotlin plugin declaration above. AGP 9's built-in Kotlin is not yet usable with Flutter (the tooling and some plugin dependencies still require the standalone Kotlin plugin), so make sure your `android/gradle.properties` opts out of it — Flutter's tooling adds these flags automatically on first build:
+>
+> ```properties
+> android.builtInKotlin=false
+> android.newDsl=false
+> ```
 
 ## Step 3
 Then, add the following permissions to your `AndroidManifest.xml` within the `<manifest></manifest>` tags:
