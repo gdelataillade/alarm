@@ -1,7 +1,3 @@
-## 5.6.1
-* [iOS] Fixed the Pigeon `swiftOut` path so regenerated bindings land in the Swift package (`ios/alarm/Sources/alarm/generated/`).
-* [iOS] Migrated the example app from CocoaPods to Swift Package Manager.
-
 ## 5.6.0
 AGP 9 support plus a reliability and hardening pass — no breaking API changes.
 
@@ -27,8 +23,9 @@ AGP 9 support plus a reliability and hardening pass — no breaking API changes.
 * [iOS] Fixed Background App Refresh only being scheduled once per app launch.
 * [iOS] Fixed a stale audio-completion callback stopping an alarm that was re-scheduled with the same id.
 * [iOS] Fixed the `volumeEnforced` timer never firing when the alarm was started from a background thread.
+* [iOS] Fixed the Pigeon `swiftOut` path so regenerated bindings land in the Swift package (`ios/alarm/Sources/alarm/generated/`).
 * Removed unused code (dead Codable layer on iOS, unused compat helpers) and unused bundled audio assets (~30KB smaller app bundles).
-* Updated the example app to AGP 9.0.1 / Gradle 9.1.0.
+* Updated the example app to AGP 9.0.1 / Gradle 9.1.0 and migrated its iOS side from CocoaPods to Swift Package Manager.
 
 ## 5.5.0
 * [iOS] Added Swift Package Manager support.
