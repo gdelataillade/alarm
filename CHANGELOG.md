@@ -1,9 +1,10 @@
 ## 5.6.0
-* [Android] Added support for Android Gradle Plugin 9 and built-in Kotlin, while keeping AGP 8 compatibility.
+* [Android] Added support for Android Gradle Plugin 9, while keeping AGP 8 compatibility.
 * [Android] Fixed several alarm scheduling, foreground service, and audio playback crashes.
+* [Android] Stop actions now dismiss the alarm notification when the alarm service is not running.
 * [iOS] Fixed alarm timing precision, volume fades, and background refresh scheduling.
 * [iOS] Migrated the example app from CocoaPods to Swift Package Manager.
-* Fixed `copyWith` bugs on `AlarmSettings` and `NotificationSettings`.
+* Fixed `AlarmSettings.copyWith` not clearing `payload`, and a debug-mode assert in `NotificationSettings.copyWith`; deprecated legacy `copyWith` parameters that were silently ignored.
 * Fixed the v4 → v5 migration misparsing `fadeDuration`.
 * Added a Dart unit test suite, now run in CI.
 

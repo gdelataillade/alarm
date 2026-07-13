@@ -242,12 +242,19 @@ class AlarmSettings extends Equatable {
     NotificationSettings? notificationSettings,
     bool? loopAudio,
     bool? vibrate,
+    @Deprecated('This parameter is ignored. Use volumeSettings instead.')
     double? volume,
+    @Deprecated('This parameter is ignored. Use volumeSettings instead.')
     bool? volumeEnforced,
+    @Deprecated('This parameter is ignored. Use volumeSettings instead.')
     double? fadeDuration,
+    @Deprecated('This parameter is ignored. Use volumeSettings instead.')
     List<double>? fadeStopTimes,
+    @Deprecated('This parameter is ignored. Use volumeSettings instead.')
     List<double>? fadeStopVolumes,
+    @Deprecated('This parameter is ignored. Use notificationSettings instead.')
     String? notificationTitle,
+    @Deprecated('This parameter is ignored. Use notificationSettings instead.')
     String? notificationBody,
     bool? warningNotificationOnKill,
     bool? androidFullScreenIntent,
