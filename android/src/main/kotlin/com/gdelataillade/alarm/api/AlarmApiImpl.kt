@@ -14,6 +14,7 @@ import com.gdelataillade.alarm.alarm.AlarmReceiver
 import com.gdelataillade.alarm.alarm.AlarmService
 import com.gdelataillade.alarm.models.AlarmSettings
 import com.gdelataillade.alarm.services.AlarmStorage
+import com.gdelataillade.alarm.services.NotificationHandler
 import com.gdelataillade.alarm.services.NotificationOnKillService
 import io.flutter.Log
 import kotlinx.serialization.encodeToString
@@ -63,6 +64,9 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
         // If the service was running it is the responsibility of the AlarmService to send the stop
         // signal to Flutter.
         if (!serviceIsRunning) {
+            // No foreground service owns the notification here, so a lingering
+            // one must be cancelled explicitly.
+            NotificationHandler(context).cancelNotification(id)
             // Notify the plugin about the alarm being stopped.
             AlarmPlugin.alarmTriggerApi?.alarmStopped(id.toLong()) {
                 if (it.isSuccess) {

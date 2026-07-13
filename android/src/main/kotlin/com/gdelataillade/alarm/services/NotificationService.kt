@@ -38,6 +38,14 @@ class NotificationHandler(private val context: Context) {
         }
     }
 
+    // Dismisses the alarm notification when no foreground service owns it
+    // (a live service removes it via stopForeground(STOP_FOREGROUND_REMOVE)).
+    fun cancelNotification(id: Int) {
+        val notificationManager =
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.cancel(id)
+    }
+
     // We need to use [Resources.getIdentifier] because resources are registered by Flutter.
     @SuppressLint("DiscouragedApi")
     fun buildNotification(

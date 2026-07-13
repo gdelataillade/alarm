@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import com.gdelataillade.alarm.services.AlarmStorage
+import com.gdelataillade.alarm.services.NotificationHandler
 
 import io.flutter.Log
 
@@ -31,6 +32,9 @@ class AlarmReceiver : BroadcastReceiver() {
                 // starting the foreground service, which would crash because
                 // a stop command never calls startForeground().
                 AlarmStorage(context).unsaveAlarm(id)
+                // The ongoing notification is not owned by a foreground service
+                // here, so it must be cancelled explicitly or it lingers.
+                NotificationHandler(context).cancelNotification(id)
                 AlarmPlugin.alarmTriggerApi?.alarmStopped(id.toLong()) {
                     Log.d(TAG, "Alarm stopped notification for $id processed by Flutter: ${it.isSuccess}")
                 }
