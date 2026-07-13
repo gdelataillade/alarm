@@ -1,31 +1,11 @@
 ## 5.6.0
-AGP 9 support plus a reliability and hardening pass — no breaking API changes.
-
-* [Android] Added support for Android Gradle Plugin 9 and its built-in Kotlin toolchain, while keeping compatibility with AGP 8. The Kotlin Gradle plugin is now applied conditionally, following Flutter's official plugin migration guide.
-* [Android] Bumped `compileSdk` from 34 to 35 and the build's Kotlin version from 2.1.0 to 2.2.10. Minimum Kotlin Gradle plugin version for consuming apps is now 2.0.0 (already required by Flutter 3.44+).
-* Added a Dart unit test suite (models, JSON round trips, v4 migration, validation); CI now runs `flutter test` and builds the example app.
-* Fixed `AlarmSettings.copyWith(payload: () => null)` not clearing the payload.
-* Fixed `NotificationSettings.copyWith` asserting in debug mode when only some fields were provided.
-* Fixed the v4 → v5 migration parsing `fadeDuration` as microseconds instead of seconds (a 3s fade became 3ms).
-* Deprecated `updateStream`/`ringStream` are now broadcast controllers, so events no longer accumulate in memory when nobody listens.
-* `Alarm.init()` and `AlarmStorage` initialization are now idempotent (no more double subscriptions or 100ms polling).
-* Same-second queued alarms now ring in FIFO order on both platforms, matching the documented behavior.
-* [Android] Fixed a `startForegroundService()` contract crash when a stop command reached the service while it was not running.
-* [Android] Queued/ignored alarm start commands now call `startForeground`, preventing `ForegroundServiceDidNotStartInTime` crashes.
-* [Android] Simultaneous alarms no longer overwrite each other's PendingIntents (request codes now use the alarm id), which also fixes the notification stop button stopping the wrong alarm.
-* [Android] Alarms fire with millisecond precision instead of up to a second early.
-* [Android] When the exact-alarm permission is revoked, scheduling now falls back to an inexact alarm instead of silently doing nothing.
-* [Android] Fixed a potential crash on Android < 8 when the app task was removed while the warning notification service was running.
-* [Android] Fixed file descriptor and MediaPlayer leaks in audio playback error paths.
-* [Android] Unreadable stored alarms are recovered with a legacy parser instead of silently dropped.
-* [iOS] Alarm state is now confined to the main actor, fixing rare `EXC_BAD_ACCESS` crashes when `Alarm.set`/`Alarm.stop` ran concurrently.
-* [iOS] Fixed alarms firing up to a second early and volume fades truncated to whole seconds (integer division).
-* [iOS] Fixed Background App Refresh only being scheduled once per app launch.
-* [iOS] Fixed a stale audio-completion callback stopping an alarm that was re-scheduled with the same id.
-* [iOS] Fixed the `volumeEnforced` timer never firing when the alarm was started from a background thread.
-* [iOS] Fixed the Pigeon `swiftOut` path so regenerated bindings land in the Swift package (`ios/alarm/Sources/alarm/generated/`).
-* Removed unused code (dead Codable layer on iOS, unused compat helpers) and unused bundled audio assets (~30KB smaller app bundles).
-* Updated the example app to AGP 9.0.1 / Gradle 9.1.0 and migrated its iOS side from CocoaPods to Swift Package Manager.
+* [Android] Added support for Android Gradle Plugin 9 and built-in Kotlin, while keeping AGP 8 compatibility.
+* [Android] Fixed several alarm scheduling, foreground service, and audio playback crashes.
+* [iOS] Fixed alarm timing precision, volume fades, and background refresh scheduling.
+* [iOS] Migrated the example app from CocoaPods to Swift Package Manager.
+* Fixed `copyWith` bugs on `AlarmSettings` and `NotificationSettings`.
+* Fixed the v4 → v5 migration misparsing `fadeDuration`.
+* Added a Dart unit test suite, now run in CI.
 
 ## 5.5.0
 * [iOS] Added Swift Package Manager support.
