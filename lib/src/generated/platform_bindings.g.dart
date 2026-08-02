@@ -297,6 +297,7 @@ class NotificationSettingsWire {
     this.iconColorBlue,
     required this.keepNotificationAfterAlarmEnds,
     this.androidSnoozeButton,
+    required this.androidStopAlarmOnDismiss,
   });
 
   String title;
@@ -324,6 +325,9 @@ class NotificationSettingsWire {
   /// can perform. Android only.
   String? androidSnoozeButton;
 
+  /// Whether swiping the notification away also stops the alarm. Android only.
+  bool androidStopAlarmOnDismiss;
+
   List<Object?> _toList() {
     return <Object?>[
       title,
@@ -336,6 +340,7 @@ class NotificationSettingsWire {
       iconColorBlue,
       keepNotificationAfterAlarmEnds,
       androidSnoozeButton,
+      androidStopAlarmOnDismiss,
     ];
   }
 
@@ -356,6 +361,7 @@ class NotificationSettingsWire {
       iconColorBlue: result[7] as double?,
       keepNotificationAfterAlarmEnds: result[8]! as bool,
       androidSnoozeButton: result[9] as String?,
+      androidStopAlarmOnDismiss: result[10]! as bool,
     );
   }
 

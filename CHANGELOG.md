@@ -1,3 +1,6 @@
+## 5.8.0
+* [Android] Added `NotificationSettings.androidStopAlarmOnDismiss` to control whether swiping the notification away also stops the alarm. Enabled by default, matching the behavior added in 5.0.3.
+
 ## 5.7.1
 * [Android] Fixed the lock screen asking for authentication before the alarm could be stopped: the keyguard is now only dismissed on devices without a PIN, pattern or password.
 

@@ -92,9 +92,15 @@ class NotificationHandler(private val context: Context) {
             .setAutoCancel(true)
             .setOngoing(true)
             .setContentIntent(pendingIntent)
-            .setDeleteIntent(stopPendingIntent)
             .setSound(null)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+
+        // setOngoing(true) above no longer pins the notification: since Android 13 a
+        // foreground service notification can be swiped away, and this delete intent
+        // is what turns that swipe into a stop.
+        if (notificationSettings.androidStopAlarmOnDismiss) {
+            notificationBuilder.setDeleteIntent(stopPendingIntent)
+        }
 
         if (fullScreen) {
             notificationBuilder.setFullScreenIntent(pendingIntent, true)

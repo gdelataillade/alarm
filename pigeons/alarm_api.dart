@@ -96,6 +96,7 @@ class NotificationSettingsWire {
     required this.iconColorBlue,
     required this.keepNotificationAfterAlarmEnds,
     required this.androidSnoozeButton,
+    required this.androidStopAlarmOnDismiss,
   });
 
   final String title;
@@ -114,6 +115,9 @@ class NotificationSettingsWire {
   /// gives it a usable duration; a label alone describes nothing the platform
   /// can perform. Android only.
   final String? androidSnoozeButton;
+
+  /// Whether swiping the notification away also stops the alarm. Android only.
+  final bool androidStopAlarmOnDismiss;
 }
 
 /// Errors that can occur when interacting with the Alarm API.

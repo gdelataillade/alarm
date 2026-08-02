@@ -14,6 +14,7 @@ void main() {
         icon: 'notification_icon',
         iconColor: Color(0xFF862778),
         keepNotificationAfterAlarmEnds: true,
+        androidStopAlarmOnDismiss: false,
       );
 
       final restored = NotificationSettings.fromJson(settings.toJson());
@@ -51,7 +52,20 @@ void main() {
       expect(restored.icon, isNull);
       expect(restored.iconColor, isNull);
       expect(restored.keepNotificationAfterAlarmEnds, isFalse);
+      expect(restored.androidStopAlarmOnDismiss, isTrue);
       expect(restored, equals(settings));
+    });
+
+    test('defaults androidStopAlarmOnDismiss to true when the key is absent',
+        () {
+      // Alarms persisted before this flag existed must keep stopping on a
+      // dismiss, which is how the plugin has behaved since 5.0.3.
+      const settings = NotificationSettings(title: 'Title', body: 'Body');
+      final json = settings.toJson()..remove('androidStopAlarmOnDismiss');
+
+      final restored = NotificationSettings.fromJson(json);
+
+      expect(restored.androidStopAlarmOnDismiss, isTrue);
     });
   });
 
@@ -70,6 +84,22 @@ void main() {
       expect(wire.iconColorRed, closeTo(0x86 / 0xFF, 0.001));
       expect(wire.iconColorGreen, closeTo(0x27 / 0xFF, 0.001));
       expect(wire.iconColorBlue, closeTo(0x78 / 0xFF, 0.001));
+    });
+
+    test('carries androidStopAlarmOnDismiss across', () {
+      const settings = NotificationSettings(
+        title: 'Title',
+        body: 'Body',
+        androidStopAlarmOnDismiss: false,
+      );
+
+      expect(settings.toWire().androidStopAlarmOnDismiss, isFalse);
+      expect(
+        const NotificationSettings(title: 'Title', body: 'Body')
+            .toWire()
+            .androidStopAlarmOnDismiss,
+        isTrue,
+      );
     });
 
     test('leaves color channels null when no color is set', () {
@@ -119,6 +149,18 @@ void main() {
       expect(copy.title, 'New title');
       expect(copy.body, 'Body');
       expect(copy.stopButton, 'Stop');
+      expect(copy.androidStopAlarmOnDismiss, isTrue);
+    });
+
+    test('can turn androidStopAlarmOnDismiss off', () {
+      const settings = NotificationSettings(title: 'Title', body: 'Body');
+
+      expect(
+        settings
+            .copyWith(androidStopAlarmOnDismiss: false)
+            .androidStopAlarmOnDismiss,
+        isFalse,
+      );
     });
   });
 }

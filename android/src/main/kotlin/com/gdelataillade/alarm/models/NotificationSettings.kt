@@ -13,6 +13,9 @@ data class NotificationSettings(
     val iconColor: Int? = null,
     val keepNotificationAfterAlarmEnds: Boolean = false,
     val androidSnoozeButton: String? = null,
+    // Defaults to true so alarms persisted before this flag existed, which
+    // decode without the key, keep stopping on a dismiss as they did.
+    val androidStopAlarmOnDismiss: Boolean = true,
 ) {
     companion object {
         fun fromWire(e: NotificationSettingsWire): NotificationSettings {
@@ -34,6 +37,7 @@ data class NotificationSettings(
                 iconColor,
                 e.keepNotificationAfterAlarmEnds,
                 e.androidSnoozeButton,
+                e.androidStopAlarmOnDismiss,
             )
         }
     }

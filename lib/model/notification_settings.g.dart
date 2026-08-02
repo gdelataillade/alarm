@@ -25,6 +25,8 @@ NotificationSettings _$NotificationSettingsFromJson(
                   const _ColorJsonConverter().fromJson((v as num?)?.toInt())),
           keepNotificationAfterAlarmEnds: $checkedConvert(
               'keepNotificationAfterAlarmEnds', (v) => v as bool? ?? false),
+          androidStopAlarmOnDismiss: $checkedConvert(
+              'androidStopAlarmOnDismiss', (v) => v as bool? ?? true),
         );
         return val;
       },
@@ -43,4 +45,5 @@ Map<String, dynamic> _$NotificationSettingsToJson(
           case final value?)
         'iconColor': value,
       'keepNotificationAfterAlarmEnds': instance.keepNotificationAfterAlarmEnds,
+      'androidStopAlarmOnDismiss': instance.androidStopAlarmOnDismiss,
     };

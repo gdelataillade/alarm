@@ -272,7 +272,9 @@ data class NotificationSettingsWire (
    * gives it a usable duration; a label alone describes nothing the platform
    * can perform. Android only.
    */
-  val androidSnoozeButton: String? = null
+  val androidSnoozeButton: String? = null,
+  /** Whether swiping the notification away also stops the alarm. Android only. */
+  val androidStopAlarmOnDismiss: Boolean
 )
  {
   companion object {
@@ -287,7 +289,8 @@ data class NotificationSettingsWire (
       val iconColorBlue = pigeonVar_list[7] as Double?
       val keepNotificationAfterAlarmEnds = pigeonVar_list[8] as Boolean
       val androidSnoozeButton = pigeonVar_list[9] as String?
-      return NotificationSettingsWire(title, body, stopButton, icon, iconColorAlpha, iconColorRed, iconColorGreen, iconColorBlue, keepNotificationAfterAlarmEnds, androidSnoozeButton)
+      val androidStopAlarmOnDismiss = pigeonVar_list[10] as Boolean
+      return NotificationSettingsWire(title, body, stopButton, icon, iconColorAlpha, iconColorRed, iconColorGreen, iconColorBlue, keepNotificationAfterAlarmEnds, androidSnoozeButton, androidStopAlarmOnDismiss)
     }
   }
   fun toList(): List<Any?> {
@@ -302,6 +305,7 @@ data class NotificationSettingsWire (
       iconColorBlue,
       keepNotificationAfterAlarmEnds,
       androidSnoozeButton,
+      androidStopAlarmOnDismiss,
     )
   }
   override fun equals(other: Any?): Boolean {

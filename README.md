@@ -101,6 +101,8 @@ await Alarm.setWarningNotificationOnKill(title, body)
 
 The property `androidStopAlarmOnTermination` works only on Android as on iOS the alarm is naturally stopped by the system when the app is terminated (as the native code can no longer run).
 
+Since Android 13, a foreground service notification can be swiped away by the user, so the alarm notification is dismissible even though it is marked ongoing. By default that swipe stops the alarm, exactly like the stop button. Set `NotificationSettings.androidStopAlarmOnDismiss` to `false` if a stray swipe must not be able to silence an alarm — be aware that the notification is then gone while the alarm keeps ringing, so your app should offer another way to stop it — for example a dedicated ringing screen, as described in [Presenting the alarm on your own screen](#presenting-the-alarm-on-your-own-screen).
+
 ### NotificationSettings model
 
 | Property                       | Type      | Description                                                                        |
@@ -112,6 +114,7 @@ The property `androidStopAlarmOnTermination` works only on Android as on iOS the
 | icon                           | `String?` | Icon to display on the notification. Only customizable on Android.                 |
 | iconColor                      | `Color?`  | Color of the notification icon. Only customizable on Android.                      |
 | keepNotificationAfterAlarmEnds | `bool`    | Keeps the notification visible after the alarm sound ends. iOS only.               |
+| androidStopAlarmOnDismiss      | `bool`    | Whether swiping the notification away also stops the alarm. Android only. Enabled by default. |
 
 
 ### VolumeSettings model

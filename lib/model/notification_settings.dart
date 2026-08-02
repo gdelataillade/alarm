@@ -20,6 +20,7 @@ class NotificationSettings extends Equatable {
     this.icon,
     this.iconColor,
     this.keepNotificationAfterAlarmEnds = false,
+    this.androidStopAlarmOnDismiss = true,
   });
 
   /// Converts the JSON object to a `NotificationSettings` instance.
@@ -95,6 +96,23 @@ class NotificationSettings extends Equatable {
   /// Defaults to `false`.
   final bool keepNotificationAfterAlarmEnds;
 
+  /// Whether swiping the notification away also stops the alarm.
+  ///
+  /// **Android only.** iOS has no equivalent dismissal action.
+  ///
+  /// Android 13 made foreground service notifications user-dismissible, so
+  /// `setOngoing(true)` no longer keeps the alarm notification pinned: it can
+  /// be swiped out of the shade like any other. When this is `true` that swipe
+  /// runs the same stop action as the notification's stop button.
+  ///
+  /// Set it to `false` if a stray swipe must not be able to silence an alarm.
+  /// Note that the notification is then gone while the alarm keeps ringing, so
+  /// the app should offer another way to stop it (for example a ringing screen
+  /// of its own, reachable from the launcher).
+  ///
+  /// Defaults to `true`, which is how the plugin has behaved since 5.0.3.
+  final bool androidStopAlarmOnDismiss;
+
   /// Converts the `NotificationSettings` instance to a JSON object.
   Map<String, dynamic> toJson() => _$NotificationSettingsToJson(this);
 
@@ -110,6 +128,7 @@ class NotificationSettings extends Equatable {
         iconColorGreen: iconColor?.g,
         iconColorBlue: iconColor?.b,
         keepNotificationAfterAlarmEnds: keepNotificationAfterAlarmEnds,
+        androidStopAlarmOnDismiss: androidStopAlarmOnDismiss,
       );
 
   /// Creates a copy of this notification settings but with the given fields
@@ -122,6 +141,7 @@ class NotificationSettings extends Equatable {
     String? icon,
     Color? iconColor,
     bool? keepNotificationAfterAlarmEnds,
+    bool? androidStopAlarmOnDismiss,
   }) {
     return NotificationSettings(
       title: title ?? this.title,
@@ -136,6 +156,8 @@ class NotificationSettings extends Equatable {
       iconColor: iconColor ?? this.iconColor,
       keepNotificationAfterAlarmEnds:
           keepNotificationAfterAlarmEnds ?? this.keepNotificationAfterAlarmEnds,
+      androidStopAlarmOnDismiss:
+          androidStopAlarmOnDismiss ?? this.androidStopAlarmOnDismiss,
     );
   }
 
@@ -148,6 +170,7 @@ class NotificationSettings extends Equatable {
         icon,
         iconColor,
         keepNotificationAfterAlarmEnds,
+        androidStopAlarmOnDismiss,
       ];
 }
 
