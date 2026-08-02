@@ -1,3 +1,6 @@
+## 5.7.1
+* [Android] Fixed the lock screen asking for authentication before the alarm could be stopped: the keyguard is now only dismissed on devices without a PIN, pattern or password.
+
 ## 5.7.0
 * [Android] Added a snooze action to the alarm notification, via `AlarmSettings.androidSnoozeDuration` and `NotificationSettings.androidSnoozeButton`. Snoozing defers the alarm rather than stopping it, and is reported on the new `Alarm.snoozed` stream as well as through `Alarm.scheduled`. A snooze taken with no Flutter engine running is applied on the next `Alarm.init()`.
 * [Android] Alarms can now be presented on the app's own activity by declaring an intent filter for `com.gdelataillade.alarm.action.RING`, instead of always opening the launcher activity.

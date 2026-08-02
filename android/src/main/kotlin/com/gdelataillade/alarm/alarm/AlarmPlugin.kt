@@ -66,9 +66,13 @@ class AlarmPlugin : FlutterPlugin, ActivityAware {
             Log.d(TAG, "Making app visible on lock screen...")
             activity.setShowWhenLocked(true)
             activity.setTurnScreenOn(true)
+            // The calls above already show the alarm over the lock screen; dismissing a
+            // secure keyguard on top of that would only prompt the user to authenticate.
             val keyguardManager =
                 activity.applicationContext.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
-            keyguardManager.requestDismissKeyguard(activity, null)
+            if (!keyguardManager.isDeviceSecure) {
+                keyguardManager.requestDismissKeyguard(activity, null)
+            }
         } else {
             Log.d(TAG, "Reverting making app visible on lock screen...")
             activity.setShowWhenLocked(false)
