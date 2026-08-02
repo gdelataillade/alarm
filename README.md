@@ -292,6 +292,11 @@ without starting Flutter:
 | `alarmTitle`, `alarmBody` | From `NotificationSettings` |
 | `alarmStopLabel` | `NotificationSettings.stopButton` |
 
+The same extras are attached when no `RING` activity is declared and the plugin
+falls back to opening your launcher activity, so an app that doesn't want a
+separate alarm screen can still tell an alarm launch from the user opening the
+app themselves — read them in `onCreate` / `onNewIntent`.
+
 Stop the alarm by broadcasting `com.gdelataillade.alarm.ACTION_STOP` to
 `AlarmReceiver`. The receiver declares no intent filter, so the broadcast has
 to name it explicitly:

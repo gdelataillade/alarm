@@ -258,15 +258,21 @@ class AlarmService : Service() {
      * start Flutter.
      */
     private fun ringPendingIntent(id: Int, alarmSettings: AlarmSettings): PendingIntent {
-        val ringIntent = resolveRingIntent()?.apply {
+        // The extras go on whichever intent is used, including the launcher
+        // fallback. That fallback is otherwise identical to tapping the app
+        // icon, which leaves an app unable to tell an alarm launch from a
+        // manual one - and an app that wants to step aside once the alarm is
+        // stopped has to know which it was.
+        val ringIntent = (resolveRingIntent()
+            ?: applicationContext.packageManager
+                .getLaunchIntentForPackage(applicationContext.packageName)
+            ?: Intent()).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             putExtra(EXTRA_ALARM_ID, id)
             putExtra(EXTRA_ALARM_TITLE, alarmSettings.notificationSettings.title)
             putExtra(EXTRA_ALARM_BODY, alarmSettings.notificationSettings.body)
             putExtra(EXTRA_ALARM_STOP_LABEL, alarmSettings.notificationSettings.stopButton)
-        } ?: applicationContext.packageManager
-            .getLaunchIntentForPackage(applicationContext.packageName)
-            ?: Intent()
+        }
 
         return PendingIntent.getActivity(
             this,
