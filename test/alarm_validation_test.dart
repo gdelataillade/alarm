@@ -2,12 +2,15 @@ import 'package:alarm/alarm.dart';
 import 'package:alarm/src/generated/platform_bindings.g.dart';
 import 'package:alarm/utils/alarm_exception.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:logging/logging.dart';
 
 void main() {
   AlarmSettings buildSettings(
     int id, {
     Duration? snoozeDuration,
     String? snoozeButton,
+    String? stopButton,
+    bool stopAlarmOnDismiss = true,
   }) {
     return AlarmSettings(
       id: id,
@@ -17,10 +20,22 @@ void main() {
       notificationSettings: NotificationSettings(
         title: 'Title',
         body: 'Body',
+        stopButton: stopButton,
         androidSnoozeButton: snoozeButton,
+        androidStopAlarmOnDismiss: stopAlarmOnDismiss,
       ),
     );
   }
+
+  List<LogRecord> captureLogs() {
+    final records = <LogRecord>[];
+    final subscription = Logger.root.onRecord.listen(records.add);
+    addTearDown(subscription.cancel);
+    return records;
+  }
+
+  Iterable<LogRecord> dismissWarnings(List<LogRecord> records) =>
+      records.where((r) => r.message.contains('androidStopAlarmOnDismiss'));
 
   group('Alarm.alarmSettingsValidation', () {
     test('accepts a regular id', () {
@@ -118,6 +133,31 @@ void main() {
         ),
         returnsNormally,
       );
+    });
+
+    test('warns when a dismiss-proof notification offers no stop button', () {
+      // Both together leave the notification with no stop affordance at all:
+      // no action button, and no delete intent behind the swipe.
+      final records = captureLogs();
+
+      expect(
+        () => Alarm.alarmSettingsValidation(
+          buildSettings(42, stopAlarmOnDismiss: false),
+        ),
+        returnsNormally,
+      );
+      expect(dismissWarnings(records), hasLength(1));
+    });
+
+    test('does not warn when a dismiss-proof alarm has a stop button', () {
+      final records = captureLogs();
+
+      Alarm.alarmSettingsValidation(
+        buildSettings(42, stopButton: 'Stop', stopAlarmOnDismiss: false),
+      );
+      Alarm.alarmSettingsValidation(buildSettings(43));
+
+      expect(dismissWarnings(records), isEmpty);
     });
   });
 

@@ -249,6 +249,17 @@ class Alarm {
         'will not offer a snooze.',
       );
     }
+
+    final notification = alarmSettings.notificationSettings;
+    if (!notification.androidStopAlarmOnDismiss &&
+        notification.stopButton == null) {
+      _log.warning(
+        'Alarm ${alarmSettings.id} turns off androidStopAlarmOnDismiss and '
+        'sets no stopButton, so its notification offers no way to stop the '
+        'alarm. Give it a stopButton, or present the alarm on a screen of '
+        'your own.',
+      );
+    }
   }
 
   /// When the app is killed, all the processes are terminated
