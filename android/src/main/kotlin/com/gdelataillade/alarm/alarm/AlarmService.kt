@@ -260,6 +260,13 @@ class AlarmService : Service() {
                 showSystemUI,
                 alarmSettings.preferConnectedAudioDevice
             )
+        } else if (alarmSettings.volumeSettings.volumeEnforced) {
+            volumeService?.enforceCurrentVolume(
+                showSystemUI,
+                alarmSettings.preferConnectedAudioDevice,
+                // This alarm's own player starts below, so anything playing is another.
+                audioService?.getPlayingMediaPlayersIds()?.isNotEmpty() == true
+            )
         }
 
         // Request audio focus

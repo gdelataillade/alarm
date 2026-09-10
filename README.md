@@ -126,7 +126,7 @@ Since Android 13, a foreground service notification can be swiped away while the
 | volume         | `double?`              | Sets system volume level (0.0 to 1.0). Reverts on alarm stop. Defaults to current volume if null.           |
 | fadeDuration   | `Duration?`            | Duration over which to fade the alarm ringtone. Null means no fade.                                         |
 | fadeSteps      | `List<VolumeFadeStep>` | Controls how the alarm volume will fade over time.                                                          |
-| volumeEnforced | `bool`                 | Automatically resets to the original alarm [volume] if the user attempts to adjust it. Disabled by default. |
+| volumeEnforced | `bool`                 | Automatically resets to the original alarm `volume` if the user attempts to adjust it. With no `volume`, pins the level read when the ring starts, so the user's own volume is protected rather than replaced; a muted stream is left alone. Disabled by default. |
 
 This is how to stop/cancel your alarm:
 ```Dart
