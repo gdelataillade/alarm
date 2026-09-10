@@ -1,7 +1,8 @@
-## 5.12.1
+## 5.13.0
 * **[Android] Fixed a crash when stopping an alarm with `volumeEnforced: true` (#437).** A second ring left the previous volume-enforcement runnable queued and uncancellable, killing the process on stop.
 * [Android] A same-id `Alarm.set` no longer reports a stop to Flutter, which deleted the alarm it had just saved and left it armed with no Dart record.
 * **[Android] `Alarm.stop()` now actually stops an alarm due within 5 seconds (#440).** Those are armed with an uncancellable timer, so one could ring after being stopped, or at its old time after being re-set.
+* [Android] Volume enforcement no longer leaks into the next alarm, and the user's own volume is restored after overlapping alarms rather than a level a previous alarm forced (#444).
 
 ## 5.12.0
 * **Deprecated `Alarm.snoozed` (#435).** Listen to `Alarm.events` and filter on `AlarmEventCause.snooze` instead: same deferrals, plus the `recordedAt` that `Alarm.acknowledgeEvent()` needs. No removal version.

@@ -15,7 +15,10 @@ class VolumeService(context: Context) {
         private const val TAG = "VolumeService"
     }
 
-    private var previousVolume: Int? = null
+    /** What to put back, and on which stream. Captured once per burst of alarms. */
+    private data class SavedVolume(val stream: Int, val level: Int)
+
+    private var savedVolume: SavedVolume? = null
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private var focusRequest: AudioFocusRequest? = null
     private val handler = Handler(Looper.getMainLooper())
@@ -24,9 +27,17 @@ class VolumeService(context: Context) {
     private var activeStream: Int = AudioManager.STREAM_ALARM
 
     fun setVolume(volume: Double, volumeEnforced: Boolean, showSystemUI: Boolean, preferConnectedAudioDevice: Boolean) {
+        // This ring supersedes the previous one's enforcement whether or not it wants
+        // its own, otherwise the old target keeps being forced (#444).
+        stopVolumeEnforcement()
+
         activeStream = if (preferConnectedAudioDevice) AudioManager.STREAM_MUSIC else AudioManager.STREAM_ALARM
+        // Only the first alarm of a burst sees the user's own level; a later one would
+        // record what its predecessor had already forced.
+        if (savedVolume == null) {
+            savedVolume = SavedVolume(activeStream, audioManager.getStreamVolume(activeStream))
+        }
         val maxVolume = audioManager.getStreamMaxVolume(activeStream)
-        previousVolume = audioManager.getStreamVolume(activeStream)
         targetVolume = (round(volume * maxVolume)).toInt()
         audioManager.setStreamVolume(
             activeStream,
@@ -42,14 +53,11 @@ class VolumeService(context: Context) {
     /**
      * Holds the stream at [targetVolume] until enforcement stops.
      *
-     * Cancels first: one `VolumeService` is shared by every alarm on the service, so
-     * overwriting the field without removing the old runnable left it queued and
-     * uncancellable, and fatal once the field went null (#437). Re-posting `this` rather
-     * than the field, and the identity check, keep it that way.
+     * [setVolume] cancels any previous runnable before calling this, so none is ever
+     * orphaned; re-posting `this` rather than the field, and the identity check, are what
+     * keep an orphan from being fatal if one ever is (#437).
      */
     private fun startVolumeEnforcement(showSystemUI: Boolean) {
-        stopVolumeEnforcement()
-
         val runnable = object : Runnable {
             override fun run() {
                 if (volumeCheckRunnable !== this) return
@@ -71,24 +79,23 @@ class VolumeService(context: Context) {
         handler.post(runnable)
     }
 
-    private fun stopVolumeEnforcement() {
-        // Remove callbacks to stop enforcing volume
+    /** Public because a ring that sets no volume never reaches [setVolume]. */
+    fun stopVolumeEnforcement() {
         volumeCheckRunnable?.let { handler.removeCallbacks(it) }
         volumeCheckRunnable = null
     }
 
     fun restorePreviousVolume(showSystemUI: Boolean) {
-        // Stop the volume enforcement if it's active
         stopVolumeEnforcement()
 
-        // Restore the previous volume
-        previousVolume?.let { prevVolume ->
+        // The saved stream, not activeStream: a later alarm may have moved that.
+        savedVolume?.let { saved ->
             audioManager.setStreamVolume(
-                activeStream,
-                prevVolume,
+                saved.stream,
+                saved.level,
                 if (showSystemUI) AudioManager.FLAG_SHOW_UI else 0
             )
-            previousVolume = null
+            savedVolume = null
         }
     }
 
