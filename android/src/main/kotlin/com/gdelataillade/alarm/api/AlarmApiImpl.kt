@@ -24,7 +24,10 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
         private const val TAG = "AlarmApiImpl"
     }
 
-    private val alarmIds: MutableList<Int> = mutableListOf()
+    // A set, so the replace path in [setAlarm] cannot add a second copy of an id it
+    // already holds: List.remove drops only the first, and stopAll would then stop the
+    // same alarm once per copy.
+    private val alarmIds: MutableSet<Int> = mutableSetOf()
 
     override fun setAlarm(alarmSettings: AlarmSettingsWire, callback: (Result<Unit>) -> Unit) {
         val alarm = AlarmSettings.fromWire(alarmSettings)
