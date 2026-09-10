@@ -39,22 +39,46 @@ class VolumeService(context: Context) {
         }
     }
 
+    /**
+     * Holds the stream at [targetVolume] once per second until enforcement stops.
+     *
+     * Three things here are load-bearing, and dropping any one of them brings back a
+     * process-killing NPE that reached production (#437):
+     *
+     * 1. **Cancelling first.** One `VolumeService` outlives a single ring — `AlarmService`
+     *    creates it once and every alarm on that instance reuses it — so without this a
+     *    second ring left the previous runnable queued while the field already pointed at
+     *    the new one. `stopVolumeEnforcement` only ever removes whatever is *in the field*,
+     *    so the earlier one became uncancellable, and fatal the moment the field went null.
+     *    This is the actual defect; the two below are why it cannot come back.
+     * 2. **Re-posting `this`, not the field**, so the runnable can never dereference a
+     *    reference some other path has nulled.
+     * 3. **The identity check**, so a runnable that is no longer the current one returns
+     *    instead of going on forcing the volume for an alarm that already stopped.
+     */
     private fun startVolumeEnforcement(showSystemUI: Boolean) {
-        // Define the Runnable that checks and enforces the volume level
-        volumeCheckRunnable = Runnable {
-            val currentVolume = audioManager.getStreamVolume(activeStream)
-            if (currentVolume != targetVolume) {
-                audioManager.setStreamVolume(
-                    activeStream,
-                    targetVolume,
-                    if (showSystemUI) AudioManager.FLAG_SHOW_UI else 0
-                )
+        // Never leave an earlier round queued: nothing could cancel it afterwards.
+        stopVolumeEnforcement()
+
+        val runnable = object : Runnable {
+            override fun run() {
+                if (volumeCheckRunnable !== this) return
+
+                val currentVolume = audioManager.getStreamVolume(activeStream)
+                if (currentVolume != targetVolume) {
+                    audioManager.setStreamVolume(
+                        activeStream,
+                        targetVolume,
+                        if (showSystemUI) AudioManager.FLAG_SHOW_UI else 0
+                    )
+                }
+                // Schedule the next check after 1000ms
+                handler.postDelayed(this, 1000)
             }
-            // Schedule the next check after 1000ms
-            handler.postDelayed(volumeCheckRunnable!!, 1000)
         }
-        // Start the first run
-        handler.post(volumeCheckRunnable!!)
+
+        volumeCheckRunnable = runnable
+        handler.post(runnable)
     }
 
     private fun stopVolumeEnforcement() {
