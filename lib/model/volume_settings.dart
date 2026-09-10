@@ -108,6 +108,11 @@ class VolumeSettings extends Equatable {
   /// This prevents the user from lowering the alarm volume.
   /// Won't work if app is killed.
   ///
+  /// With no [volume], the level read when the ring starts is pinned instead,
+  /// so the user's own volume is protected rather than replaced. A muted
+  /// stream is left alone, since pinning it would leave an alarm nobody
+  /// could raise.
+  ///
   /// Defaults to false.
   final bool volumeEnforced;
 

@@ -13,10 +13,32 @@ import io.flutter.Log
 class VolumeService(context: Context) {
     companion object {
         private const val TAG = "VolumeService"
+
+        /**
+         * The level to pin when the alarm named no volume, or null to skip enforcement.
+         *
+         * Prefers [saved], which is the user's own level for this burst: at a queue
+         * promotion the stream is still raised by the alarm that just stopped, so reading
+         * it live would pin a predecessor's forced level (#444). Only usable when it
+         * belongs to the stream being enforced.
+         *
+         * Returns null for a muted stream. "No volume" means no opinion, and pinning zero
+         * would make the alarm silent *and* unraisable, which inverts what enforcement is
+         * for. An explicit `volume: 0.0` does not come through here and still pins.
+         */
+        internal fun implicitEnforcementTarget(
+            saved: SavedVolume?,
+            activeStream: Int,
+            currentLevel: Int,
+        ): Int? {
+            val level =
+                if (saved != null && saved.stream == activeStream) saved.level else currentLevel
+            return level.takeIf { it > 0 }
+        }
     }
 
     /** What to put back, and on which stream. Captured once per burst of alarms. */
-    private data class SavedVolume(val stream: Int, val level: Int)
+    internal data class SavedVolume(val stream: Int, val level: Int)
 
     private var savedVolume: SavedVolume? = null
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -48,6 +70,33 @@ class VolumeService(context: Context) {
         if (volumeEnforced) {
             startVolumeEnforcement(showSystemUI)
         }
+    }
+
+    /**
+     * Enforces the level the stream already reads, without changing it.
+     *
+     * `volumeEnforced` with no `volume` asks for the user's own level to be protected
+     * rather than replaced — the two settings answer different questions (#438). iOS has
+     * done this since its rewrite; this brings Android in line.
+     */
+    fun enforceCurrentVolume(showSystemUI: Boolean, preferConnectedAudioDevice: Boolean) {
+        stopVolumeEnforcement()
+
+        activeStream =
+            if (preferConnectedAudioDevice) AudioManager.STREAM_MUSIC else AudioManager.STREAM_ALARM
+        val target = implicitEnforcementTarget(
+            savedVolume,
+            activeStream,
+            audioManager.getStreamVolume(activeStream),
+        )
+        if (target == null) {
+            Log.d(TAG, "Alarm stream is muted; not pinning a level the user could not raise.")
+            return
+        }
+
+        // No setStreamVolume and no savedVolume: nothing is changed, so nothing to restore.
+        targetVolume = target
+        startVolumeEnforcement(showSystemUI)
     }
 
     /**
