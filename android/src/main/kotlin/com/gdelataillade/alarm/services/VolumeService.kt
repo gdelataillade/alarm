@@ -15,20 +15,20 @@ class VolumeService(context: Context) {
         private const val TAG = "VolumeService"
 
         /**
-         * The level to pin when the alarm named no volume, or null to skip enforcement.
+         * The level an alarm that named no volume should ring at.
          *
-         * Prefers [saved] over the live stream, which at a queue promotion is still
-         * raised by the alarm that just stopped. Skips a muted stream rather than pin an
-         * alarm nobody could raise.
+         * With another alarm still sounding, the live level is its explicit choice and a
+         * no-opinion alarm must not override it. Otherwise a stopped predecessor may have
+         * left the stream raised, and [saved] is the user's own level.
          */
         internal fun implicitEnforcementTarget(
             saved: SavedVolume?,
             activeStream: Int,
             currentLevel: Int,
-        ): Int? {
-            val level =
-                if (saved != null && saved.stream == activeStream) saved.level else currentLevel
-            return level.takeIf { it > 0 }
+            otherAlarmPlaying: Boolean,
+        ): Int {
+            if (otherAlarmPlaying) return currentLevel
+            return if (saved != null && saved.stream == activeStream) saved.level else currentLevel
         }
     }
 
@@ -67,24 +67,36 @@ class VolumeService(context: Context) {
         }
     }
 
-    /** Enforces the level the stream already reads, without changing it (#438). */
-    fun enforceCurrentVolume(showSystemUI: Boolean, preferConnectedAudioDevice: Boolean) {
+    /** Rings at the user's own level and holds it there, choosing no level of its own (#438). */
+    fun enforceCurrentVolume(
+        showSystemUI: Boolean,
+        preferConnectedAudioDevice: Boolean,
+        otherAlarmPlaying: Boolean,
+    ) {
         stopVolumeEnforcement()
 
         activeStream =
             if (preferConnectedAudioDevice) AudioManager.STREAM_MUSIC else AudioManager.STREAM_ALARM
-        val target = implicitEnforcementTarget(
-            savedVolume,
-            activeStream,
-            audioManager.getStreamVolume(activeStream),
-        )
-        if (target == null) {
+        val live = audioManager.getStreamVolume(activeStream)
+        val level =
+            implicitEnforcementTarget(savedVolume, activeStream, live, otherAlarmPlaying)
+
+        // A stopped predecessor may have left the stream raised, so put it back even when
+        // enforcement is then skipped. savedVolume is left as it is: this chose no level.
+        if (level != live) {
+            audioManager.setStreamVolume(
+                activeStream,
+                level,
+                if (showSystemUI) AudioManager.FLAG_SHOW_UI else 0
+            )
+        }
+
+        if (level == 0) {
             Log.d(TAG, "Alarm stream is muted; not pinning a level the user could not raise.")
             return
         }
 
-        // Nothing is changed, so nothing is saved to restore.
-        targetVolume = target
+        targetVolume = level
         startVolumeEnforcement(showSystemUI)
     }
 
