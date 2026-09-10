@@ -577,14 +577,7 @@ class AlarmService : Service() {
      * Only for [SnoozeCoordinator], and only once it has armed the replacement:
      * the alarm is still owed, so none of the stop bookkeeping applies.
      */
-    /**
-     * Stops [alarmId]'s audio and clears it from the ringing queue, touching neither
-     * storage nor Flutter.
-     *
-     * Two callers want exactly that and nothing more: a snooze, which defers rather than
-     * dismisses, and a same-id replace, which is Dart's own doing. Both would be
-     * misreported by an `alarmStopped`.
-     */
+    /** Stops [alarmId]'s audio and dequeues it, touching neither storage nor Flutter. */
     fun silenceRing(alarmId: Int) {
         stopAlarm(alarmId)
     }

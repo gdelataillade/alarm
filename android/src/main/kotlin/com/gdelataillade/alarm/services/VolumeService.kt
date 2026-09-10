@@ -40,24 +40,14 @@ class VolumeService(context: Context) {
     }
 
     /**
-     * Holds the stream at [targetVolume] once per second until enforcement stops.
+     * Holds the stream at [targetVolume] until enforcement stops.
      *
-     * Three things here are load-bearing, and dropping any one of them brings back a
-     * process-killing NPE that reached production (#437):
-     *
-     * 1. **Cancelling first.** One `VolumeService` outlives a single ring — `AlarmService`
-     *    creates it once and every alarm on that instance reuses it — so without this a
-     *    second ring left the previous runnable queued while the field already pointed at
-     *    the new one. `stopVolumeEnforcement` only ever removes whatever is *in the field*,
-     *    so the earlier one became uncancellable, and fatal the moment the field went null.
-     *    This is the actual defect; the two below are why it cannot come back.
-     * 2. **Re-posting `this`, not the field**, so the runnable can never dereference a
-     *    reference some other path has nulled.
-     * 3. **The identity check**, so a runnable that is no longer the current one returns
-     *    instead of going on forcing the volume for an alarm that already stopped.
+     * Cancels first: one `VolumeService` is shared by every alarm on the service, so
+     * overwriting the field without removing the old runnable left it queued and
+     * uncancellable, and fatal once the field went null (#437). Re-posting `this` rather
+     * than the field, and the identity check, keep it that way.
      */
     private fun startVolumeEnforcement(showSystemUI: Boolean) {
-        // Never leave an earlier round queued: nothing could cancel it afterwards.
         stopVolumeEnforcement()
 
         val runnable = object : Runnable {

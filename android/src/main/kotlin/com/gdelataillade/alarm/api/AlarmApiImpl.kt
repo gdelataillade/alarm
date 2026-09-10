@@ -177,31 +177,18 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
     }
 
     /**
-     * Tears [id] down because an alarm with the same id is replacing it.
-     *
-     * Everything [stopAlarm] does except telling Flutter, and that omission is the point.
-     * Dart asked for this replacement and is about to be told the new alarm is scheduled,
-     * so an `alarmStopped` here races that reply — and Dart's handler unsaves
-     * unconditionally, so the event deletes the alarm `Alarm.set` had just saved. The
-     * alarm is then armed natively with no Dart record at all, and reports
-     * "settings object could not be found" when it rings.
-     *
-     * The same reasoning already keeps this preamble out of [AlarmScheduler.schedule], so
-     * the snooze path cannot report a deferral as a stop.
+     * Tears [id] down for a same-id replace, deliberately without telling Flutter: an
+     * `alarmStopped` would race the reply to `Alarm.set`, and Dart's handler unsaves
+     * unconditionally, so it would delete the alarm that was just saved.
      */
     private fun clearForReplace(id: Int) {
-        // Silences a ring in progress without touching storage or Flutter.
         AlarmService.instance?.silenceRing(id)
 
-        // Kept: PendingIntents are rebuilt with FLAG_UPDATE_CURRENT, so an entry left
-        // armed here would fire at the *old* time carrying the *new* settings.
+        // FLAG_UPDATE_CURRENT: an entry left armed fires at the old time with the new settings.
         runCatching { cancelPendingBroadcast(id) }
             .onFailure { Log.e(TAG, "Failed to cancel the pending broadcast for $id", it) }
 
-        // Kept, and load-bearing for a non-obvious reason: this is the only thing that
-        // clears a pending MOVED marker. Skipping it would let a snooze marker survive the
-        // replace, and Dart would rewrite the freshly-set time back to the deferred one.
-        // AlarmScheduler.schedule re-saves the new settings immediately after this.
+        // Also the only thing that clears a pending MOVED marker. schedule() re-saves.
         AlarmStorage(context).unsaveAlarm(id)
     }
 
