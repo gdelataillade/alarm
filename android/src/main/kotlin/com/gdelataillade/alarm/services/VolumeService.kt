@@ -17,14 +17,9 @@ class VolumeService(context: Context) {
         /**
          * The level to pin when the alarm named no volume, or null to skip enforcement.
          *
-         * Prefers [saved], which is the user's own level for this burst: at a queue
-         * promotion the stream is still raised by the alarm that just stopped, so reading
-         * it live would pin a predecessor's forced level (#444). Only usable when it
-         * belongs to the stream being enforced.
-         *
-         * Returns null for a muted stream. "No volume" means no opinion, and pinning zero
-         * would make the alarm silent *and* unraisable, which inverts what enforcement is
-         * for. An explicit `volume: 0.0` does not come through here and still pins.
+         * Prefers [saved] over the live stream, which at a queue promotion is still
+         * raised by the alarm that just stopped. Skips a muted stream rather than pin an
+         * alarm nobody could raise.
          */
         internal fun implicitEnforcementTarget(
             saved: SavedVolume?,
@@ -72,13 +67,7 @@ class VolumeService(context: Context) {
         }
     }
 
-    /**
-     * Enforces the level the stream already reads, without changing it.
-     *
-     * `volumeEnforced` with no `volume` asks for the user's own level to be protected
-     * rather than replaced — the two settings answer different questions (#438). iOS has
-     * done this since its rewrite; this brings Android in line.
-     */
+    /** Enforces the level the stream already reads, without changing it (#438). */
     fun enforceCurrentVolume(showSystemUI: Boolean, preferConnectedAudioDevice: Boolean) {
         stopVolumeEnforcement()
 
@@ -94,7 +83,7 @@ class VolumeService(context: Context) {
             return
         }
 
-        // No setStreamVolume and no savedVolume: nothing is changed, so nothing to restore.
+        // Nothing is changed, so nothing is saved to restore.
         targetVolume = target
         startVolumeEnforcement(showSystemUI)
     }

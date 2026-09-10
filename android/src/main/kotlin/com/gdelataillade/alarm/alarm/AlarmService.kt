@@ -261,7 +261,6 @@ class AlarmService : Service() {
                 alarmSettings.preferConnectedAudioDevice
             )
         } else if (alarmSettings.volumeSettings.volumeEnforced) {
-            // Enforced with no volume: protect the user's own level rather than replace it.
             volumeService?.enforceCurrentVolume(
                 showSystemUI,
                 alarmSettings.preferConnectedAudioDevice
