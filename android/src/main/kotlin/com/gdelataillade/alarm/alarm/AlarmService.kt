@@ -66,6 +66,23 @@ class AlarmService : Service() {
          */
         const val ACTION_RING = "com.gdelataillade.alarm.action.RING"
 
+        /**
+         * Whether a delivery still describes the alarm that is stored.
+         *
+         * `AlarmScheduler.schedule` writes the same settings to storage and into the
+         * intent extras in one call, so a mismatch means the delivery is out of date:
+         * either the alarm was stopped, or it was re-armed for a different time and this
+         * is the superseded arming. A sub-5s alarm is armed with an uncancellable
+         * `Handler.postDelayed`, which is how one outlives its own cancellation (#440).
+         *
+         * Not "stale": #418 uses that for an alarm too late to be worth ringing, which is
+         * a different question with a configurable window.
+         */
+        internal fun isCurrentDelivery(
+            delivered: AlarmSettings,
+            stored: AlarmSettings?,
+        ): Boolean = stored != null && stored.dateTime.time == delivered.dateTime.time
+
         /** Alarm id, so the activity can act on the alarm it presents. */
         const val EXTRA_ALARM_ID = "alarmId"
 
@@ -143,6 +160,15 @@ class AlarmService : Service() {
             alarmSettings = Json.decodeFromString<AlarmSettings>(alarmSettingsJson)
         } catch (e: Exception) {
             Log.e(TAG, "Cannot parse AlarmSettings from Intent.", e)
+            fulfillForegroundObligation()
+            stopSelfIfIdle()
+            return START_NOT_STICKY
+        }
+
+        if (!isCurrentDelivery(alarmSettings, alarmStorage?.getSavedAlarms()?.find { it.id == id })) {
+            Log.d(TAG, "Ignoring out-of-date delivery for alarm $id; it was stopped or re-armed.")
+            // Arrived via startForegroundService, so the obligation stands even though
+            // nothing will ring.
             fulfillForegroundObligation()
             stopSelfIfIdle()
             return START_NOT_STICKY
@@ -640,13 +666,13 @@ class AlarmService : Service() {
             val nextSettings = queuedAlarmSettings.remove(nextId)
             if (nextSettings != null) {
                 // Validate the alarm still exists in storage before promoting
-                val savedAlarms = alarmStorage?.getSavedAlarms() ?: listOf()
-                if (savedAlarms.any { alarm -> alarm.id == nextId }) {
+                val stored = alarmStorage?.getSavedAlarms()?.find { it.id == nextId }
+                if (isCurrentDelivery(nextSettings, stored)) {
                     Log.d(TAG, "Triggering queued alarm $nextId.")
                     ringAlarm(nextId, nextSettings)
                     return
                 } else {
-                    Log.d(TAG, "Queued alarm $nextId no longer exists in storage, skipping.")
+                    Log.d(TAG, "Queued alarm $nextId was stopped or re-armed while waiting, skipping.")
                 }
             }
         }
