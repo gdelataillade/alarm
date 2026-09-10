@@ -222,6 +222,10 @@ class AlarmService : Service() {
         // Read showSystemUI before any volume calls that depend on it
         showSystemUI = alarmSettings.volumeSettings.showSystemUI
 
+        // Enforcement belongs to the ring that asked for it. An alarm with no volume
+        // never reaches setVolume, so stop the previous one's here too (#444).
+        volumeService?.stopVolumeEnforcement()
+
         // Set the volume if specified
         if (alarmSettings.volumeSettings.volume != null) {
             volumeService?.setVolume(
