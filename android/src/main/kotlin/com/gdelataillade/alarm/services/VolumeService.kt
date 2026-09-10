@@ -39,22 +39,36 @@ class VolumeService(context: Context) {
         }
     }
 
+    /**
+     * Holds the stream at [targetVolume] until enforcement stops.
+     *
+     * Cancels first: one `VolumeService` is shared by every alarm on the service, so
+     * overwriting the field without removing the old runnable left it queued and
+     * uncancellable, and fatal once the field went null (#437). Re-posting `this` rather
+     * than the field, and the identity check, keep it that way.
+     */
     private fun startVolumeEnforcement(showSystemUI: Boolean) {
-        // Define the Runnable that checks and enforces the volume level
-        volumeCheckRunnable = Runnable {
-            val currentVolume = audioManager.getStreamVolume(activeStream)
-            if (currentVolume != targetVolume) {
-                audioManager.setStreamVolume(
-                    activeStream,
-                    targetVolume,
-                    if (showSystemUI) AudioManager.FLAG_SHOW_UI else 0
-                )
+        stopVolumeEnforcement()
+
+        val runnable = object : Runnable {
+            override fun run() {
+                if (volumeCheckRunnable !== this) return
+
+                val currentVolume = audioManager.getStreamVolume(activeStream)
+                if (currentVolume != targetVolume) {
+                    audioManager.setStreamVolume(
+                        activeStream,
+                        targetVolume,
+                        if (showSystemUI) AudioManager.FLAG_SHOW_UI else 0
+                    )
+                }
+                // Schedule the next check after 1000ms
+                handler.postDelayed(this, 1000)
             }
-            // Schedule the next check after 1000ms
-            handler.postDelayed(volumeCheckRunnable!!, 1000)
         }
-        // Start the first run
-        handler.post(volumeCheckRunnable!!)
+
+        volumeCheckRunnable = runnable
+        handler.post(runnable)
     }
 
     private fun stopVolumeEnforcement() {

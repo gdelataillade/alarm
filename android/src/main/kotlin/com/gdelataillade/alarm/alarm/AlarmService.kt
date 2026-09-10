@@ -577,7 +577,8 @@ class AlarmService : Service() {
      * Only for [SnoozeCoordinator], and only once it has armed the replacement:
      * the alarm is still owed, so none of the stop bookkeeping applies.
      */
-    fun silenceForSnooze(alarmId: Int) {
+    /** Stops [alarmId]'s audio and dequeues it, touching neither storage nor Flutter. */
+    fun silenceRing(alarmId: Int) {
         stopAlarm(alarmId)
     }
 

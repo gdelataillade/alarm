@@ -87,7 +87,7 @@ object SnoozeCoordinator {
         // Only now is it safe to go quiet.
         val service = AlarmService.instance
         if (service != null) {
-            service.silenceForSnooze(alarmId)
+            service.silenceRing(alarmId)
         } else {
             // No foreground service owns the notification, so it has to be
             // dismissed explicitly or it lingers over a snoozed alarm.
