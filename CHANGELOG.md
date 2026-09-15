@@ -1,3 +1,6 @@
+## 5.13.1
+* **[Android] A non-looping alarm is no longer reported as ringing after its sound has finished.** `Alarm.isRinging` said so until something stopped it, and a later alarm was queued or silently dropped as overlapping.
+
 ## 5.13.0
 * **[Android] Fixed a crash when stopping an alarm with `volumeEnforced: true` (#437).** A second ring left the previous volume-enforcement runnable queued and uncancellable, killing the process on stop.
 * [Android] A same-id `Alarm.set` no longer reports a stop to Flutter, which deleted the alarm it had just saved and left it armed with no Dart record.

@@ -28,7 +28,10 @@ class AudioService(private val context: Context) {
     }
 
     fun getPlayingMediaPlayersIds(): List<Int> {
-        return mediaPlayers.filter { (_, mediaPlayer) -> mediaPlayer.isPlaying }.keys.toList()
+        // isPlaying throws on a released player.
+        return mediaPlayers.filter { (_, mediaPlayer) ->
+            runCatching { mediaPlayer.isPlaying }.getOrDefault(false)
+        }.keys.toList()
     }
 
     fun playAudio(

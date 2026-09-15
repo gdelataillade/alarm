@@ -102,8 +102,10 @@ class AlarmService : Service() {
 
         var instance: AlarmService? = null
 
+        /** Read live rather than cached: a cache went stale when a non-looping alarm finished on its own. */
         @JvmStatic
-        var ringingAlarmIds: List<Int> = listOf()
+        val ringingAlarmIds: List<Int>
+            get() = instance?.audioService?.getPlayingMediaPlayersIds() ?: listOf()
     }
 
     private var alarmId: Int = 0
@@ -290,9 +292,6 @@ class AlarmService : Service() {
             alarmSettings.volumeSettings.fadeSteps,
             alarmSettings.preferConnectedAudioDevice
         )
-
-        // Update the list of ringing alarms
-        ringingAlarmIds = audioService?.getPlayingMediaPlayersIds() ?: listOf()
 
         // Start vibration if enabled
         if (alarmSettings.vibrate) {
@@ -640,10 +639,7 @@ class AlarmService : Service() {
             ringingQueue.remove(id)
             queuedAlarmSettings.remove(id)
 
-            val playingIds = audioService?.getPlayingMediaPlayersIds() ?: listOf()
-            ringingAlarmIds = playingIds
-
-            if (playingIds.isEmpty()) {
+            if (ringingAlarmIds.isEmpty()) {
                 triggerNextQueuedAlarm()
 
                 if (ringingAlarmIds.isEmpty()) {
@@ -686,7 +682,6 @@ class AlarmService : Service() {
     }
 
     override fun onDestroy() {
-        ringingAlarmIds = listOf()
         ringingQueue.clear()
         queuedAlarmSettings.clear()
 
