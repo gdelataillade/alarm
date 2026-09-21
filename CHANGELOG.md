@@ -1,3 +1,6 @@
+## 5.13.2
+* **[Android] `Alarm.stopAll()` now reaches every actively ringing alarm (#437),** even after an earlier stop failure removed it from native storage.
+
 ## 5.13.1
 * **[Android] A non-looping alarm is no longer reported as ringing after its sound has finished.** `Alarm.isRinging` said so until something stopped it, and a later alarm was queued or silently dropped as overlapping.
 
