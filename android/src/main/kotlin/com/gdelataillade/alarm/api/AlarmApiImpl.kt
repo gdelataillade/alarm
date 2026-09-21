@@ -22,6 +22,12 @@ import io.flutter.Log
 class AlarmApiImpl(private val context: Context) : AlarmApi {
     companion object {
         private const val TAG = "AlarmApiImpl"
+
+        internal fun idsToStopAll(
+            ringing: List<Int>,
+            stored: List<Int>,
+            tracked: Set<Int>,
+        ): List<Int> = (ringing + stored + tracked).distinct()
     }
 
     // A set, so the replace path in [setAlarm] cannot add a second copy of an id it
@@ -111,12 +117,14 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
     }
 
     override fun stopAll(callback: (Result<Unit>) -> Unit) {
-        for (alarm in AlarmStorage(context).getSavedAlarms()) {
-            stopAlarm(alarm.id.toLong()) {}
-        }
-        val alarmIdsCopy = alarmIds.toList()
-        for (alarmId in alarmIdsCopy) {
-            stopAlarm(alarmId.toLong()) {}
+        val ids = idsToStopAll(
+            ringing = AlarmService.ringingAlarmIds,
+            stored = AlarmStorage(context).getSavedAlarms().map { it.id },
+            tracked = alarmIds,
+        )
+        for (id in ids) {
+            runCatching { stopAlarm(id.toLong()) {} }
+                .onFailure { Log.e(TAG, "Failed to stop alarm $id during stopAll", it) }
         }
         callback(Result.success(Unit))
     }
