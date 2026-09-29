@@ -1,5 +1,6 @@
 package com.gdelataillade.alarm.api
 
+import com.gdelataillade.alarm.generated.AlarmStateWire
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -33,5 +34,29 @@ class AlarmApiImplTest {
     @Test
     fun `nothing to stop`() {
         assertEquals(emptyList<Int>(), ids())
+    }
+
+    @Test
+    fun `a queued alarm is reported as queued`() {
+        assertEquals(
+            AlarmStateWire.QUEUED,
+            AlarmApiImpl.alarmState(7, ringing = emptyList(), queued = listOf(7)),
+        )
+    }
+
+    @Test
+    fun `a playing alarm wins over a stale queue entry`() {
+        assertEquals(
+            AlarmStateWire.RINGING,
+            AlarmApiImpl.alarmState(7, ringing = listOf(7), queued = listOf(7)),
+        )
+    }
+
+    @Test
+    fun `an unknown alarm is inactive`() {
+        assertEquals(
+            AlarmStateWire.INACTIVE,
+            AlarmApiImpl.alarmState(7, ringing = emptyList(), queued = emptyList()),
+        )
     }
 }

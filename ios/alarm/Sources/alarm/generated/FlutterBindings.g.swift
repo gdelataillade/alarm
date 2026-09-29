@@ -177,6 +177,12 @@ enum AlarmEventCauseWire: Int {
   case staleAtBoot = 2
 }
 
+enum AlarmStateWire: Int {
+  case inactive = 0
+  case ringing = 1
+  case queued = 2
+}
+
 /// Generated class from Pigeon that represents data sent in messages.
 struct AlarmSettingsWire: Hashable {
   var id: Int64
@@ -483,14 +489,20 @@ private class FlutterBindingsPigeonCodecReader: FlutterStandardReader {
       }
       return nil
     case 132:
-      return AlarmSettingsWire.fromList(self.readValue() as! [Any?])
+      let enumResultAsInt: Int? = nilOrValue(self.readValue() as! Int?)
+      if let enumResultAsInt = enumResultAsInt {
+        return AlarmStateWire(rawValue: enumResultAsInt)
+      }
+      return nil
     case 133:
-      return VolumeSettingsWire.fromList(self.readValue() as! [Any?])
+      return AlarmSettingsWire.fromList(self.readValue() as! [Any?])
     case 134:
-      return VolumeFadeStepWire.fromList(self.readValue() as! [Any?])
+      return VolumeSettingsWire.fromList(self.readValue() as! [Any?])
     case 135:
-      return NotificationSettingsWire.fromList(self.readValue() as! [Any?])
+      return VolumeFadeStepWire.fromList(self.readValue() as! [Any?])
     case 136:
+      return NotificationSettingsWire.fromList(self.readValue() as! [Any?])
+    case 137:
       return AlarmEventWire.fromList(self.readValue() as! [Any?])
     default:
       return super.readValue(ofType: type)
@@ -509,20 +521,23 @@ private class FlutterBindingsPigeonCodecWriter: FlutterStandardWriter {
     } else if let value = value as? AlarmEventCauseWire {
       super.writeByte(131)
       super.writeValue(value.rawValue)
-    } else if let value = value as? AlarmSettingsWire {
+    } else if let value = value as? AlarmStateWire {
       super.writeByte(132)
-      super.writeValue(value.toList())
-    } else if let value = value as? VolumeSettingsWire {
+      super.writeValue(value.rawValue)
+    } else if let value = value as? AlarmSettingsWire {
       super.writeByte(133)
       super.writeValue(value.toList())
-    } else if let value = value as? VolumeFadeStepWire {
+    } else if let value = value as? VolumeSettingsWire {
       super.writeByte(134)
       super.writeValue(value.toList())
-    } else if let value = value as? NotificationSettingsWire {
+    } else if let value = value as? VolumeFadeStepWire {
       super.writeByte(135)
       super.writeValue(value.toList())
-    } else if let value = value as? AlarmEventWire {
+    } else if let value = value as? NotificationSettingsWire {
       super.writeByte(136)
+      super.writeValue(value.toList())
+    } else if let value = value as? AlarmEventWire {
+      super.writeByte(137)
       super.writeValue(value.toList())
     } else {
       super.writeValue(value)
@@ -551,6 +566,7 @@ protocol AlarmApi {
   func stopAlarm(alarmId: Int64, completion: @escaping (Result<Void, Error>) -> Void)
   func stopAll(completion: @escaping (Result<Void, Error>) -> Void)
   func isRinging(alarmId: Int64?) throws -> Bool
+  func getAlarmState(alarmId: Int64) throws -> AlarmStateWire
   func setWarningNotificationOnKill(title: String, body: String) throws
   func disableWarningNotificationOnKill() throws
   /// Lists changes the host has made to alarms that Dart has not yet applied.
@@ -643,6 +659,21 @@ class AlarmApiSetup {
       }
     } else {
       isRingingChannel.setMessageHandler(nil)
+    }
+    let getAlarmStateChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.alarm.AlarmApi.getAlarmState\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      getAlarmStateChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let alarmIdArg = args[0] as! Int64
+        do {
+          let result = try api.getAlarmState(alarmId: alarmIdArg)
+          reply(wrapResult(result))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      getAlarmStateChannel.setMessageHandler(nil)
     }
     let setWarningNotificationOnKillChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.alarm.AlarmApi.setWarningNotificationOnKill\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {

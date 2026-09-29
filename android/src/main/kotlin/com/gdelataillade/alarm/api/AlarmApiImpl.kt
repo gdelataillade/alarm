@@ -4,6 +4,7 @@ import com.gdelataillade.alarm.generated.AlarmApi
 import com.gdelataillade.alarm.generated.AlarmErrorCode
 import com.gdelataillade.alarm.generated.AlarmEventWire
 import com.gdelataillade.alarm.generated.AlarmSettingsWire
+import com.gdelataillade.alarm.generated.AlarmStateWire
 import com.gdelataillade.alarm.generated.FlutterError
 import android.app.AlarmManager
 import android.app.PendingIntent
@@ -28,6 +29,16 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
             stored: List<Int>,
             tracked: Set<Int>,
         ): List<Int> = (ringing + stored + tracked).distinct()
+
+        internal fun alarmState(
+            id: Int,
+            ringing: List<Int>,
+            queued: List<Int>,
+        ): AlarmStateWire = when (id) {
+            in ringing -> AlarmStateWire.RINGING
+            in queued -> AlarmStateWire.QUEUED
+            else -> AlarmStateWire.INACTIVE
+        }
     }
 
     // A set, so the replace path in [setAlarm] cannot add a second copy of an id it
@@ -136,6 +147,12 @@ class AlarmApiImpl(private val context: Context) : AlarmApi {
         }
         return ringingAlarmIds.contains(alarmId.toInt())
     }
+
+    override fun getAlarmState(alarmId: Long): AlarmStateWire = alarmState(
+        id = alarmId.toInt(),
+        ringing = AlarmService.ringingAlarmIds,
+        queued = AlarmService.queuedAlarmIds,
+    )
 
     override fun setWarningNotificationOnKill(title: String, body: String) {
         WarningNotificationState.setText(context, title, body)

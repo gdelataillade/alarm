@@ -44,6 +44,10 @@ public class AlarmApiImpl: NSObject, AlarmApi {
         }
     }
 
+    func getAlarmState(alarmId: Int64) throws -> AlarmStateWire {
+        return try self.isRinging(alarmId: alarmId) ? .ringing : .inactive
+    }
+
     func setWarningNotificationOnKill(title: String, body: String) throws {
         AppTerminateManager.shared.setWarningNotification(title: title, body: body)
     }

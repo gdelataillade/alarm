@@ -370,12 +370,15 @@ class Alarm {
         // Query the platform directly instead of [isRinging] because the
         // ringing stream is not populated yet at this point, which would
         // trigger the defensive consistency logs for no reason.
-        final isRinging = iOS
-            ? await IOSAlarm().isRinging(alarm.id)
-            : await AndroidAlarm().isRinging(alarm.id);
-        if (isRinging) {
+        final state = iOS
+            ? await IOSAlarm().getAlarmState(alarm.id)
+            : await AndroidAlarm().getAlarmState(alarm.id);
+        if (state == AlarmStateWire.ringing) {
           _ringing.add(_ringing.value.add(alarm));
           ringStream.add(alarm);
+        } else if (state == AlarmStateWire.queued) {
+          _log.info('Alarm ${alarm.id} is queued behind another alarm, so it '
+              'is left scheduled.');
         } else {
           // Re-read before destroying anything. Every await above is a window
           // in which a snooze can land, and the snapshot this loop iterates
