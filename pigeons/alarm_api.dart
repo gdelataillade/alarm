@@ -162,6 +162,8 @@ abstract class AlarmApi {
 
   bool isRinging({required int? alarmId});
 
+  AlarmStateWire getAlarmState({required int alarmId});
+
   void setWarningNotificationOnKill({
     required String title,
     required String body,
@@ -226,6 +228,12 @@ enum AlarmEventCauseWire {
   /// The alarm's time had already passed while the device was off, so it was
   /// discarded at boot rather than sounded hours late.
   staleAtBoot,
+}
+
+enum AlarmStateWire {
+  inactive,
+  ringing,
+  queued,
 }
 
 /// A change the host made to an alarm that Dart has not yet applied.

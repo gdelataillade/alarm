@@ -152,6 +152,18 @@ enum class AlarmEventCauseWire(val raw: Int) {
   }
 }
 
+enum class AlarmStateWire(val raw: Int) {
+  INACTIVE(0),
+  RINGING(1),
+  QUEUED(2);
+
+  companion object {
+    fun ofRaw(raw: Int): AlarmStateWire? {
+      return values().firstOrNull { it.raw == raw }
+    }
+  }
+}
+
 /** Generated class from Pigeon that represents data sent in messages. */
 data class AlarmSettingsWire (
   val id: Long,
@@ -445,26 +457,31 @@ private open class FlutterBindingsPigeonCodec : StandardMessageCodec() {
         }
       }
       132.toByte() -> {
-        return (readValue(buffer) as? List<Any?>)?.let {
-          AlarmSettingsWire.fromList(it)
+        return (readValue(buffer) as Long?)?.let {
+          AlarmStateWire.ofRaw(it.toInt())
         }
       }
       133.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          VolumeSettingsWire.fromList(it)
+          AlarmSettingsWire.fromList(it)
         }
       }
       134.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          VolumeFadeStepWire.fromList(it)
+          VolumeSettingsWire.fromList(it)
         }
       }
       135.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          NotificationSettingsWire.fromList(it)
+          VolumeFadeStepWire.fromList(it)
         }
       }
       136.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          NotificationSettingsWire.fromList(it)
+        }
+      }
+      137.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
           AlarmEventWire.fromList(it)
         }
@@ -486,24 +503,28 @@ private open class FlutterBindingsPigeonCodec : StandardMessageCodec() {
         stream.write(131)
         writeValue(stream, value.raw)
       }
-      is AlarmSettingsWire -> {
+      is AlarmStateWire -> {
         stream.write(132)
-        writeValue(stream, value.toList())
+        writeValue(stream, value.raw)
       }
-      is VolumeSettingsWire -> {
+      is AlarmSettingsWire -> {
         stream.write(133)
         writeValue(stream, value.toList())
       }
-      is VolumeFadeStepWire -> {
+      is VolumeSettingsWire -> {
         stream.write(134)
         writeValue(stream, value.toList())
       }
-      is NotificationSettingsWire -> {
+      is VolumeFadeStepWire -> {
         stream.write(135)
         writeValue(stream, value.toList())
       }
-      is AlarmEventWire -> {
+      is NotificationSettingsWire -> {
         stream.write(136)
+        writeValue(stream, value.toList())
+      }
+      is AlarmEventWire -> {
+        stream.write(137)
         writeValue(stream, value.toList())
       }
       else -> super.writeValue(stream, value)
@@ -518,6 +539,7 @@ interface AlarmApi {
   fun stopAlarm(alarmId: Long, callback: (Result<Unit>) -> Unit)
   fun stopAll(callback: (Result<Unit>) -> Unit)
   fun isRinging(alarmId: Long?): Boolean
+  fun getAlarmState(alarmId: Long): AlarmStateWire
   fun setWarningNotificationOnKill(title: String, body: String)
   fun disableWarningNotificationOnKill()
   /**
@@ -616,6 +638,23 @@ interface AlarmApi {
             val alarmIdArg = args[0] as Long?
             val wrapped: List<Any?> = try {
               listOf(api.isRinging(alarmIdArg))
+            } catch (exception: Throwable) {
+              FlutterBindingsPigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.alarm.AlarmApi.getAlarmState$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val alarmIdArg = args[0] as Long
+            val wrapped: List<Any?> = try {
+              listOf(api.getAlarmState(alarmIdArg))
             } catch (exception: Throwable) {
               FlutterBindingsPigeonUtils.wrapError(exception)
             }

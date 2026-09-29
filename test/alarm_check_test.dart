@@ -98,6 +98,19 @@ void main() {
       expect(host.calls, isNot(contains('stopAlarm')));
     });
 
+    test('an old alarm queued behind another ring is left scheduled', () async {
+      await AlarmStorage.saveAlarm(
+        buildAlarm(42, DateTime.now().subtract(const Duration(minutes: 2))),
+      );
+      host.queued.add(42);
+
+      await Alarm.init();
+
+      expect(host.calls, isNot(contains('stopAlarm')));
+      expect(await Alarm.getAlarm(42), isNotNull);
+      expect(Alarm.ringing.value.containsId(42), isFalse);
+    });
+
     test('iOS still stops a past-due alarm', () async {
       // Asserts preserved behaviour rather than isolating the Android gate:
       // iOS runs stopAll() before the loop, which empties storage, so the

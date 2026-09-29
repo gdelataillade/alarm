@@ -79,6 +79,18 @@ abstract class BaseAlarm {
     }
   }
 
+  /// Returns the native lifecycle state used while reconciling [id].
+  Future<AlarmStateWire> getAlarmState(int id) async {
+    try {
+      return await api
+          .getAlarmState(alarmId: id)
+          .catchError(AlarmExceptionHandlers.catchError<AlarmStateWire>);
+    } on AlarmException catch (e) {
+      _log.severe('Failed to get state for alarm $id: $e');
+      return AlarmStateWire.inactive;
+    }
+  }
+
   /// Sets the native notification on app kill title and body.
   Future<void> setWarningNotificationOnKill(String title, String body) => api
       .setWarningNotificationOnKill(

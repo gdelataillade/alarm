@@ -106,6 +106,10 @@ class AlarmService : Service() {
         @JvmStatic
         val ringingAlarmIds: List<Int>
             get() = instance?.audioService?.getPlayingMediaPlayersIds() ?: listOf()
+
+        @JvmStatic
+        val queuedAlarmIds: List<Int>
+            get() = instance?.ringingQueue?.toList() ?: listOf()
     }
 
     private var alarmId: Int = 0

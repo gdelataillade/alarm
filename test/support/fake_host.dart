@@ -17,6 +17,7 @@ class FakeHost {
   final List<AlarmEventWire> pending = <AlarmEventWire>[];
   final List<(int, int)> acknowledged = <(int, int)>[];
   final Set<int> ringing = <int>{};
+  final Set<int> queued = <int>{};
 
   /// When set, `setAlarm` replies with this error instead of succeeding.
   ///
@@ -35,6 +36,7 @@ class FakeHost {
     'stopAlarm',
     'stopAll',
     'isRinging',
+    'getAlarmState',
     'setWarningNotificationOnKill',
     'disableWarningNotificationOnKill',
   ];
@@ -56,6 +58,15 @@ class FakeHost {
       final id = args?[0] as int?;
       final result = id == null ? ringing.isNotEmpty : ringing.contains(id);
       return <Object?>[result];
+    });
+    _handle('getAlarmState', (args) {
+      final id = args![0]! as int;
+      final state = ringing.contains(id)
+          ? AlarmStateWire.ringing
+          : queued.contains(id)
+              ? AlarmStateWire.queued
+              : AlarmStateWire.inactive;
+      return <Object?>[state];
     });
     _handle('setWarningNotificationOnKill', (_) => <Object?>[null]);
     _handle('disableWarningNotificationOnKill', (_) => <Object?>[null]);

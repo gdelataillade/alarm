@@ -93,6 +93,12 @@ enum AlarmEventCauseWire {
   staleAtBoot,
 }
 
+enum AlarmStateWire {
+  inactive,
+  ringing,
+  queued,
+}
+
 class AlarmSettingsWire {
   AlarmSettingsWire({
     required this.id,
@@ -507,20 +513,23 @@ class _PigeonCodec extends StandardMessageCodec {
     } else if (value is AlarmEventCauseWire) {
       buffer.putUint8(131);
       writeValue(buffer, value.index);
-    } else if (value is AlarmSettingsWire) {
+    } else if (value is AlarmStateWire) {
       buffer.putUint8(132);
-      writeValue(buffer, value.encode());
-    } else if (value is VolumeSettingsWire) {
+      writeValue(buffer, value.index);
+    } else if (value is AlarmSettingsWire) {
       buffer.putUint8(133);
       writeValue(buffer, value.encode());
-    } else if (value is VolumeFadeStepWire) {
+    } else if (value is VolumeSettingsWire) {
       buffer.putUint8(134);
       writeValue(buffer, value.encode());
-    } else if (value is NotificationSettingsWire) {
+    } else if (value is VolumeFadeStepWire) {
       buffer.putUint8(135);
       writeValue(buffer, value.encode());
-    } else if (value is AlarmEventWire) {
+    } else if (value is NotificationSettingsWire) {
       buffer.putUint8(136);
+      writeValue(buffer, value.encode());
+    } else if (value is AlarmEventWire) {
+      buffer.putUint8(137);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -540,14 +549,17 @@ class _PigeonCodec extends StandardMessageCodec {
         final int? value = readValue(buffer) as int?;
         return value == null ? null : AlarmEventCauseWire.values[value];
       case 132:
-        return AlarmSettingsWire.decode(readValue(buffer)!);
+        final int? value = readValue(buffer) as int?;
+        return value == null ? null : AlarmStateWire.values[value];
       case 133:
-        return VolumeSettingsWire.decode(readValue(buffer)!);
+        return AlarmSettingsWire.decode(readValue(buffer)!);
       case 134:
-        return VolumeFadeStepWire.decode(readValue(buffer)!);
+        return VolumeSettingsWire.decode(readValue(buffer)!);
       case 135:
-        return NotificationSettingsWire.decode(readValue(buffer)!);
+        return VolumeFadeStepWire.decode(readValue(buffer)!);
       case 136:
+        return NotificationSettingsWire.decode(readValue(buffer)!);
+      case 137:
         return AlarmEventWire.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -674,6 +686,37 @@ class AlarmApi {
       );
     } else {
       return (pigeonVar_replyList[0] as bool?)!;
+    }
+  }
+
+  Future<AlarmStateWire> getAlarmState({required int alarmId}) async {
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.alarm.AlarmApi.getAlarmState$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[alarmId]);
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_sendFuture as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else if (pigeonVar_replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (pigeonVar_replyList[0] as AlarmStateWire?)!;
     }
   }
 
