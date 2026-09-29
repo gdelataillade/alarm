@@ -44,6 +44,7 @@ public class AlarmApiImpl: NSObject, AlarmApi {
         }
     }
 
+    /// Never reports `.queued`: Dart's reconciliation calls `stopAll` first on iOS, which empties the queue.
     func getAlarmState(alarmId: Int64) throws -> AlarmStateWire {
         return try self.isRinging(alarmId: alarmId) ? .ringing : .inactive
     }

@@ -152,9 +152,13 @@ enum class AlarmEventCauseWire(val raw: Int) {
   }
 }
 
+/** What the host is doing with an alarm right now. */
 enum class AlarmStateWire(val raw: Int) {
+  /** Neither ringing nor queued. */
   INACTIVE(0),
+  /** Currently playing. */
   RINGING(1),
+  /** Waiting behind another ringing alarm. Only Android reports it. */
   QUEUED(2);
 
   companion object {

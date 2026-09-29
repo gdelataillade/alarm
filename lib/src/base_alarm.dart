@@ -79,7 +79,8 @@ abstract class BaseAlarm {
     }
   }
 
-  /// Returns the native lifecycle state used while reconciling [id].
+  /// Returns whether alarm [id] is inactive, ringing, or queued behind another
+  /// ring. Falls back to inactive on error, like [isRinging] returning false.
   Future<AlarmStateWire> getAlarmState(int id) async {
     try {
       return await api

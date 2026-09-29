@@ -1,3 +1,6 @@
+## 5.13.3
+* **[Android] `Alarm.init()` no longer discards an alarm queued behind a ringing one (#437).**
+
 ## 5.13.2
 * **[Android] `Alarm.stopAll()` now reaches every actively ringing alarm (#437),** even after an earlier stop failure removed it from native storage.
 
