@@ -93,9 +93,15 @@ enum AlarmEventCauseWire {
   staleAtBoot,
 }
 
+/// What the host is doing with an alarm right now.
 enum AlarmStateWire {
+  /// Neither ringing nor queued.
   inactive,
+
+  /// Currently playing.
   ringing,
+
+  /// Waiting behind another ringing alarm. Only Android reports it.
   queued,
 }
 

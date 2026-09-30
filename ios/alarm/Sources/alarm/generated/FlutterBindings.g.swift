@@ -177,9 +177,13 @@ enum AlarmEventCauseWire: Int {
   case staleAtBoot = 2
 }
 
+/// What the host is doing with an alarm right now.
 enum AlarmStateWire: Int {
+  /// Neither ringing nor queued.
   case inactive = 0
+  /// Currently playing.
   case ringing = 1
+  /// Waiting behind another ringing alarm. Only Android reports it.
   case queued = 2
 }
 
