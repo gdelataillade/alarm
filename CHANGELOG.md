@@ -1,3 +1,6 @@
+## 5.13.4
+* [Android] The ring wake lock is released when the alarm stops instead of being held for 5 minutes (#452).
+
 ## 5.13.3
 * **[Android] `Alarm.init()` no longer discards an alarm queued behind a ringing one (#437).**
 

@@ -122,6 +122,10 @@ class AlarmService : Service() {
     private val ringingQueue = mutableListOf<Int>()
     private val queuedAlarmSettings = mutableMapOf<Int, AlarmSettings>()
 
+    // One lock per service, not reference counted: each ring re-acquires it and a
+    // single release ends it, however many alarms rang.
+    private var wakeLock: PowerManager.WakeLock? = null
+
     // Last notification passed to startForeground, so no-op start commands
     // (queued or ignored alarms) can re-post it to satisfy the
     // startForegroundService() contract without any visible change.
@@ -284,6 +288,7 @@ class AlarmService : Service() {
                 vibrationService?.stopVibrating()
                 volumeService?.restorePreviousVolume(showSystemUI)
                 volumeService?.abandonAudioFocus()
+                if (ringingAlarmIds.isEmpty()) releaseWakeLock()
             }
         }
 
@@ -306,9 +311,12 @@ class AlarmService : Service() {
         shouldStopAlarmOnTermination = alarmSettings.androidStopAlarmOnTermination
 
         // Acquire a wake lock to wake up the device
-        val wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager)
-            .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "app:AlarmWakelockTag")
-        wakeLock.acquire(5 * 60 * 1000L) // Acquire for 5 minutes
+        val lock = wakeLock
+            ?: (getSystemService(Context.POWER_SERVICE) as PowerManager)
+                .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "app:AlarmWakelockTag")
+                .apply { setReferenceCounted(false) }
+                .also { wakeLock = it }
+        lock.acquire(5 * 60 * 1000L) // Acquire for 5 minutes
 
         // If there are no other alarms scheduled, turn off the warning notification.
         val storage = alarmStorage
@@ -652,6 +660,7 @@ class AlarmService : Service() {
                     volumeService?.restorePreviousVolume(showSystemUI)
                     volumeService?.abandonAudioFocus()
                     vibrationService?.stopVibrating()
+                    releaseWakeLock()
                     ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
                     currentForegroundId = null
                     currentForegroundNotification = null
@@ -663,6 +672,10 @@ class AlarmService : Service() {
         } catch (e: Exception) {
             Log.e(TAG, "Error in stopping alarm: ${e.message}", e)
         }
+    }
+
+    private fun releaseWakeLock() {
+        wakeLock?.let { if (it.isHeld) it.release() }
     }
 
     private fun triggerNextQueuedAlarm() {
@@ -693,6 +706,8 @@ class AlarmService : Service() {
         vibrationService?.stopVibrating()
         volumeService?.restorePreviousVolume(showSystemUI)
         volumeService?.abandonAudioFocus()
+        releaseWakeLock()
+        wakeLock = null
 
         AlarmRingingLiveData.instance.update(false)
 
