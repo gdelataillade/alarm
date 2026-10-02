@@ -1,3 +1,6 @@
+## 5.13.5
+* [Android] Swiping the app away no longer loses an alarm queued behind the ringing one (#454).
+
 ## 5.13.4
 * [Android] The ring wake lock is released when the alarm stops instead of being held for 5 minutes (#452).
 
