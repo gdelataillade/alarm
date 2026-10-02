@@ -201,7 +201,9 @@ data class AlarmSettingsWire (
    * setting existed, which reads as the default rather than as null.
    * Android only.
    */
-  val androidStaleAfterMillis: Long? = null
+  val androidStaleAfterMillis: Long? = null,
+  /** Whether to arm with `setAlarmClock`. Android only. */
+  val androidAlarmClock: Boolean
 )
  {
   companion object {
@@ -222,7 +224,8 @@ data class AlarmSettingsWire (
       val preferConnectedAudioDevice = pigeonVar_list[13] as Boolean
       val androidSnoozeDurationMillis = pigeonVar_list[14] as Long?
       val androidStaleAfterMillis = pigeonVar_list[15] as Long?
-      return AlarmSettingsWire(id, millisecondsSinceEpoch, assetAudioPath, volumeSettings, notificationSettings, loopAudio, vibrate, warningNotificationOnKill, androidFullScreenIntent, allowAlarmOverlap, allowSameSecondScheduling, iOSBackgroundAudio, androidStopAlarmOnTermination, preferConnectedAudioDevice, androidSnoozeDurationMillis, androidStaleAfterMillis)
+      val androidAlarmClock = pigeonVar_list[16] as Boolean
+      return AlarmSettingsWire(id, millisecondsSinceEpoch, assetAudioPath, volumeSettings, notificationSettings, loopAudio, vibrate, warningNotificationOnKill, androidFullScreenIntent, allowAlarmOverlap, allowSameSecondScheduling, iOSBackgroundAudio, androidStopAlarmOnTermination, preferConnectedAudioDevice, androidSnoozeDurationMillis, androidStaleAfterMillis, androidAlarmClock)
     }
   }
   fun toList(): List<Any?> {
@@ -243,6 +246,7 @@ data class AlarmSettingsWire (
       preferConnectedAudioDevice,
       androidSnoozeDurationMillis,
       androidStaleAfterMillis,
+      androidAlarmClock,
     )
   }
   override fun equals(other: Any?): Boolean {

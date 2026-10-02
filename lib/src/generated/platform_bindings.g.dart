@@ -123,6 +123,7 @@ class AlarmSettingsWire {
     required this.preferConnectedAudioDevice,
     this.androidSnoozeDurationMillis,
     this.androidStaleAfterMillis,
+    required this.androidAlarmClock,
   });
 
   int id;
@@ -169,6 +170,9 @@ class AlarmSettingsWire {
   /// Android only.
   int? androidStaleAfterMillis;
 
+  /// Whether to arm with `setAlarmClock`. Android only.
+  bool androidAlarmClock;
+
   List<Object?> _toList() {
     return <Object?>[
       id,
@@ -187,6 +191,7 @@ class AlarmSettingsWire {
       preferConnectedAudioDevice,
       androidSnoozeDurationMillis,
       androidStaleAfterMillis,
+      androidAlarmClock,
     ];
   }
 
@@ -213,6 +218,7 @@ class AlarmSettingsWire {
       preferConnectedAudioDevice: result[13]! as bool,
       androidSnoozeDurationMillis: result[14] as int?,
       androidStaleAfterMillis: result[15] as int?,
+      androidAlarmClock: result[16]! as bool,
     );
   }
 

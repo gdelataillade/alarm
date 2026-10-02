@@ -34,6 +34,7 @@ data class AlarmSettings(
     val androidSnoozeDurationMillis: Long? = null,
     // Absent means the default; an explicit null means never discard.
     val androidStaleAfterMillis: Long? = DEFAULT_STALE_AFTER_MILLIS,
+    val androidAlarmClock: Boolean = true, // Defaults to true for backward compatibility
 ) {
     /** Whether this alarm can be deferred rather than only stopped. */
     val canSnooze: Boolean
@@ -77,6 +78,7 @@ data class AlarmSettings(
                 e.preferConnectedAudioDevice,
                 e.androidSnoozeDurationMillis,
                 e.androidStaleAfterMillis,
+                e.androidAlarmClock,
             )
         }
 
@@ -129,6 +131,9 @@ data class AlarmSettings(
                     ?: DEFAULT_STALE_AFTER_MILLIS
             }
 
+            // Handle backward compatibility for `androidAlarmClock`
+            val androidAlarmClock = jsonObject.primitiveBoolean("androidAlarmClock") ?: true
+
             // Handle backward compatibility for `volumeSettings`
             val volumeSettings = jsonObject["volumeSettings"]?.let {
                 Json.decodeFromJsonElement(VolumeSettings.serializer(), it)
@@ -163,6 +168,7 @@ data class AlarmSettings(
                 preferConnectedAudioDevice = preferConnectedAudioDevice,
                 androidSnoozeDurationMillis = androidSnoozeDurationMillis,
                 androidStaleAfterMillis = androidStaleAfterMillis,
+                androidAlarmClock = androidAlarmClock,
             )
         }
     }
