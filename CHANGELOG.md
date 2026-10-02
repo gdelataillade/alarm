@@ -1,3 +1,6 @@
+## 5.14.0
+* **[Android] Alarms are now armed with `AlarmManager.setAlarmClock` (#439),** which Doze and OEM battery savers exempt. The alarm shows as the system's next alarm (status bar icon); set `AlarmSettings.androidAlarmClock: false` to keep the previous behavior.
+
 ## 5.13.5
 * [Android] Swiping the app away no longer loses an alarm queued behind the ringing one (#454).
 

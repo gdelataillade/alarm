@@ -33,6 +33,7 @@ class AlarmSettingsWire {
     required this.preferConnectedAudioDevice,
     required this.androidSnoozeDurationMillis,
     required this.androidStaleAfterMillis,
+    required this.androidAlarmClock,
   });
 
   final int id;
@@ -65,6 +66,9 @@ class AlarmSettingsWire {
   /// setting existed, which reads as the default rather than as null.
   /// Android only.
   final int? androidStaleAfterMillis;
+
+  /// Whether to arm with `setAlarmClock`. Android only.
+  final bool androidAlarmClock;
 }
 
 class VolumeSettingsWire {

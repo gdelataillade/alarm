@@ -36,6 +36,7 @@ class AlarmSettings extends Equatable {
     this.payload,
     this.androidSnoozeDuration,
     this.androidStaleAfter = _defaultStaleAfter,
+    this.androidAlarmClock = true,
   });
 
   /// Constructs an `AlarmSettings` instance from the given JSON data.
@@ -281,6 +282,20 @@ class AlarmSettings extends Equatable {
   @JsonKey(fromJson: _staleAfterFromJson, toJson: _staleAfterToJson)
   final Duration? androidStaleAfter;
 
+  /// Whether to arm this alarm as an alarm clock.
+  ///
+  /// **Android only.** Uses `AlarmManager.setAlarmClock`, which Doze and OEM
+  /// battery savers exempt and leave idle for shortly before the alarm. The
+  /// alarm also becomes the system's next alarm: a status bar icon, the time in
+  /// Quick Settings and on the lock screen, and readable by other apps. Set to
+  /// `false` for an alarm that should not be advertised that way; it is then
+  /// armed with `setExactAndAllowWhileIdle`, as before 5.14.0.
+  ///
+  /// Without the exact alarm permission, both fall back to an inexact alarm.
+  ///
+  /// Defaults to `true`. Has no effect on iOS.
+  final bool androidAlarmClock;
+
   /// Reads [androidStaleAfter], recovering rather than throwing.
   ///
   /// Nothing between [Alarm.init] and the storage read catches, so throwing
@@ -329,6 +344,7 @@ class AlarmSettings extends Equatable {
         preferConnectedAudioDevice: preferConnectedAudioDevice,
         androidSnoozeDurationMillis: androidSnoozeDuration?.inMilliseconds,
         androidStaleAfterMillis: androidStaleAfter?.inMilliseconds,
+        androidAlarmClock: androidAlarmClock,
       );
 
   /// Creates a copy of `AlarmSettings` but with the given fields replaced with
@@ -365,6 +381,7 @@ class AlarmSettings extends Equatable {
     String? Function()? payload,
     Duration? Function()? androidSnoozeDuration,
     Duration? Function()? androidStaleAfter,
+    bool? androidAlarmClock,
   }) {
     return AlarmSettings(
       id: id ?? this.id,
@@ -399,6 +416,7 @@ class AlarmSettings extends Equatable {
       androidStaleAfter: androidStaleAfter != null
           ? androidStaleAfter()
           : this.androidStaleAfter,
+      androidAlarmClock: androidAlarmClock ?? this.androidAlarmClock,
     );
   }
 
@@ -421,5 +439,6 @@ class AlarmSettings extends Equatable {
         payload,
         androidSnoozeDuration,
         androidStaleAfter,
+        androidAlarmClock,
       ];
 }

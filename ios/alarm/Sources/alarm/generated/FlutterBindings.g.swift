@@ -217,6 +217,8 @@ struct AlarmSettingsWire: Hashable {
   /// setting existed, which reads as the default rather than as null.
   /// Android only.
   var androidStaleAfterMillis: Int64? = nil
+  /// Whether to arm with `setAlarmClock`. Android only.
+  var androidAlarmClock: Bool
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -237,6 +239,7 @@ struct AlarmSettingsWire: Hashable {
     let preferConnectedAudioDevice = pigeonVar_list[13] as! Bool
     let androidSnoozeDurationMillis: Int64? = nilOrValue(pigeonVar_list[14])
     let androidStaleAfterMillis: Int64? = nilOrValue(pigeonVar_list[15])
+    let androidAlarmClock = pigeonVar_list[16] as! Bool
 
     return AlarmSettingsWire(
       id: id,
@@ -254,7 +257,8 @@ struct AlarmSettingsWire: Hashable {
       androidStopAlarmOnTermination: androidStopAlarmOnTermination,
       preferConnectedAudioDevice: preferConnectedAudioDevice,
       androidSnoozeDurationMillis: androidSnoozeDurationMillis,
-      androidStaleAfterMillis: androidStaleAfterMillis
+      androidStaleAfterMillis: androidStaleAfterMillis,
+      androidAlarmClock: androidAlarmClock
     )
   }
   func toList() -> [Any?] {
@@ -275,6 +279,7 @@ struct AlarmSettingsWire: Hashable {
       preferConnectedAudioDevice,
       androidSnoozeDurationMillis,
       androidStaleAfterMillis,
+      androidAlarmClock,
     ]
   }
   static func == (lhs: AlarmSettingsWire, rhs: AlarmSettingsWire) -> Bool {

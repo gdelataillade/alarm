@@ -362,4 +362,24 @@ void main() {
       expect(never.copyWith(id: 9).androidStaleAfter, isNull);
     });
   });
+
+  group('AlarmSettings androidAlarmClock', () {
+    test('defaults to true, including for alarms stored before it existed', () {
+      expect(buildSettings().androidAlarmClock, isTrue);
+
+      final legacy = buildSettings().toJson()..remove('androidAlarmClock');
+      expect(AlarmSettings.fromJson(legacy).androidAlarmClock, isTrue);
+    });
+
+    test('an opt-out survives a round trip and reaches the wire', () {
+      final optOut = buildSettings().copyWith(androidAlarmClock: false);
+      final restored = AlarmSettings.fromJson(
+        jsonDecode(jsonEncode(optOut.toJson())) as Map<String, dynamic>,
+      );
+
+      expect(restored.androidAlarmClock, isFalse);
+      expect(optOut.toWire().androidAlarmClock, isFalse);
+      expect(optOut, isNot(buildSettings()));
+    });
+  });
 }
