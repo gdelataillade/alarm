@@ -83,6 +83,10 @@ class AlarmService : Service() {
             stored: AlarmSettings?,
         ): Boolean = stored != null && stored.dateTime.time == delivered.dateTime.time
 
+        /** Alarms that rang, were not stopped, and asked to be stopped with the task. */
+        internal fun idsToStopOnTermination(stopOnTermination: Map<Int, Boolean>): List<Int> =
+            stopOnTermination.filterValues { it }.keys.toList()
+
         /** Alarm id, so the activity can act on the alarm it presents. */
         const val EXTRA_ALARM_ID = "alarmId"
 
@@ -112,13 +116,13 @@ class AlarmService : Service() {
             get() = instance?.ringingQueue?.toList() ?: listOf()
     }
 
-    private var alarmId: Int = 0
     private var audioService: AudioService? = null
     private var vibrationService: VibrationService? = null
     private var volumeService: VolumeService? = null
     private var alarmStorage: AlarmStorage? = null
     private var showSystemUI: Boolean = true
-    private var shouldStopAlarmOnTermination: Boolean = true
+    // androidStopAlarmOnTermination per alarm that rang and was not stopped yet.
+    private val stopOnTermination = mutableMapOf<Int, Boolean>()
     private val ringingQueue = mutableListOf<Int>()
     private val queuedAlarmSettings = mutableMapOf<Int, AlarmSettings>()
 
@@ -152,9 +156,6 @@ class AlarmService : Service() {
             return START_NOT_STICKY
         }
 
-        // Note: `alarmId` is only updated in ringAlarm() so that queued or
-        // stopped alarms never overwrite the id of the currently ringing
-        // alarm, which onTaskRemoved relies on.
         val id = intent.getIntExtra("id", 0)
 
         val alarmSettingsJson = intent.getStringExtra("alarmSettings")
@@ -207,8 +208,6 @@ class AlarmService : Service() {
     }
 
     private fun ringAlarm(id: Int, alarmSettings: AlarmSettings) {
-        alarmId = id
-
         // Build the notification
         val notificationHandler = NotificationHandler(this)
         val pendingIntent = ringPendingIntent(id, alarmSettings)
@@ -307,8 +306,7 @@ class AlarmService : Service() {
             vibrationService?.startVibrating(longArrayOf(0, 500, 500), 1)
         }
 
-        // Retrieve whether the alarm should be stopped on task termination
-        shouldStopAlarmOnTermination = alarmSettings.androidStopAlarmOnTermination
+        stopOnTermination[id] = alarmSettings.androidStopAlarmOnTermination
 
         // Acquire a wake lock to wake up the device
         val lock = wakeLock
@@ -383,12 +381,11 @@ class AlarmService : Service() {
     override fun onTaskRemoved(rootIntent: Intent?) {
         Log.d(TAG, "App closed, checking if alarm should be stopped.")
 
-        if (shouldStopAlarmOnTermination) {
-            Log.d(TAG, "Stopping alarm as androidStopAlarmOnTermination is true.")
-            unsaveAlarm(alarmId)
-            stopSelf()
-        } else {
-            Log.d(TAG, "Keeping alarm running as androidStopAlarmOnTermination is false.")
+        // No stopSelf(): stopping the last alarm already ends the service, or promotes
+        // the next queued alarm, which has not rung and so is not this setting's to stop.
+        for (id in idsToStopOnTermination(stopOnTermination)) {
+            Log.d(TAG, "Stopping alarm $id as androidStopAlarmOnTermination is true.")
+            unsaveAlarm(id)
         }
 
         super.onTaskRemoved(rootIntent)
@@ -645,6 +642,7 @@ class AlarmService : Service() {
 
     private fun stopAlarm(id: Int) {
         try {
+            stopOnTermination.remove(id)
             audioService?.stopAudio(id)
 
             // Remove from queue if present so stopped alarms never get promoted
@@ -701,6 +699,7 @@ class AlarmService : Service() {
     override fun onDestroy() {
         ringingQueue.clear()
         queuedAlarmSettings.clear()
+        stopOnTermination.clear()
 
         audioService?.cleanUp()
         vibrationService?.stopVibrating()

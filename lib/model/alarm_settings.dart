@@ -224,6 +224,8 @@ class AlarmSettings extends Equatable {
   /// Whether to stop the alarm when an Android task is terminated by e.g.
   /// swiping away the app from the recent apps list.
   ///
+  /// A queued alarm is not affected; it rings next, as after a stop.
+  ///
   /// Defaults to `true`. Has no effect on iOS.
   final bool androidStopAlarmOnTermination;
 
