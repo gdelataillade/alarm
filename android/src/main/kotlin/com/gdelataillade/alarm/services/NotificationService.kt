@@ -66,8 +66,6 @@ class NotificationHandler(private val context: Context) {
         )
     }
 
-    // We need to use [Resources.getIdentifier] because resources are registered by Flutter.
-    @SuppressLint("DiscouragedApi")
     fun buildNotification(
         notificationSettings: NotificationSettings,
         fullScreen: Boolean,
@@ -75,19 +73,7 @@ class NotificationHandler(private val context: Context) {
         alarmId: Int,
         canSnooze: Boolean = false
     ): Notification {
-        val defaultIconResId =
-            context.packageManager.getApplicationInfo(context.packageName, 0).icon
-
-        val iconResId = if (notificationSettings.icon != null) {
-            val resId = context.resources.getIdentifier(
-                notificationSettings.icon,
-                "drawable",
-                context.packageName
-            )
-            if (resId != 0) resId else defaultIconResId
-        } else {
-            defaultIconResId
-        }
+        val iconResId = iconResId(notificationSettings)
 
         val stopIntent = Intent(context, AlarmReceiver::class.java).apply {
             action = AlarmReceiver.ACTION_ALARM_STOP
@@ -163,5 +149,46 @@ class NotificationHandler(private val context: Context) {
         }
 
         return notificationBuilder.build()
+    }
+
+    /**
+     * What a non-looping alarm leaves behind with `keepNotificationAfterAlarmEnds`: the
+     * alarm is over, so no actions, nothing ongoing, and silent so it does not alert again.
+     */
+    fun postEndedNotification(notificationSettings: NotificationSettings, alarmId: Int) {
+        val launch = context.packageManager.getLaunchIntentForPackage(context.packageName)
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(iconResId(notificationSettings))
+            .setContentTitle(notificationSettings.title)
+            .setContentText(notificationSettings.body)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setAutoCancel(true)
+            .setSilent(true)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+        if (launch != null) {
+            builder.setContentIntent(
+                PendingIntent.getActivity(
+                    context,
+                    alarmId,
+                    launch,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+            )
+        }
+        notificationSettings.iconColor?.let { builder.setColor(it) }
+
+        val notificationManager =
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.notify(alarmId, builder.build())
+    }
+
+    // We need to use [Resources.getIdentifier] because resources are registered by Flutter.
+    @SuppressLint("DiscouragedApi")
+    private fun iconResId(notificationSettings: NotificationSettings): Int {
+        val defaultIconResId =
+            context.packageManager.getApplicationInfo(context.packageName, 0).icon
+        val icon = notificationSettings.icon ?: return defaultIconResId
+        val resId = context.resources.getIdentifier(icon, "drawable", context.packageName)
+        return if (resId != 0) resId else defaultIconResId
     }
 }

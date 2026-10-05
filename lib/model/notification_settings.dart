@@ -83,15 +83,11 @@ class NotificationSettings extends Equatable {
   @_ColorJsonConverter()
   final Color? iconColor;
 
-  /// Keeps the notification banner visible even after the alarm sound ends.
+  /// Keeps a notification visible after a non-looping alarm's audio ends.
   ///
-  /// **iOS only for now.** On Android, the notification already stays
-  /// visible after the sound ends because it is tied to the foreground
-  /// service.
-  ///
-  /// If `true`, when the alarm finishes ringing automatically (non-looping
-  /// alarms), the delivered notification will not be dismissed so the user
-  /// can still see it in the notification center.
+  /// If `true`, when the alarm stops because its audio finished, the user can
+  /// still see it in the notification center. On Android it is replaced by a
+  /// silent notification without the stop and snooze buttons.
   ///
   /// Defaults to `false`.
   final bool keepNotificationAfterAlarmEnds;
