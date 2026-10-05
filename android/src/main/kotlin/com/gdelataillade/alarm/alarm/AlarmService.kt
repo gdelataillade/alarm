@@ -281,13 +281,17 @@ class AlarmService : Service() {
         // Request audio focus
         volumeService?.requestAudioFocus(alarmSettings.preferConnectedAudioDevice)
 
-        // Set up audio completion listener
+        // A non-looping alarm is over when its audio ends: stop it like the Stop button
+        // does, which also promotes a queued alarm, as iOS does (#449).
         audioService?.setOnAudioCompleteListener(id) {
             if (!alarmSettings.loopAudio) {
-                vibrationService?.stopVibrating()
-                volumeService?.restorePreviousVolume(showSystemUI)
-                volumeService?.abandonAudioFocus()
-                if (ringingAlarmIds.isEmpty()) releaseWakeLock()
+                unsaveAlarm(id)
+                // A service still foregrounded on this id owns the notification.
+                if (alarmSettings.notificationSettings.keepNotificationAfterAlarmEnds &&
+                    currentForegroundId != id
+                ) {
+                    NotificationHandler(this).postEndedNotification(alarmSettings.notificationSettings, id)
+                }
             }
         }
 

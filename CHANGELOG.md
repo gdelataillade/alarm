@@ -1,3 +1,6 @@
+## 5.15.0
+* **[Android] A non-looping alarm now stops when its audio ends (#449),** as on iOS: an alarm queued behind it rings next, and `keepNotificationAfterAlarmEnds` leaves a plain notification behind.
+
 ## 5.14.0
 * **[Android] Alarms are now armed with `AlarmManager.setAlarmClock` (#439),** which Doze and OEM battery savers exempt. The alarm shows as the system's next alarm (status bar icon); set `AlarmSettings.androidAlarmClock: false` to keep the previous behavior.
 

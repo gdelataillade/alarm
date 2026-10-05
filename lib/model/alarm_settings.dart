@@ -169,6 +169,7 @@ class AlarmSettings extends Equatable {
   final NotificationSettings notificationSettings;
 
   /// If true, [assetAudioPath] will repeat indefinitely until alarm is stopped.
+  /// If false, the alarm stops when the audio ends.
   final bool loopAudio;
 
   /// If true, device will vibrate for 500ms, pause for 500ms and repeat until
